@@ -680,7 +680,9 @@ export class MovementWorld extends World {
       onAction: () => this.windPress(),
       onFocus: () => {
         if (this.wound || this.attract) return;
-        this.app.narrator.say('movement.narration.windPrompt', { once: true, priority: true, delay: 0.4 });
+        // col controller l'invito nomina il suo pulsante (A, o ✕ sul PlayStation)
+        const pad = this.app.input.device === 'pad';
+        this.app.narrator.say(pad ? 'movement.narration.windPromptPad' : 'movement.narration.windPrompt', { once: true, priority: true, delay: 0.4, vars: { A: this.app.ui.padLabel('a') } });
         // lo sguardo scende dolcemente sul centro della corona: si vede tutta, con la minuteria
         if (!this.lookedAtCrown) {
           this.lookedAtCrown = true;
@@ -893,6 +895,8 @@ export class MovementWorld extends World {
         if (clicks > this.windClicks) {
           this.windClicks = clicks;
           app.audio.ratchet(0.2 + this.crownWind * 0.12);
+          // ogni scatto del cricchetto si sente anche in mano, col controller
+          app.input.rumble(0, 0.18 + this.crownWind * 0.2, 35);
         }
         if (this.crownWind >= 1 - 1e-6) this.completeWinding();
       }
@@ -936,6 +940,7 @@ export class MovementWorld extends World {
     // il bilanciere riparte: il tempo meccanico accelera fino alla velocità reale (e il tic con lui)
     app.audio.setTickEnabled(true);
     app.clock.setScale(1, 0.75);
+    app.input.rumble(0.35, 0.25, 280);
     app.audio.chime('complete');
     app.audio.swell([146.83, 220, 293.66, 440], { gain: 0.03, dur: 6 });
     app.narrator.clear();

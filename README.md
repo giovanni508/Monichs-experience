@@ -62,20 +62,28 @@ Consigli per il PC della fiera: alimentazione collegata, risparmio energetico di
 
 ## 4. Comandi
 
-| Azione | Tastiera / mouse | Gamepad |
+| Azione | Tastiera / mouse | Controller (in fiera) |
 |---|---|---|
-| Muoversi | W A S D / frecce | stick sinistro |
-| Guardare | mouse (pointer lock); trascinando, se il browser non concede il pointer lock | stick destro |
-| Lentamente | Shift | B / grilletto sinistro |
-| Interagire | Spazio / clic | A |
+| Muoversi | W A S D / frecce | levetta sinistra o croce |
+| Guardare | mouse (pointer lock); trascinando, se il browser non concede il pointer lock | levetta destra |
+| Lentamente | Shift | LT o B (PlayStation: L2 o ○) |
+| Interagire | Spazio / clic | A (PlayStation: ✕) |
 | **Caricare la corona** (inizio del viaggio) | **tenere premuto** Spazio o il tasto sinistro del mouse | tenere premuto A |
-| Entrare (menu) | Invio / Spazio / pulsante | A / Start |
+| Caricare il rotore (Virentia) | mouse avanti e indietro, o A/D alternati | una levetta a destra e a sinistra |
+| Entrare (menu) | Invio / Spazio / pulsante | croce o levetta per scegliere un capitolo, A per entrare; Menu entra subito |
+| Pausa | Esc | Menu (PlayStation: Options); in pausa croce e A, B riprende |
 | Schermo intero | F | — |
 | Audio on/off | M o pulsante in alto a destra | — |
-| Lingua IT/EN | bandierine in alto a destra, accanto all'audio; L (menu, pausa, epilogo) | Y (menu, epilogo) |
-| **Riavvio segreto** | **Shift+R** | — |
+| Lingua IT/EN | bandierine in alto a destra, accanto all'audio; L (menu, pausa, epilogo) | Y (menu, pausa, epilogo) |
+| **Riavvio segreto** | **Shift+R** | **View e Menu insieme per 2 s** (PlayStation: Create e Options) |
 | Statistiche (nascoste) | Shift+D | — |
 | **Saltare il racconto** (laboratorio) | **tenere premuto** Spazio o il mouse per 1,5 s (compare dopo circa 10 s): si va alla quarta parete, e da lì all'epilogo | tenere premuto A |
+
+**Controller.**
+- **Modelli.** Va bene qualunque controller con la mappatura standard del browser (Xbox, PlayStation, la maggior parte degli altri): si collega al PC prima di aprire Chrome.
+- **Suggerimenti a schermo.** Mostrano i pulsanti del controller in uso, con le lettere dell'Xbox o i simboli del PlayStation, e tornano ai tasti appena si usa la tastiera. Con `kiosk.controller` (in `content/config.json`) li mostrano già dal menu, prima che qualcuno tocchi il controller: Chrome lo vede solo dopo la prima pressione.
+- **Vibrazione.** È leggera: a ogni scatto della corona e del rotore, e quando l'orologio riparte.
+- **Pausa.** Col controller non serve agganciare il mouse, e la pausa si apre solo con Menu.
 
 Esc libera il mouse e mette in pausa ("Il tempo è sospeso"). Lo stesso accade se si cambia scheda o finestra (Alt+Tab, notifiche): al ritorno la pausa è già a schermo e un clic, Spazio o Invio riagganciano il mouse.
 
@@ -90,6 +98,9 @@ Esc libera il mouse e mette in pausa ("Il tempo è sospeso"). Lo stesso accade s
 
 - **Attrazione**: dopo 25 s di inattività sulla schermata iniziale parte un loop: il film Celeste alternato a inquadrature dei mondi. Qualsiasi tasto o movimento riporta al menu.
 - **Audio**: nel menu, nell'attrazione e nell'epilogo c'è solo l'ambiente sonoro. Il tic dell'orologio (8 alternanze al secondo) si sente solo dentro i livelli: movimento, Celeste, Sunset, Virentia e il laboratorio, dove ticchetta piano la Virentia sul banco e si ferma prima della quarta parete.
+  - **Timbro.** Il tic è morbido e scuro (niente brillantezza oltre 5–6 kHz) e sta sotto la musica.
+  - **Abitudine.** Entrando in un mondo si sente bene, poi in circa 13 s scende a fare da sfondo, come un orologio vero che dopo un po' non si nota più. Risale avvicinandosi alla sorgente.
+  - **Voci.** Mentre parlano i fondatori il tic si abbassa ancora.
 - **Voci del laboratorio**: le voci sono in italiano; in inglese sono doppiate. Sono le voci di Giovanni e Filippo, clonate dalle loro registrazioni (due vocali di circa 30 s) e fatte recitare da ElevenLabs v3 con una regia battuta per battuta: un'emozione per ogni battuta (calore, gioco, orgoglio, sorpresa), punti esclamativi per l'energia e puntini di sospensione per le pause, con "Montre" detto alla francese. Il testo esatto dato alla sintesi è in `scripts/lab-voices-regia.json`. Una clip per battuta, in `public/assets/audio/lab/it/` (originali) e `public/assets/audio/lab/en/` (doppiaggio), con il nome della chiave (`g1.mp3`, `f1.mp3`…; istruzioni in `LEGGIMI.txt`), tutte allo stesso livello (-16 LUFS). Ogni battuta parla nella lingua scelta quando comincia e dura quanto la sua clip; cambiando lingua a metà battuta cambiano subito i sottotitoli, la voce finisce la battuta. Il silenzio fra le battute si regola in `content/lab.json` (`gap` per battuta, più corto nei botta e risposta; `pause` a fine capitolo). Se una clip manca, in inglese si sente la voce italiana con i sottotitoli in inglese; senza nessuna clip torna il borbottio segnaposto (sillabe senza parole, due timbri). Per sostituirle, per esempio con battute registrate davvero, basta una registrazione per battuta e `npm run voci -- <cartella> it` (o `en`), che le pulisce, le porta allo stesso livello e le mette al loro posto; dopo la build si possono copiare direttamente in `dist/assets/audio/lab/`. Non serve toccare il codice.
 - **Reset automatico**: dopo 60 s senza input durante il viaggio o nell'epilogo si torna alla schermata iniziale. Mentre i fondatori raccontano il reset è sospeso; in pausa e dal cartello finale torna normale.
 - **Browser senza pointer lock**: alcuni browser non lasciano mai agganciare il mouse (per esempio il browser integrato dell'app Claude). Lì il gioco non resta in pausa: passa al mouse libero, si guarda trascinando sulla scena e un clic interagisce. Tenere premuto senza muovere il mouse resta "tieni premuto". Al ritorno al menu riprova ad agganciare il mouse. In fiera si usa Chrome, che il mouse lo aggancia.
@@ -119,6 +130,7 @@ Tutto è in **`content/texts.json`**. Ogni voce ha la versione italiana e ingles
 |---|---|
 | `cta.text`, `cta.qr.url` | **Testo e QR dell'epilogo (ora segnaposto: da sostituire)**. `cta.enabled: false` li nasconde |
 | `kiosk.idleResetSeconds`, `kiosk.attractAfterSeconds`, `kiosk.hintSeconds` | Tempi della modalità fiera |
+| `kiosk.controller` | `true`: i suggerimenti mostrano i pulsanti del controller già dal menu (in fiera si gioca con quello) |
 | `intro.video`, `intro.videoBrightness` | Film di sfondo della schermata iniziale: percorso e luminosità (1 = il film così com'è, 0,9 = appena attenuato). Se il video manca o non parte, compare l'orologio "che respira" |
 | `audio.volume`, `audio.startMuted` | Volume generale e avvio in muto |
 | `language.default` | Lingua iniziale (`it` o `en`) |

@@ -33,6 +33,8 @@ export class App {
     this.fpsAcc = { frames: 0, time: 0, fps: 0 };
     this.statsOn = false;
     this.pauseShown = false;
+    this.padPaused = false; // pausa chiesta dal controller (Menu): senza pointer lock non c'è altro modo
+    this.padResetT = 0;
   }
 
   setBoot(p) {
@@ -257,8 +259,11 @@ export class App {
     ui.on('mute', () => this.toggleMute());
     ui.on('lang', (l) => i18n.setLang(l));
     ui.on('resume', () => {
-      input.requestLock();
+      this.padPaused = false;
+      // con il controller non serve agganciare il mouse
+      if (input.device !== 'pad') input.requestLock();
       audio.unlock();
+      this.syncPause();
     });
     ui.on('home', () => this.director.restart());
     ui.on('restart', () => this.director.restart());
@@ -334,20 +339,37 @@ export class App {
       if (this.director.state === 'play') ui.showHint(this.config.kiosk?.hintSeconds ?? 7);
     });
 
+    // Controller (mappatura standard): A 0, B 1, Y 3, View 8, Menu 9, croce 12–15.
+    // Menu: la croce o la levetta scelgono, A conferma, Menu entra subito nel tempo, Y cambia lingua.
+    // In gioco: A interagisce (tenuto: carica, salta), Menu mette in pausa. In pausa: A conferma la scelta,
+    // B o Menu riprendono. Epilogo: A o Menu ricominciano.
     input.on('padbutton', (i) => {
       audio.unlock();
       const st = this.director.state;
-      if (i === 0) {
-        if (st === 'play') this.interact();
-        else if (st === 'start') this.director.enter('movement');
-        else if (st === 'epilogue') this.director.restart();
-      } else if (i === 9) {
-        if (st === 'start') this.director.enter('movement');
-        else if (st === 'epilogue') this.director.restart();
-      } else if (i === 3 && (st === 'start' || st === 'epilogue')) {
-        i18n.toggle(); // Y: lingua
+      if (st === 'start') {
+        if (i === 0 && !ui.activatePadFocus()) this.director.enter('movement');
+        else if (i === 9) this.director.enter('movement');
+        else if (i === 3) i18n.toggle();
+      } else if (st === 'play') {
+        if (this.pauseShown) {
+          if (i === 0) ui.activatePadFocus();
+          else if (i === 1 || i === 9) ui.emit('resume');
+          else if (i === 3) i18n.toggle();
+        } else if (i === 9) {
+          this.padPaused = true;
+          this.syncPause();
+        } else if (i === 0) this.interact();
+      } else if (st === 'epilogue') {
+        if (i === 0 || i === 9) this.director.restart();
+        else if (i === 3) i18n.toggle();
       }
     });
+    input.on('padnav', (dir) => {
+      const st = this.director.state;
+      if (st === 'start' || (st === 'play' && this.pauseShown)) ui.movePadFocus(dir);
+    });
+    // i suggerimenti seguono il dispositivo in uso (tastiera e mouse o controller, Xbox o PlayStation)
+    input.on('device', (d) => ui.setInputDevice(d, input.gamepad.type));
 
     document.addEventListener('visibilitychange', () => {
       this.last = performance.now();
@@ -359,7 +381,10 @@ export class App {
   // successa (Esc, cambio scheda, Alt+Tab, un evento perso dal browser) compare "Il tempo è sospeso"
   // e un clic, Spazio o Invio riagganciano il mouse.
   syncPause() {
-    const want = this.director.state === 'play' && !this.noLock && !this.input.locked && !this.input.gamepad.active;
+    // fuori dal gioco la pausa del controller non vale più (si riparte puliti)
+    if (this.director.state !== 'play') this.padPaused = false;
+    const lockPause = !this.noLock && !this.input.locked && !this.input.gamepad.active;
+    const want = this.director.state === 'play' && (this.padPaused || lockPause);
     if (want === this.pauseShown) return;
     this.pauseShown = want;
     this.ui.showPause(want);
@@ -393,6 +418,13 @@ export class App {
     this.time += dt;
 
     this.input.pollGamepad();
+    // staff: View e Menu tenuti insieme per 2 s riportano alla schermata iniziale, da qualunque punto
+    const pb = this.input.gamepad.buttons;
+    this.padResetT = pb[8] && pb[9] ? this.padResetT + dt : 0;
+    if (this.padResetT > 2) {
+      this.padResetT = -1e9;
+      this.director.restart();
+    }
     this.syncPause();
     if (!params.has('noidle')) this.kiosk.update();
     this.clock.update(dt);

@@ -128,14 +128,22 @@ export function babbleLevel(plan, t) {
   return { level: env * e.amp, vowel: e.vowel };
 }
 
+// Livelli e colore del tic per mondo. Otto alternanze al secondo per minuti stancano: il tic sta sotto
+// la musica, scuro (niente brillantezza oltre 5–6 kHz) e un po' nel riverbero, così si sente senza pungere.
 const TICK_TIMBRES = {
-  intro: { gain: 0.55, lp: 8000, hp: 400, rate: 1.0, send: 0.42 },
-  crisp: { gain: 0.9, lp: 12000, hp: 300, rate: 1.0, send: 0.16 },
-  airy: { gain: 0.38, lp: 7000, hp: 1100, rate: 1.06, send: 0.75 },
-  warm: { gain: 0.72, lp: 3000, hp: 120, rate: 0.74, send: 0.38 },
-  precise: { gain: 0.78, lp: 10500, hp: 500, rate: 1.0, send: 0.07 },
-  soft: { gain: 0.45, lp: 6000, hp: 300, rate: 0.92, send: 0.5 },
+  intro: { gain: 0.3, lp: 5200, hp: 400, rate: 1.0, send: 0.45 },
+  crisp: { gain: 0.38, lp: 6000, hp: 300, rate: 1.0, send: 0.24 },
+  airy: { gain: 0.22, lp: 5000, hp: 900, rate: 1.06, send: 0.75 },
+  warm: { gain: 0.36, lp: 3000, hp: 120, rate: 0.74, send: 0.4 },
+  precise: { gain: 0.34, lp: 5800, hp: 450, rate: 1.0, send: 0.16 },
+  soft: { gain: 0.26, lp: 4200, hp: 300, rate: 0.92, send: 0.5 },
 };
+// Abitudine: entrando in un mondo il tic si sente bene, poi in circa 13 s scende a fare da sfondo
+// (come un orologio vero, che dopo un po' non si nota più); risale avvicinandosi alla sorgente.
+const TICK_REST = 0.45;
+const TICK_SETTLE = 24; // secondi per passare da 1 a 0 (si ferma a TICK_REST)
+// mentre parlano le voci del laboratorio il tic si fa da parte
+const TICK_UNDER_VOICE = 0.5;
 
 function rand(a, b) {
   return a + Math.random() * (b - a);
@@ -152,6 +160,9 @@ export class AudioEngine {
     this.nextBeat = null;
     // il tic parte spento: si sente solo dentro i livelli (mai nel menu, nell'attrazione, nell'epilogo)
     this.tickState = { presence: 0.6, pan: 0, timbre: 'intro', enabled: false };
+    this.tickAttention = 1;
+    this.lastPresence = null;
+    this.clipsPlaying = 0;
     this.events = [];
   }
 
@@ -333,6 +344,8 @@ export class AudioEngine {
   }
 
   // Un "tic" è fatto di tre micro-urti (sblocco, impulso, caduta) e di un breve risuonare metallico.
+  // Morbido apposta: poco rumore d'urto e parziali acute deboli, più corpo sotto (un clic secco e
+  // brillante, ripetuto 8 volte al secondo, dopo qualche minuto stanca).
   makeTick(variant) {
     const ctx = this.ctx;
     const sr = ctx.sampleRate;
@@ -340,8 +353,8 @@ export class AudioEngine {
     const buf = ctx.createBuffer(1, len, sr);
     const d = buf.getChannelData(0);
     const partials = variant === 0
-      ? [[3150, 0.011, 0.45], [4870, 0.008, 0.32], [7420, 0.006, 0.22], [10150, 0.0035, 0.15], [1690, 0.018, 0.2]]
-      : [[2860, 0.012, 0.45], [4520, 0.009, 0.32], [6960, 0.006, 0.22], [9480, 0.0035, 0.14], [1530, 0.02, 0.2]];
+      ? [[3150, 0.011, 0.4], [4870, 0.008, 0.22], [7420, 0.005, 0.08], [10150, 0.003, 0.03], [1690, 0.02, 0.3]]
+      : [[2860, 0.012, 0.4], [4520, 0.009, 0.22], [6960, 0.005, 0.08], [9480, 0.003, 0.03], [1530, 0.022, 0.3]];
     const clicks = [[0, 0.45], [0.0032, 0.6], [0.0071, 1.0]];
     const noise = new Float32Array(len);
     for (let i = 0; i < len; i++) noise[i] = Math.random() * 2 - 1;
@@ -354,13 +367,13 @@ export class AudioEngine {
       for (const [t0, a] of clicks) {
         const tt = t - t0;
         if (tt < 0) continue;
-        const env = Math.exp(-tt / 0.0009) * a;
-        const n = noise[i] * env;
+        const env = Math.exp(-tt / 0.0012) * a;
+        const n = noise[i] * env * 0.55;
         s += n;
         for (const [f, dec, pa] of partials) s += pa * a * Math.sin(2 * Math.PI * f * tt) * Math.exp(-tt / dec);
-        s += 0.18 * a * Math.sin(2 * Math.PI * 880 * tt) * Math.exp(-tt / 0.004);
+        s += 0.24 * a * Math.sin(2 * Math.PI * 880 * tt) * Math.exp(-tt / 0.005);
       }
-      hp = 0.82 * (hp + s - prev);
+      hp = 0.93 * (hp + s - prev);
       prev = s;
       d[i] = hp;
       peak = Math.max(peak, Math.abs(hp));
@@ -374,6 +387,8 @@ export class AudioEngine {
   setTickTimbre(name, immediate = false) {
     if (!this.ctx) return;
     const tb = TICK_TIMBRES[name] || TICK_TIMBRES.crisp;
+    // un mondo nuovo: il tic si fa sentire di nuovo, poi torna sfondo
+    if (name !== this.tickState.timbre) this.tickAttention = 1;
     this.tickTimbre = tb;
     this.tickState.timbre = name;
     const t = this.ctx.currentTime;
@@ -390,10 +405,12 @@ export class AudioEngine {
   }
 
   setTickEnabled(on) {
+    // l'orologio che riparte (la corona caricata, un nuovo livello) si fa sentire, poi torna sfondo
+    if (on && !this.tickState.enabled) this.tickAttention = 1;
     this.tickState.enabled = !!on;
   }
 
-  updateTicks(clock) {
+  updateTicks(clock, dt = 0) {
     if (!this.ready || !this.running) return;
     const ctx = this.ctx;
     const now = ctx.currentTime;
@@ -409,7 +426,12 @@ export class AudioEngine {
       return;
     }
 
-    const target = tb.gain * st.presence;
+    // abitudine: scende verso TICK_REST e risale quando la presenza cresce (ci si avvicina alla sorgente)
+    const rise = Math.max(0, st.presence - (this.lastPresence ?? st.presence));
+    this.lastPresence = st.presence;
+    this.tickAttention = Math.min(1, Math.max(TICK_REST, this.tickAttention - dt / TICK_SETTLE + rise * 1.5));
+    const duck = this.clipsPlaying > 0 ? TICK_UNDER_VOICE : 1;
+    const target = tb.gain * st.presence * this.tickAttention * duck;
     this.tickGain.gain.setTargetAtTime(target, now, 0.12);
     if (this.tickPan) this.tickPan.pan.setTargetAtTime(Math.max(-1, Math.min(1, st.pan)), now, 0.15);
 
@@ -666,7 +688,7 @@ export class AudioEngine {
   update(dt, clock) {
     if (!this.ready) return;
     if (this.current && this.current.update && this.running) this.current.update(dt);
-    if (clock) this.updateTicks(clock);
+    if (clock) this.updateTicks(clock, dt);
   }
 
   // ---------------------------------------------------------------- voci del laboratorio
@@ -759,7 +781,10 @@ export class AudioEngine {
     an.connect(this.voiceBus);
     src.start(ctx.currentTime, Math.max(0, Math.min(offset, buffer.duration - 0.01)));
     const tape = { src, an, data: new Float32Array(an.fftSize) };
+    // quante voci stanno parlando: il tic si abbassa sotto di loro
+    this.clipsPlaying++;
     src.onended = () => {
+      this.clipsPlaying = Math.max(0, this.clipsPlaying - 1);
       try {
         src.disconnect();
         an.disconnect();

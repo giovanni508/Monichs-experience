@@ -26,7 +26,7 @@ export class Player {
     this.slowWalk = 1.8;
     this.verticalFactor = 0.6; // solo camera fluttuante: quanto lo sguardo porta su/giù
     this.mouseSensitivity = 0.0019;
-    this.padSensitivity = 2.2;
+    this.padSensitivity = 2.6; // rad/s a levetta piena
     this.accel = 2.4;
     this.lookResponse = 13;
     this.breathAmp = 0.03;
@@ -90,8 +90,10 @@ export class Player {
       this.targetYaw -= dx * this.mouseSensitivity;
       this.targetPitch -= dy * this.mouseSensitivity;
       if (input.gamepad.active) {
-        this.targetYaw -= input.gamepad.rx * this.padSensitivity * dt;
-        this.targetPitch -= input.gamepad.ry * this.padSensitivity * dt;
+        // curva sulla levetta destra: piccoli spostamenti precisi per mirare, a fondo corsa si gira svelti
+        const curve = (v) => Math.sign(v) * Math.pow(Math.abs(v), 1.6);
+        this.targetYaw -= curve(input.gamepad.rx) * this.padSensitivity * dt;
+        this.targetPitch -= curve(input.gamepad.ry) * this.padSensitivity * 0.8 * dt;
       }
     } else if (!this.frozen) {
       // da fermi (pausa, transizioni) i movimenti del mouse si scartano; se "congelati" li usa il mondo

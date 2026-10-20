@@ -22,6 +22,7 @@
       "look": { "it": "guardare", "en": "look" },
       "slow": { "it": "lentamente", "en": "slowly" },
       "interact": { "it": "interagire", "en": "interact" },
+      "pause": { "it": "pausa", "en": "pause" },
       "fullscreen": { "it": "schermo intero", "en": "full screen" }
     },
     "keys": {
@@ -30,9 +31,11 @@
       "space": { "it": "Spazio", "en": "Space" }
     },
     "pressAny": { "it": "Tocca un tasto per entrare nel tempo", "en": "Press any key to enter time" },
+    "pressAnyPad": { "it": "Premi un pulsante per entrare nel tempo", "en": "Press any button to enter time" },
     "pause": {
       "title": { "it": "Il tempo è sospeso", "en": "Time is suspended" },
       "hint": { "it": "Clicca per riprendere", "en": "Click to resume" },
+      "hintPad": { "it": "Scegli con la croce e conferma con {A}", "en": "Choose with the D-pad and confirm with {A}" },
       "resume": { "it": "Riprendi", "en": "Resume" },
       "home": { "it": "Torna all’inizio", "en": "Back to start" }
     },
@@ -113,6 +116,7 @@
       "intro1": { "it": "Diventa piccolo. Più piccolo di un granello di polvere.", "en": "Become small. Smaller than a speck of dust." },
       "intro2": { "it": "Ogni viaggio comincia dalla corona.", "en": "Every journey begins at the crown." },
       "windPrompt": { "it": "L’orologio è fermo. Carica la corona: tieni premuto Spazio, o il mouse.", "en": "The watch has stopped. Wind the crown: hold Space, or the mouse button." },
+      "windPromptPad": { "it": "L’orologio è fermo. Carica la corona: tieni premuto {A}.", "en": "The watch has stopped. Wind the crown: hold {A}." },
       "wound": { "it": "La molla è carica. Il cuore riprende a battere.", "en": "The mainspring is wound. The heart begins to beat again." },
       "stem": { "it": "Segui l’asta. Oltre la cassa, il movimento respira.", "en": "Follow the stem. Beyond the case, the movement breathes." },
       "inside": { "it": "Sei dentro il calibro SW200-2 Élaboré. Swiss Made.", "en": "You are inside the SW200-2 Élaboré calibre. Swiss Made." },
@@ -277,6 +281,7 @@
       "arrive2": { "it": "Virentia. Ref. M-003. Un arazzo vegetale, custodito nel tempo.", "en": "Virentia. Ref. M-003. A tapestry of leaves, kept in time." },
       "toRotor": { "it": "Alza lo sguardo: il sole di questa foresta è un rotore.", "en": "Look up: the sun of this forest is a rotor." },
       "windPrompt": { "it": "Muovi il mouse avanti e indietro, come un polso che vive.", "en": "Move the mouse back and forth, like a living wrist." },
+      "windPromptPad": { "it": "Muovi la levetta a destra e a sinistra, come un polso che vive.", "en": "Move the stick left and right, like a living wrist." },
       "windMid": { "it": "La molla si stringe. La foresta si accende.", "en": "The spring tightens. The forest lights up." },
       "windDone": { "it": "Ecco: il tuo gesto è diventato tempo.", "en": "There: your gesture has become time." },
       "exit": { "it": "Quando vuoi, la luce ti riporta al cuore del movimento.", "en": "Whenever you wish, the light will take you back to the heart of the movement." }

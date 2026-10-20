@@ -35,6 +35,12 @@ export class UI {
     this.cardHotspot = null;
     this.subtitleTimer = null;
     this.hintTimer = null;
+    // Con il controller (in fiera si gioca con quello) i suggerimenti mostrano i suoi pulsanti e i menu
+    // si scorrono con la croce; config.kiosk.controller li mostra già prima che qualcuno lo tocchi
+    this.device = config.kiosk?.controller ? 'pad' : 'kbm';
+    this.padType = 'xbox';
+    this.padFocused = null;
+    document.body.classList.toggle('input-pad', this.device === 'pad');
     this.build();
     i18n.onChange(() => this.refreshTexts());
   }
@@ -231,7 +237,26 @@ export class UI {
     }
   }
 
+  // Il nome di un pulsante come è scritto sul controller (PlayStation: simboli; gli altri: lettere Xbox)
+  padLabel(b) {
+    const ps = this.padType === 'playstation';
+    return { a: ps ? '✕' : 'A', b: ps ? '○' : 'B', y: ps ? '△' : 'Y', lt: ps ? 'L2' : 'LT', menu: ps ? 'Options' : 'Menu', view: ps ? 'Create' : 'View' }[b];
+  }
+
+  // Legenda dei comandi del controller: levette, A, grilletto per andare piano, Menu per la pausa
+  padLegendHTML() {
+    const k = (label, cls = '') => `<span class="key${cls ? ` ${cls}` : ''}">${label}</span>`;
+    return [
+      `<span>${k('L', 'stick')} ${this.t('ui.controls.move')}</span>`,
+      `<span>${k('R', 'stick')} ${this.t('ui.controls.look')}</span>`,
+      `<span>${k(this.padLabel('a'), 'btn')} ${this.t('ui.controls.interact')}</span>`,
+      `<span>${k(this.padLabel('lt'), 'wide')} ${this.t('ui.controls.slow')}</span>`,
+      `<span>${k(this.padLabel('menu'), 'wide')} ${this.t('ui.controls.pause')}</span>`,
+    ].join('');
+  }
+
   controlsHTML() {
+    if (this.device === 'pad') return this.padLegendHTML();
     const k = (label, wide) => `<span class="key${wide ? ' wide' : ''}">${label}</span>`;
     return [
       `<span>${k('W')}${k('A')}${k('S')}${k('D')} ${this.t('ui.controls.move')}</span>`,
@@ -263,9 +288,10 @@ export class UI {
       this.chapterBtns[id].querySelector('.name').textContent = this.t(`ui.chapter.${id}`);
     }
     s.querySelector('.controls').innerHTML = this.controlsHTML();
-    this.attractCue.querySelector('.press').textContent = this.t('ui.pressAny');
+    const pad = this.device === 'pad';
+    this.attractCue.querySelector('.press').textContent = this.t(pad ? 'ui.pressAnyPad' : 'ui.pressAny');
     this.pause.querySelector('.big').textContent = this.t('ui.pause.title');
-    this.pause.querySelector('.small').textContent = this.t('ui.pause.hint');
+    this.pause.querySelector('.small').textContent = this.t(pad ? 'ui.pause.hintPad' : 'ui.pause.hint', { A: this.padLabel('a'), B: this.padLabel('b') });
     this.pause.querySelector('.resume .lbl').textContent = this.t('ui.pause.resume');
     this.pause.querySelector('.home').textContent = this.t('ui.pause.home');
     this.skip.querySelector('.lbl').textContent = this.t('lab.skip');
@@ -285,6 +311,7 @@ export class UI {
     if (show) {
       this.setAttract(false);
       this.startEntrance();
+      this.focusPad(this.enterBtn);
     } else this.attractCue.classList.add('hidden');
   }
 
@@ -357,6 +384,7 @@ export class UI {
   // ------------------------------------------------------------------ suggerimento comandi
 
   hintHTML() {
+    if (this.device === 'pad') return this.padLegendHTML();
     const k = (label, wide) => `<span class="key${wide ? ' wide' : ''}">${label}</span>`;
     return [
       `<span>${k('W')}${k('A')}${k('S')}${k('D')} ${this.t('ui.controls.move')}</span>`,
@@ -432,7 +460,9 @@ export class UI {
     const act = c.querySelector('.action');
     if (h.actionKey && !h.actionDone) {
       act.classList.remove('none');
-      act.querySelector('.key').textContent = this.t('ui.keys.space');
+      const key = act.querySelector('.key');
+      key.textContent = this.device === 'pad' ? this.padLabel('a') : this.t('ui.keys.space');
+      key.classList.toggle('btn', this.device === 'pad');
       act.querySelector('.label').textContent = this.t(h.actionKey);
     } else act.classList.add('none');
   }
@@ -454,6 +484,75 @@ export class UI {
 
   showPause(show) {
     this.pause.classList.toggle('hidden', !show);
+    if (show) this.focusPad(this.pause.querySelector('.resume'));
+  }
+
+  // ------------------------------------------------------------------ menu con il controller
+
+  setInputDevice(device, padType = this.padType) {
+    if (device === this.device && padType === this.padType) return;
+    this.device = device;
+    this.padType = padType;
+    document.body.classList.toggle('input-pad', device === 'pad');
+    this.refreshTexts();
+    if (device === 'pad' && !this.focusables().includes(this.padFocused)) this.focusPad(this.focusables()[0]);
+  }
+
+  // i pulsanti su cui si muove il controller nella schermata visibile
+  focusables() {
+    if (!this.pause.classList.contains('hidden')) return [...this.pause.querySelectorAll('button')];
+    if (!this.epilogue.classList.contains('hidden')) return [this.epilogue.querySelector('.restart')];
+    if (!this.start.classList.contains('hidden')) return [this.enterBtn, ...Object.values(this.chapterBtns)].filter((b) => !b.disabled);
+    return [];
+  }
+
+  // la scelta corrente (si vede solo usando il controller: body.input-pad)
+  focusPad(elm) {
+    this.padFocused?.classList.remove('pad-focus');
+    this.padFocused = elm || null;
+    this.padFocused?.classList.add('pad-focus');
+  }
+
+  // la croce sposta la scelta sul pulsante più vicino in quella direzione
+  movePadFocus(dir) {
+    const list = this.focusables();
+    if (!list.length) return false;
+    const cur = list.includes(this.padFocused) ? this.padFocused : null;
+    if (!cur) {
+      this.focusPad(list[0]);
+      return true;
+    }
+    const center = (e) => {
+      const r = e.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    };
+    const c0 = center(cur);
+    let best = null;
+    let bestScore = Infinity;
+    for (const e of list) {
+      if (e === cur) continue;
+      const c = center(e);
+      const dx = c.x - c0.x;
+      const dy = c.y - c0.y;
+      const along = dir === 'up' ? -dy : dir === 'down' ? dy : dir === 'left' ? -dx : dx;
+      const across = dir === 'up' || dir === 'down' ? Math.abs(dx) : Math.abs(dy);
+      if (along <= 4) continue;
+      const score = along + across * 2;
+      if (score < bestScore) {
+        bestScore = score;
+        best = e;
+      }
+    }
+    if (best) this.focusPad(best);
+    return !!best;
+  }
+
+  // A: preme il pulsante scelto (false se non c'è una scelta valida)
+  activatePadFocus() {
+    const e = this.padFocused;
+    if (!e || !this.focusables().includes(e)) return false;
+    e.click();
+    return true;
   }
 
   refreshEpilogue() {
@@ -523,6 +622,7 @@ export class UI {
 
   showEpilogue(show) {
     this.epilogue.classList.toggle('hidden', !show);
+    if (show) this.focusPad(this.epilogue.querySelector('.restart'));
   }
 
   setMuted(m) {

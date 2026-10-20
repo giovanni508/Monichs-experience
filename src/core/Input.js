@@ -1,4 +1,5 @@
-// Tastiera (codici fisici: funziona con layout italiano), mouse con Pointer Lock, gamepad (bonus).
+// Tastiera (codici fisici: funziona con layout italiano), mouse con Pointer Lock e controller (in fiera
+// si gioca con quello: mappatura standard, Xbox o PlayStation).
 const MOVE_KEYS = {
   forward: ['KeyW', 'ArrowUp'],
   back: ['KeyS', 'ArrowDown'],
@@ -15,7 +16,10 @@ export class Input {
     this.mouseDY = 0;
     this.lastActivity = performance.now();
     this.handlers = {};
-    this.gamepad = { active: false, lx: 0, ly: 0, rx: 0, ry: 0, buttons: [] };
+    this.gamepad = { active: false, lx: 0, ly: 0, rx: 0, ry: 0, buttons: [], type: 'xbox', pad: null };
+    // l'ultimo dispositivo usato ('kbm' tastiera e mouse, 'pad' controller): decide i suggerimenti a schermo
+    this.device = 'kbm';
+    this.nav = { dir: null, next: 0 };
     this.lockWanted = false;
     this.lockRequestedAt = -1e9;
     this.enabled = true;
@@ -36,6 +40,8 @@ export class Input {
     document.addEventListener('mousemove', (e) => {
       // il rilascio del tasto fuori dalla finestra può non arrivare: lo dice lo stato dei tasti
       if (this.mouseHeld && !(e.buttons & 1)) this.mouseHeld = false;
+      // un mouse appena sfiorato non cambia dispositivo (vibrazioni del tavolo, un urto)
+      if (Math.abs(e.movementX) + Math.abs(e.movementY) > 3) this.setDevice('kbm');
       const drag = this.free && this.mouseHeld && this.press?.onScene;
       if (this.locked || drag) {
         // Alcuni browser producono picchi anomali all'aggancio del pointer lock: li scartiamo
@@ -59,6 +65,7 @@ export class Input {
     });
     window.addEventListener('mousedown', (e) => {
       this.activity();
+      this.setDevice('kbm');
       if (e.button === 0) {
         this.mouseHeld = true;
         // premuto sulla scena e non su un pulsante: senza pointer lock, trascinando si guarda intorno
@@ -87,12 +94,31 @@ export class Input {
     this.lastActivity = performance.now();
   }
 
+  setDevice(d) {
+    if (this.device === d) return;
+    this.device = d;
+    this.emit('device', d);
+  }
+
+  // Vibrazione leggera del controller, se c'è e la supporta: strong e weak 0..1, durata in ms
+  rumble(strong, weak, ms) {
+    const act = this.gamepad.pad?.vibrationActuator;
+    if (!act?.playEffect || this.device !== 'pad') return;
+    try {
+      const p = act.playEffect('dual-rumble', { startDelay: 0, duration: ms, strongMagnitude: strong, weakMagnitude: weak });
+      if (p?.catch) p.catch(() => {});
+    } catch (e) {
+      // vibrazione non disponibile: si continua senza
+    }
+  }
+
   idleSeconds() {
     return (performance.now() - this.lastActivity) / 1000;
   }
 
   onKeyDown(e) {
     this.activity();
+    this.setDevice('kbm');
     if (PREVENT.has(e.code) && !(e.target instanceof HTMLInputElement)) e.preventDefault();
     if (e.repeat) {
       this.keys.add(e.code);
@@ -188,8 +214,9 @@ export class Input {
     if (this.any(MOVE_KEYS.right)) x += 1;
     if (this.any(MOVE_KEYS.left)) x -= 1;
     if (this.gamepad.active) {
-      x += this.gamepad.lx;
-      z -= this.gamepad.ly;
+      const b = this.gamepad.buttons;
+      x += this.gamepad.lx + (b[15] ? 1 : 0) - (b[14] ? 1 : 0);
+      z += -this.gamepad.ly + (b[12] ? 1 : 0) - (b[13] ? 1 : 0);
     }
     const len = Math.hypot(x, z);
     if (len > 1) {
@@ -217,8 +244,12 @@ export class Input {
     const g = this.gamepad;
     if (!pad) {
       g.active = false;
+      g.pad = null;
       return;
     }
+    g.pad = pad;
+    // PlayStation (Sony) ha croce, cerchio, quadrato, triangolo; tutti gli altri le lettere dell'Xbox
+    g.type = /054c|sony|dualsense|dualshock|playstation/i.test(pad.id) ? 'playstation' : 'xbox';
     const dz = (v) => (Math.abs(v) < 0.16 ? 0 : (v - Math.sign(v) * 0.16) / 0.84);
     g.lx = dz(pad.axes[0] || 0);
     g.ly = dz(pad.axes[1] || 0);
@@ -230,10 +261,24 @@ export class Input {
     if (moved) {
       g.active = true;
       this.activity();
+      this.setDevice('pad');
     }
     now.forEach((pressed, i) => {
       if (pressed && !prev[i]) this.emit('padbutton', i);
     });
     g.buttons = now;
+
+    // menu: croce direzionale o levetta sinistra; tenendo premuto la scelta scorre (dopo 0,42 s, ogni 0,16 s)
+    const dir = now[12] ? 'up' : now[13] ? 'down' : now[14] ? 'left' : now[15] ? 'right'
+      : g.ly < -0.6 ? 'up' : g.ly > 0.6 ? 'down' : g.lx < -0.6 ? 'left' : g.lx > 0.6 ? 'right' : null;
+    const t = performance.now();
+    if (dir !== this.nav.dir) {
+      this.nav.dir = dir;
+      this.nav.next = t + 420;
+      if (dir) this.emit('padnav', dir);
+    } else if (dir && t >= this.nav.next) {
+      this.nav.next = t + 160;
+      this.emit('padnav', dir);
+    }
   }
 }

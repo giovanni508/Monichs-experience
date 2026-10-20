@@ -9,7 +9,8 @@
   "kiosk": {
     "idleResetSeconds": 60,
     "attractAfterSeconds": 25,
-    "hintSeconds": 7
+    "hintSeconds": 7,
+    "controller": true
   },
 
   "audio": {

@@ -863,7 +863,7 @@ export class VirentiaWorld extends World {
     this.winding = { lastSign: 0, swing: 0, t: 0, swings: 0, done: false, idle: 0 };
     this.app.player.frozen = true; // durante il gesto lo sguardo resta fermo: il mouse carica
     this.app.narrator.clear();
-    this.app.narrator.say('virentia.narration.windPrompt', { priority: true, hold: 6 });
+    this.app.narrator.say(this.app.input.device === 'pad' ? 'virentia.narration.windPromptPad' : 'virentia.narration.windPrompt', { priority: true, hold: 6 });
     this.keyOff = this.app.input.on('key', (e) => {
       // alternativa da tastiera: A/D o frecce alternate
       if (!this.winding || this.winding.done) return;
@@ -879,6 +879,7 @@ export class VirentiaWorld extends World {
       this.energy = Math.min(1, this.energy + 0.075);
       this.rotorVel += 0.9 * sign * -1;
       this.app.audio.ratchet(0.18);
+      this.app.input.rumble(0, 0.3, 45);
       if (this.energy > 0.5 && !w.mid) {
         w.mid = true;
         this.app.narrator.say('virentia.narration.windMid', { priority: true });
@@ -897,9 +898,11 @@ export class VirentiaWorld extends World {
     w.t += dt;
     w.idle += dt;
     const input = this.app.input;
-    // il mouse (o lo stick destro) muove il rotore: le inversioni di direzione caricano la molla
+    // il mouse (o una delle due levette) muove il rotore: le inversioni di direzione caricano la molla
     const [mdx] = input.consumeMouse();
-    const dx = mdx + (input.gamepad.active ? input.gamepad.rx * 900 * dt : 0);
+    const g = input.gamepad;
+    const stick = Math.abs(g.rx) > Math.abs(g.lx) ? g.rx : g.lx;
+    const dx = mdx + (g.active ? stick * 900 * dt : 0);
     if (Math.abs(dx) > 0.5) this.addSwing(Math.sign(dx), Math.abs(dx));
     this.rotorAngle += dx * 0.0016;
     // dopo un po' di inattività il gesto viene "aiutato" (in fiera nessuno deve restare bloccato)
