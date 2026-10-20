@@ -14,8 +14,10 @@
   },
 
   "audio": {
+    "_info": "volume: volume generale 0–1. startMuted: si parte in muto. piano: volume della melodia di pianoforte rispetto al resto della musica (1 = come tarato, 0.5 = più discreto, 1.5 = più presente, 0 = spento).",
     "volume": 0.8,
-    "startMuted": false
+    "startMuted": false,
+    "piano": 1
   },
 
   "quality": {

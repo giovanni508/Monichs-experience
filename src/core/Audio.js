@@ -149,6 +149,22 @@ function rand(a, b) {
   return a + Math.random() * (b - a);
 }
 
+const midiFreq = (m) => 440 * Math.pow(2, (m - 69) / 12);
+
+// Pianoforte: scale (semitoni dalla tonica) e frasi. Le frasi sono gradi della scala (0 = tonica,
+// oltre la fine si sale di ottava) con la durata in battiti. La prima, in ogni mondo, è il motivo di
+// Monichs: 6-3-2-1, una discesa che si posa ("un oggetto che ti fa rallentare"); le altre rispondono.
+const PENTA = [0, 2, 4, 7, 9];
+const PENTA_MINOR = [0, 3, 5, 7, 10];
+const PIANO_PHRASES = [
+  [[4, 1.5], [2, 1], [1, 1], [0, 3]],
+  [[0, 1], [1, 1], [2, 1.5], [4, 1], [3, 3]],
+  [[2, 1], [3, 1], [4, 2], [3, 3]],
+  [[5, 2], [4, 1], [2, 4]],
+  [[3, 1.5], [2, 1], [3, 1], [1, 1], [0, 3]],
+  [[1, 1], [2, 1], [0, 3]],
+];
+
 export class AudioEngine {
   constructor() {
     this.ctx = null;
@@ -163,12 +179,14 @@ export class AudioEngine {
     this.tickAttention = 1;
     this.lastPresence = null;
     this.clipsPlaying = 0;
+    this.lastVoiceAt = -Infinity;
     this.events = [];
   }
 
-  init({ volume = 0.8, muted = false } = {}) {
+  init({ volume = 0.8, muted = false, piano = 1 } = {}) {
     this.volume = volume;
     this.muted = muted;
+    this.pianoLevel = Math.max(0, Number(piano) || 0); // config audio.piano: 0 lo spegne
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     try {
@@ -528,8 +546,11 @@ export class AudioEngine {
       return o;
     };
 
-    // Pad: oscillatori leggermente scordati → filtro passa-basso con LFO lento
+    // Pad: oscillatori leggermente scordati → filtro passa-basso con LFO lento. Un po' più bassi e scuri
+    // di come erano nati: lasciano il registro medio al pianoforte
     const pad = (freqs, { type = 'triangle', gain = 0.06, cutoff = 1200, q = 0.5, lfoRate = 0.04, lfoDepth = 300, breathe = 0.4 } = {}) => {
+      gain *= 0.85;
+      cutoff *= 0.88;
       const filt = keep(ctx.createBiquadFilter());
       filt.type = 'lowpass';
       filt.frequency.value = cutoff;
@@ -610,12 +631,78 @@ export class AudioEngine {
       this.fmBell(f, { gain, decay: rand(3.5, 6), dest: out, ratio: 1.41, index: 2.2 });
     };
 
+    // Pianoforte: una melodia lenta e rada sopra l'atmosfera, nella tonalità del mondo. Frasi di poche
+    // note (PIANO_PHRASES, la prima è il motivo) e silenzi lunghi: il tempo ha il ritmo che decidi tu.
+    // root: la tonica (MIDI); low–high: il registro della melodia; rest: il silenzio dopo ogni frase (s).
+    // gain è tarato mondo per mondo sull'ambiente: negli attacchi la frase arriva al suo livello (pesatura A),
+    // poi la coda ci si perde dentro (vedi ARCHITECTURE, "Musica" → "Taratura").
+    const piano = ({ root, scale = PENTA, low = 62, high = 81, bpm = 50, gain = 0.05, rest = [5, 10], bass = 0.5 }) => {
+      if (!(this.pianoLevel > 0)) return;
+      const beat = 60 / bpm;
+      const bus = keep(ctx.createGain());
+      bus.gain.value = this.pianoLevel;
+      bus.connect(out);
+      const degree = (d) => root + scale[((d % scale.length) + scale.length) % scale.length] + 12 * Math.floor(d / scale.length);
+      const fit = (m) => {
+        while (m > high) m -= 12;
+        while (m < low) m += 12;
+        return m;
+      };
+      let bassM = root - 12;
+      while (bassM > 48) bassM -= 12;
+      while (bassM < 36) bassM += 12;
+      let wait = rand(2.5, 5);
+      let count = 0;
+      timers.push((dt) => {
+        wait -= dt;
+        if (wait > 0) return;
+        // la frase aspetta che i fondatori abbiano finito di parlare, e che passi il "respiro di silenzio"
+        if (!this.running || this.voiceRecent(1.5) || this.musicBus.gain.value < 0.4) {
+          wait = 0.5;
+          return;
+        }
+        const phrase = count === 0 ? PIANO_PHRASES[0] : PIANO_PHRASES[1 + Math.floor(Math.random() * (PIANO_PHRASES.length - 1))];
+        // dopo il motivo, a volte la frase sale o scende di un grado: lo stesso pensiero detto di nuovo
+        const shift = count === 0 ? 0 : [0, 0, 0, 1, -1][Math.floor(Math.random() * 5)];
+        // la frase si sposta di ottava tutta insieme, così il profilo resta quello (il motivo scende sempre);
+        // fra le ottave possibili, quella che sta nel registro e più vicina al suo centro
+        const raw = phrase.map(([d]) => degree(d + shift));
+        const mid = (Math.min(...raw) + Math.max(...raw)) / 2;
+        let k = 0;
+        let best = Infinity;
+        for (let o = -36; o <= 36; o += 12) {
+          const over = raw.reduce((acc, m) => acc + Math.max(0, m + o - high) + Math.max(0, low - m - o), 0);
+          const score = over * 100 + Math.abs(mid + o - (low + high) / 2);
+          if (score < best) {
+            best = score;
+            k = o;
+          }
+        }
+        const t0 = ctx.currentTime + 0.05;
+        let t = 0;
+        let last = null;
+        phrase.forEach(([, dur], i) => {
+          const m = fit(raw[i] + k);
+          this.feltPiano(midiFreq(m), { when: t0 + t + rand(-0.02, 0.03), velocity: (i === 0 ? 0.5 : 0.4) * rand(0.85, 1.1), dest: bus, pan: (m - 70) / 40, gain });
+          last = m;
+          t += dur * beat * rand(0.96, 1.06);
+        });
+        // mano sinistra: una nota grave lunga sotto l'inizio della frase (la tonica, a volte la quinta)
+        if (Math.random() < bass) this.feltPiano(midiFreq(bassM + (Math.random() < 0.75 ? 0 : 7)), { when: t0, velocity: 0.3, dest: bus, pan: -0.25, gain });
+        // a volte l'ultima nota torna un'ottava sopra, appena sfiorata, come un'eco
+        if (last !== null && last + 12 <= high + 7 && Math.random() < 0.25) this.feltPiano(midiFreq(last + 12), { when: t0 + t + beat, velocity: 0.2, dest: bus, pan: 0.3, gain });
+        count++;
+        wait = t + rand(rest[0], rest[1]);
+      });
+    };
+
     switch (name) {
       case 'intro':
         P.level = 0.55;
         drone([55, 82.41], 0.07);
         pad([110, 164.81, 277.18, 493.88], { type: 'triangle', gain: 0.03, cutoff: 900, lfoDepth: 250 });
-        every(5, 11, sparkle([880, 1318.5, 1108.7], 0.018));
+        every(9, 16, sparkle([880, 1318.5, 1108.7], 0.012));
+        piano({ root: 57, low: 62, high: 81, bpm: 48, gain: 0.1, rest: [6, 12] }); // la maggiore
         break;
       case 'movement':
         P.level = 0.55;
@@ -623,23 +710,27 @@ export class AudioEngine {
         drone([110], 0.035, 'triangle');
         pad([146.83, 220, 329.63, 440], { type: 'sawtooth', gain: 0.012, cutoff: 700, q: 0.7, lfoDepth: 260 });
         noiseBed({ color: 'white', type: 'bandpass', freq: 3600, q: 7, gain: 0.012, freqLfo: [0.03, 900], gainLfo: [0.05, 0.8] });
-        every(3.5, 7.5, sparkle([587.33, 659.25, 880, 987.77, 1174.66], 0.02));
+        every(7, 12, sparkle([587.33, 659.25, 880, 987.77, 1174.66], 0.012));
+        piano({ root: 62, low: 62, high: 81, bpm: 52, gain: 0.063 }); // re maggiore, il passo del bilanciere
         break;
       case 'celeste':
         P.level = 0.6;
-        pad([146.83, 220, 369.99, 659.25, 880], { type: 'sine', gain: 0.045, cutoff: 2600, lfoDepth: 700, lfoRate: 0.03 });
-        pad([293.66, 440], { type: 'triangle', gain: 0.018, cutoff: 1800 });
-        noiseBed({ color: 'pink', type: 'bandpass', freq: 650, q: 0.6, gain: 0.07, freqLfo: [0.045, 380], gainLfo: [0.06, 0.7] });
+        // il cielo era tutto nel registro medio-alto: più leggero, per lasciare spazio al pianoforte
+        pad([146.83, 220, 369.99, 659.25, 880], { type: 'sine', gain: 0.03, cutoff: 2600, lfoDepth: 700, lfoRate: 0.03 });
+        pad([293.66, 440], { type: 'triangle', gain: 0.014, cutoff: 1800 });
+        noiseBed({ color: 'pink', type: 'bandpass', freq: 650, q: 0.6, gain: 0.05, freqLfo: [0.045, 380], gainLfo: [0.06, 0.7] });
         noiseBed({ color: 'pink', type: 'highpass', freq: 2800, q: 0.3, gain: 0.012, freqLfo: [0.02, 600], gainLfo: [0.09, 0.9] });
-        every(6, 12, sparkle([1318.5, 1479.98, 1760], 0.014));
+        every(10, 18, sparkle([1318.5, 1479.98, 1760], 0.01));
+        piano({ root: 62, low: 66, high: 86, bpm: 50, gain: 0.17 }); // re maggiore, alto e arioso
         break;
       case 'sunset':
         P.level = 0.55;
         drone([51.91, 77.78], 0.06);
         pad([103.83, 155.56, 261.63, 392, 466.16], { type: 'sawtooth', gain: 0.014, cutoff: 820, q: 0.8, lfoDepth: 280 });
         pad([207.65, 311.13], { type: 'sine', gain: 0.03, cutoff: 1400 });
-        every(4, 8.5, bell([415.3, 523.25, 622.25, 830.61], 0.05));
-        every(9, 15, () => this.gliss(rand(0, 1) > 0.5 ? [311.13, 392] : [415.3, 523.25], { dest: out, gain: 0.025, dur: rand(2.5, 4) }));
+        every(9, 15, bell([415.3, 523.25, 622.25, 830.61], 0.028));
+        every(16, 26, () => this.gliss(rand(0, 1) > 0.5 ? [311.13, 392] : [415.3, 523.25], { dest: out, gain: 0.016, dur: rand(2.5, 4) }));
+        piano({ root: 56, low: 58, high: 77, bpm: 46, gain: 0.107 }); // la bemolle maggiore, più grave e caldo
         break;
       case 'virentia':
         P.level = 0.55;
@@ -647,14 +738,16 @@ export class AudioEngine {
         pad([82.41, 123.47, 196, 293.66, 369.99], { type: 'triangle', gain: 0.035, cutoff: 1150, lfoDepth: 320, lfoRate: 0.035 });
         noiseBed({ color: 'white', type: 'highpass', freq: 3800, q: 0.4, gain: 0.018, freqLfo: [0.07, 900], gainLfo: [0.23, 0.95] });
         noiseBed({ color: 'pink', type: 'lowpass', freq: 320, q: 0.5, gain: 0.05, freqLfo: [0.04, 120], gainLfo: [0.05, 0.6] });
-        every(5, 10, () => this.pluck([164.81, 196, 246.94, 293.66][Math.floor(Math.random() * 4)], { dest: out, gain: 0.05 }));
-        every(7, 13, sparkle([987.77, 1174.66, 1318.5], 0.012));
+        every(9, 16, () => this.pluck([164.81, 196, 246.94, 293.66][Math.floor(Math.random() * 4)], { dest: out, gain: 0.03 }));
+        every(12, 20, sparkle([987.77, 1174.66, 1318.5], 0.008));
+        piano({ root: 64, scale: PENTA_MINOR, low: 62, high: 83, bpm: 50, gain: 0.114 }); // mi minore, il bosco
         break;
       case 'epilogue':
         P.level = 0.6;
         drone([65.41, 98], 0.06);
-        pad([130.81, 196, 329.63, 587.33, 987.77], { type: 'sine', gain: 0.04, cutoff: 2000, lfoDepth: 500, lfoRate: 0.025 });
-        every(5, 9, sparkle([1046.5, 1318.5, 1567.98], 0.016));
+        pad([130.81, 196, 329.63, 587.33, 987.77], { type: 'sine', gain: 0.03, cutoff: 2000, lfoDepth: 500, lfoRate: 0.025 });
+        every(10, 16, sparkle([1046.5, 1318.5, 1567.98], 0.01));
+        piano({ root: 60, low: 60, high: 79, bpm: 46, gain: 0.218, rest: [6, 11] }); // do maggiore, si chiude
         break;
       case 'lab':
         // una stanza quieta di sera: fondo d'aria, un accordo caldo appena accennato, rare note lontane
@@ -662,7 +755,9 @@ export class AudioEngine {
         drone([65.41], 0.03);
         pad([130.81, 196, 261.63, 329.63, 392], { type: 'sine', gain: 0.02, cutoff: 1300, lfoDepth: 280, lfoRate: 0.02 });
         noiseBed({ color: 'pink', type: 'lowpass', freq: 420, q: 0.4, gain: 0.028, freqLfo: [0.03, 80], gainLfo: [0.04, 0.4] });
-        every(10, 18, sparkle([1046.5, 1318.5, 1567.98], 0.007));
+        every(14, 24, sparkle([1046.5, 1318.5, 1567.98], 0.005));
+        // nel laboratorio parlano i fondatori: il pianoforte è quasi un ricordo, solo fra una battuta e l'altra
+        piano({ root: 60, low: 60, high: 76, bpm: 44, gain: 0.064, rest: [10, 18], bass: 0.35 });
         break;
       default:
         break;
@@ -745,6 +840,7 @@ export class AudioEngine {
   scheduleBabble(state, elapsed) {
     if (!this.ready || !this.running) return;
     const now = this.ctx.currentTime;
+    this.lastVoiceAt = now;
     const ev = state.plan.events;
     while (state.cursor < ev.length) {
       const e = ev[state.cursor];
@@ -754,6 +850,11 @@ export class AudioEngine {
       if (dt < -0.06) continue; // già passata (audio sbloccato in ritardo, salto)
       this.syllable(e, state.voice, now + Math.max(0, dt));
     }
+  }
+
+  /** C'è una voce (clip o borbottio), o c'è stata negli ultimi `hold` secondi. */
+  voiceRecent(hold = 0) {
+    return this.clipsPlaying > 0 || (!!this.ctx && this.ctx.currentTime - this.lastVoiceAt < hold);
   }
 
   /** Clip registrata (mp3): decodificata una volta, null se manca o non è audio. */
@@ -785,6 +886,7 @@ export class AudioEngine {
     this.clipsPlaying++;
     src.onended = () => {
       this.clipsPlaying = Math.max(0, this.clipsPlaying - 1);
+      this.lastVoiceAt = ctx.currentTime;
       try {
         src.disconnect();
         an.disconnect();
@@ -872,6 +974,98 @@ export class AudioEngine {
       g.disconnect();
       mg.disconnect();
     };
+  }
+
+  // Pianoforte "felt" (martelletti coperti di feltro, suono intimo e ovattato): parziali appena
+  // inarmoniche come in una corda vera, due corde scordate di un capello, un attacco morbido con il
+  // tonfo del martelletto, poi una caduta rapida e una coda lunga (più lunga nei bassi). Il feltro
+  // smorza le armoniche alte: un passa-basso che si chiude subito dopo l'attacco.
+  feltPiano(freq, { when = 0, velocity = 0.5, dest = null, pan = 0, gain = 0.05 } = {}) {
+    if (!this.running) return;
+    const ctx = this.ctx;
+    const t0 = Math.max(ctx.currentTime, when);
+    const out = ctx.createGain();
+    out.gain.value = gain * (0.35 + 0.65 * velocity);
+    let tail = out;
+    if (ctx.createStereoPanner) {
+      tail = ctx.createStereoPanner();
+      tail.pan.value = Math.max(-0.8, Math.min(0.8, pan));
+      out.connect(tail);
+    }
+    tail.connect(dest || this.musicBus);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.Q.value = 0.3;
+    const bright = Math.min(9000, freq * (4 + 6 * velocity));
+    lp.frequency.setValueAtTime(bright, t0);
+    lp.frequency.exponentialRampToValueAtTime(Math.max(freq * 2.5, 700), t0 + 1.6);
+    lp.connect(out);
+    const sustain = Math.max(2.2, Math.min(8, 9 - Math.log2(freq / 65) * 1.4)); // secondi
+    // solo le parziali che il feltro lascia passare (in fiera la CPU serve alla grafica)
+    const N = Math.max(3, Math.min(10, Math.floor(Math.min(6500, bright * 1.4) / freq)));
+    let longest = 0;
+    for (let n = 1; n <= N; n++) {
+      const fn = n * freq * Math.sqrt(1 + 0.00035 * n * n);
+      const amp = 0.5 * Math.pow(n, -1.35) * (n === 8 ? 0.2 : 1);
+      const fast = 0.3 / (1 + 0.25 * n);
+      const slow = sustain / (1 + 0.3 * (n - 1));
+      const atk = t0 + 0.004 + 0.0015 * n;
+      const end = atk + fast * 2 + slow * 4;
+      longest = Math.max(longest, end);
+      // due corde scordate di un capello solo nelle parziali basse, dove il battimento si sente
+      for (const det of n <= 3 ? [-0.7, 0.7] : [0]) {
+        const o = ctx.createOscillator();
+        o.type = 'sine';
+        o.frequency.value = fn;
+        o.detune.value = det + rand(-0.2, 0.2);
+        const g = ctx.createGain();
+        const a = n <= 3 ? amp : amp * Math.SQRT2; // una corda sola con l'energia di due
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(a, atk);
+        g.gain.setTargetAtTime(a * 0.35, atk, fast);
+        g.gain.setTargetAtTime(0, atk + fast * 2, slow);
+        o.connect(g);
+        g.connect(lp);
+        o.start(t0);
+        o.stop(end);
+        o.onended = () => {
+          o.disconnect();
+          g.disconnect();
+        };
+      }
+    }
+    // il tonfo del martelletto sul feltro: rumore brevissimo e scuro
+    const nz = ctx.createBufferSource();
+    nz.buffer = this.buffers.pink;
+    const nf = ctx.createBiquadFilter();
+    nf.type = 'lowpass';
+    nf.frequency.value = Math.min(2400, freq * 4);
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0, t0);
+    ng.gain.linearRampToValueAtTime(0.2 * velocity, t0 + 0.002);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.05);
+    nz.connect(nf);
+    nf.connect(ng);
+    ng.connect(out);
+    nz.start(t0, rand(0, 3), 0.08);
+    nz.onended = () => {
+      nz.disconnect();
+      nf.disconnect();
+      ng.disconnect();
+    };
+    // a nota spenta si stacca anche la catena comune
+    const done = ctx.createConstantSource ? ctx.createConstantSource() : null;
+    if (done) {
+      done.start(t0);
+      done.stop(longest + 0.05);
+      done.onended = () => {
+        try {
+          lp.disconnect();
+          out.disconnect();
+          if (tail !== out) tail.disconnect();
+        } catch (e) { /* già scollegato */ }
+      };
+    }
   }
 
   pluck(freq, { gain = 0.05, dest = null } = {}) {

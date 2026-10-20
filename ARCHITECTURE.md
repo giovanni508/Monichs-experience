@@ -49,6 +49,26 @@ src/
   - **Abitudine (`tickAttention`).** Entrando in un mondo, o quando l'orologio riparte, vale 1; poi scende a `TICK_REST` (0,45) in circa 13 s e risale quando la presenza cresce (ci si avvicina alla sorgente).
   - **Sotto le voci.** Mentre suona una clip delle voci (`clipsPlaying`) il tic scende ancora alla metà.
   - **Misura.** Vicino al bilanciere i picchi erano a −5 dBFS, 12 dB sopra la musica: ora sono a −13 dBFS entrando e a −19 dBFS a regime, alla pari della musica.
+- **Musica (`core/Audio.js` → `buildPalette`)**: ogni mondo ha un ambiente procedurale (drone, pad con un filtro che respira, letti di rumore, eventi sparsi) e, sopra, un pianoforte.
+  - **Il suono.** `feltPiano()` sintetizza una nota di pianoforte con i martelletti di feltro.
+    - Parziali appena inarmoniche, come in una corda vera.
+    - Due corde scordate di un capello nelle tre parziali basse, dove il battimento si sente.
+    - Il tonfo del martelletto e un passa-basso che si chiude dopo l'attacco.
+    - Una coda più lunga nei bassi.
+    - Le parziali sopra il filtro non si generano: circa 11 oscillatori per nota, perché in fiera la CPU serve alla grafica.
+  - **La melodia.** `piano({ root, scale, low, high, bpm, gain, rest })` suona le frasi di `PIANO_PHRASES`.
+    - Le frasi sono gradi della pentatonica del mondo: maggiore, minore in Virentia.
+    - La prima è sempre il motivo 6-3-2-1, una discesa che si posa.
+    - Ogni frase si sposta di ottava tutta insieme per stare nel registro `low–high`, così il profilo resta quello.
+    - Sotto l'inizio della frase c'è a volte una nota grave; dopo la fine, a volte, un'eco all'ottava.
+    - Fra una frase e l'altra passano 5–18 s di silenzio.
+  - **Quando aspetta.** La frase non parte finché le voci (clip o borbottio, `voiceRecent(1.5)`) non tacciono da 1,5 s, né durante il "respiro di silenzio" di Celeste (`musicBus` sotto 0,4).
+  - **Taratura.** Misurata con un rendering offline di ogni mondo (OfflineAudioContext, 2–3 semi da 75 s, pesatura A, finestre da 400 ms).
+    - Nel 90° percentile la frase sta 6–7 dB sotto l'ambiente (nel laboratorio 9 dB) e solo negli attacchi lo raggiunge; poi la coda ci si perde dentro.
+    - Per fargli posto, i pad sono più morbidi (−1,4 dB, filtro −12%).
+    - In Celeste e nell'epilogo i pad del registro medio-alto sono scesi di 2,5–3,5 dB.
+    - Scintille, campane, glissandi e pizzicati sono più radi e più bassi.
+  - **Volume.** `config.audio.piano` moltiplica il volume del pianoforte; con 0 il pianoforte non parte affatto.
 - **Schermata iniziale**: il film è un elemento `<video>` nativo tra il canvas e il menu (decodifica hardware, risoluzione piena, nessun post-processing). Mentre copre lo schermo, la scena 3D non viene disegnata.
 - **Pausa e mouse**: lo stato del pointer lock è letto dal browser a ogni fotogramma (non da un flag in memoria). Se il mouse viene rilasciato (Esc, cambio scheda, Alt+Tab) compare "Il tempo è sospeso"; un clic, Spazio o Invio lo riagganciano.
   - **Mouse libero.** Alcuni browser rifiutano sempre il pointer lock, per esempio il browser integrato dell'app Claude: la richiesta fallisce con `WrongDocumentError` anche durante un clic, con la pagina visibile e attiva. Lì `Input.setFree()` passa al mouse libero, come con `?nolock`.

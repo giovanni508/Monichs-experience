@@ -77,7 +77,7 @@ export class App {
     this.player = new Player(this.camera);
     this.clock = new MechClock();
     this.audio = new AudioEngine();
-    this.audio.init({ volume: config.audio?.volume ?? 0.8, muted: config.audio?.startMuted ?? false });
+    this.audio.init({ volume: config.audio?.volume ?? 0.8, muted: config.audio?.startMuted ?? false, piano: config.audio?.piano ?? 1 });
     this.ui = new UI(this.uiRoot, this.i18n, config);
     this.ui.setMuted(this.audio.muted);
     if (this.noLock) {
