@@ -1,0 +1,30 @@
+# dipendenze e build: si rifanno con `npm install` e `npm run build`
+node_modules/
+dist/
+
+# sorgenti grezze, pesanti (oltre 3 GB) e non pubblicabili: modelli Blender e GLB di lavoro, foto
+# originali dei prodotti, le foto vere dei fondatori (riferimento soltanto, non si caricano mai),
+# il pacchetto del brand e il film originale. Restano sul PC; `npm run assets` le legge da lì.
+Modelli/
+Branding/
+/CELESTE INTRO_ORIZ.mp4
+
+# materiale di terzi che non si pubblica senza permesso o licenza (il gioco funziona anche senza:
+# il foglio resta grigio, il logo usa Montserrat)
+#  - tavola 4029 e maschere ricavate dalle tavole del fornitore della cassa: "no part may be reproduced
+#    without written permission"
+#  - Foslin: font del brand con licenza commerciale
+public/assets/tex/lab/case-4029.webp
+scripts/blender/textures_src/caseback_*_disegno.png
+**/Foslin-*.otf
+
+# file locali: backup di Blender, cache di Python, strumenti delle sessioni (le skill di Blender sono
+# una raccolta di terzi installata qui per il lavoro sui modelli)
+*.blend1
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+.claude/settings.local.json
+.claude/worktrees/
+.claude/skills/

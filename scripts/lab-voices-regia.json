@@ -1,0 +1,102 @@
+{
+  "_info": {
+    "it": "Regia delle voci del laboratorio: il testo dato alla sintesi per ogni battuta. Motore: Higgsfield text2speech_v2, variante elevenlabs (ElevenLabs v3), voci clonate da Giovanni e Filippo (voice_type element: Giovanni ac597751-de64-4722-97f0-16ace71c7971, Filippo c5c77c34-e5ad-4823-b622-5f77862b6f8c). I tag tra quadre ([warmly], [playfully], [proudly]...) danno l'emozione e non vengono detti; i punti esclamativi danno energia, i puntini di sospensione le pause. Le parole sono quelle dei sottotitoli (texts.json → lab.lines), con gli anni in lettere e Montre scritto montrè per la pronuncia francese. A ogni battuta si aggiunge una riga vuota e 'Ecco.' (it) o 'Okay.' (en), la parola in più che assorbe il troncamento finale del generatore e che npm run voci -- <cartella> <lingua> --tail toglie. Eccezione: both1 ('Grazie.' / 'Thank you.') si genera senza parola in più, una clip per voce (both1_g, both1_f), e si sceglie la ripresa che finisce pulita.",
+    "en": "Voice direction for the workshop lines (see the Italian note)."
+  },
+  "g1": {
+    "it": "[warmly] Eccoti! Hai fatto tutto il giro.",
+    "en": "[warmly] There you are! You made it all the way through."
+  },
+  "f1": {
+    "it": "[playfully] Piano… da lì sotto sembriamo giganti! [warmly] Ti diamo il benvenuto nel nostro laboratorio.",
+    "en": "[playfully] Gently… from down there we look like giants! [warmly] Welcome to our workshop."
+  },
+  "g2": {
+    "it": "[cheerfully] Io sono Giovanni.",
+    "en": "[cheerfully] I’m Giovanni."
+  },
+  "f2": {
+    "it": "[cheerfully] Io Filippo. [thoughtfully] Quello che hai appena attraversato… quattro anni fa non esisteva.",
+    "en": "[cheerfully] And I’m Filippo. [thoughtfully] Four years ago, everything you’ve just walked through… didn’t exist."
+  },
+  "g3": {
+    "it": "[nostalgic] Era il duemilaventidue. [passionately] Avevamo un’ossessione: l’orologio svizzero che avremmo voluto portare noi. Fatto bene… e non un privilegio per pochi.",
+    "en": "[nostalgic] It was twenty twenty-two. [passionately] We had one obsession: the Swiss watch we wanted to wear ourselves. Made properly… and not a privilege for the few."
+  },
+  "f3": {
+    "it": "[thoughtfully] Il mondo non smette mai di correre. [softly] Noi volevamo un oggetto che ti facesse… rallentare.",
+    "en": "[thoughtfully] The world never stops running. [softly] We wanted an object that would make you… slow down."
+  },
+  "g4": {
+    "it": "[proudly] E gli abbiamo dato un nome che fosse tuo. Mon… mio. Montrè… orologio. [warmly] Monichs.",
+    "en": "[proudly] And we gave it a name that would be yours. Mon… mine. Montrè… watch. [warmly] Monichs."
+  },
+  "f4": {
+    "it": "[enthusiastically] Nel duemilaventitré abbiamo cominciato a disegnare. Tutto da zero: cassa, bracciale, quadrante, corona, fondello… perfino il rotore! Niente pezzi da catalogo.",
+    "en": "[enthusiastically] In twenty twenty-three we started drawing. Everything from scratch: case, bracelet, dial, crown, caseback… even the rotor! Nothing from a catalogue."
+  },
+  "g5": {
+    "it": "[amused] E io quell’anno ho fatto il salto… da collezionista a imprenditore.",
+    "en": "[amused] That year I made the leap… from collector to entrepreneur."
+  },
+  "f5": {
+    "it": "[passionately] Poi la Svizzera: i fornitori, i prototipi, la pre-serie. Prendi il bracciale: in tanti orologi c’è uno stacco tra cassa e bracciale. [firmly] Per noi era inaccettabile. Doveva essere una linea sola.",
+    "en": "[passionately] Then Switzerland: suppliers, prototypes, the pre-series. Take the bracelet: on so many watches there’s a break between case and bracelet. [firmly] For us that was unacceptable. It had to be one single line."
+  },
+  "g6": {
+    "it": "[laughs softly] Abbiamo passato un tempo irragionevole su ogni dettaglio.",
+    "en": "[laughs softly] We spent an unreasonable amount of time on every detail."
+  },
+  "f6": {
+    "it": "[playfully] E lo rifaremmo!",
+    "en": "[playfully] And we’d do it again!"
+  },
+  "g7": {
+    "it": "[proudly] Quest’anno abbiamo presentato la Trilogia al mondo, su Kickstarter: Celeste… Sunset… Virentia.",
+    "en": "[proudly] This year we presented the Trilogy to the world, on Kickstarter: Celeste… Sunset… Virentia."
+  },
+  "f7": {
+    "it": "[warmly] Chi ci ha creduto per primo avrà un numero di serie basso inciso sul fondello. Il suo posto nella storia di Monichs.",
+    "en": "[warmly] Those who believed in us first will have a low serial number engraved on the caseback. Their place in the Monichs story."
+  },
+  "g8": {
+    "it": "[confidently] Le prime consegne arriveranno nei primi mesi del duemilaventisette.",
+    "en": "[confidently] The first deliveries will arrive in the early months of twenty twenty-seven."
+  },
+  "f8": {
+    "it": "[curious] E adesso?",
+    "en": "[curious] And now?"
+  },
+  "g9": {
+    "it": "[cheerfully] Adesso c’è da rimboccarsi le maniche!",
+    "en": "[cheerfully] Now it’s time to roll up our sleeves!"
+  },
+  "f9": {
+    "it": "[chuckles] Come sempre.",
+    "en": "[chuckles] As always."
+  },
+  "g10": {
+    "it": "[surprised] Anzi… aspetta. [playfully] Non sto parlando a chi è lì sul banco.",
+    "en": "[surprised] Actually… wait. [playfully] I’m not talking to the one down there on the bench."
+  },
+  "f10": {
+    "it": "[warmly] Parliamo con te. Sì, proprio tu… davanti allo schermo!",
+    "en": "[warmly] We’re talking to you. Yes, you… in front of the screen!"
+  },
+  "g11": {
+    "it": "[softly] All’inizio ti abbiamo chiesto di diventare piccolo… per farti vedere quanto conta ogni dettaglio.",
+    "en": "[softly] At the start we asked you to become small… to show you how much every detail matters."
+  },
+  "f11": {
+    "it": "[warmly] Adesso… torna grande.",
+    "en": "[warmly] Now… grow big again."
+  },
+  "g12": {
+    "it": "[warmly] Torna nel mondo reale. Il tempo, quello vero… ha il ritmo che decidi tu.",
+    "en": "[warmly] Go back to the real world. Real time… moves at the pace you choose."
+  },
+  "both1": {
+    "it": "[warmly] Grazie.",
+    "en": "[warmly] Thank you."
+  }
+}

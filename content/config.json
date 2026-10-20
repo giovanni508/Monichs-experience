@@ -1,0 +1,92 @@
+{
+  "_info": "Configurazione modificabile senza toccare il codice. Dopo la build si trova in dist/content/config.json.",
+
+  "language": {
+    "default": "it",
+    "available": ["it", "en"]
+  },
+
+  "kiosk": {
+    "idleResetSeconds": 60,
+    "attractAfterSeconds": 25,
+    "hintSeconds": 7
+  },
+
+  "audio": {
+    "volume": 0.8,
+    "startMuted": false
+  },
+
+  "quality": {
+    "_info": "auto (parte da medium e sale fino a ultra se la scheda video regge i 60 fps) | low | medium (occlusione, riflessi a mezza risoluzione) | high (riflessi in ray tracing pieni, profondità di campo) | ultra (tutto a piena risoluzione, risoluzione 1,5x, ombre 4096). Con una scheda video dedicata si può fissare ultra.",
+    "level": "auto"
+  },
+
+  "intro": {
+    "_info": "Schermata iniziale. video: percorso del film in loop (senza audio), mostrato nitido a tutto schermo dietro al menu; videoBrightness: luminosità 0–1 (1 = il film così com'è, 0.9 = appena attenuato). Se il video manca o non parte, compare l'orologio che respira.",
+    "video": "assets/video/celeste-intro.mp4",
+    "videoBrightness": 0.9
+  },
+
+  "cta": {
+    "_todo": "PLACEHOLDER: sostituire testo e URL del QR prima della fiera. Non inserire prezzi o date senza conferma.",
+    "enabled": true,
+    "text": {
+      "it": "Scopri la Collezione Delta",
+      "en": "Discover the Delta Collection"
+    },
+    "qr": {
+      "enabled": true,
+      "url": "https://example.com/monichs-sostituire-url"
+    }
+  },
+
+  "assets": {
+    "logo": "assets/logo/monichs-logo.svg",
+    "watch.celeste": "assets/img/watch/celeste.webp",
+    "watch.sunset": "assets/img/watch/sunset.webp",
+    "watch.virentia": "assets/img/watch/virentia.webp",
+    "dial.celeste": "assets/img/dial/celeste.webp",
+    "dial.sunset": "assets/img/dial/sunset.webp",
+    "dial.virentia": "assets/img/dial/virentia.webp",
+    "tex.agate": "assets/tex/agate-bands.webp",
+    "model.celeste": "assets/models/celeste.glb",
+    "model.sunset": "assets/models/sunset.glb",
+    "model.virentia": "assets/models/virentia.glb",
+    "model.rotor": "assets/models/rotore.glb",
+    "model.founder.giovanni": "assets/models/founder-giovanni.glb",
+    "model.founder.filippo": "assets/models/founder-filippo.glb",
+    "lab.drawing": "assets/tex/lab/drawing.webp",
+    "lab.case4029": "assets/tex/lab/case-4029.webp",
+    "lab.sketch": "assets/tex/lab/rotor-sketch.webp",
+    "lab.voices": "assets/audio/lab/"
+  },
+
+  "cards": {
+    "_info": "Foto reali mostrate nella 'lente' della card di ogni tappa. Lasciare vuoto (\"\") per nessuna immagine.",
+    "movement.stations.crown": "assets/img/cards/ce-profile.webp",
+    "movement.stations.rotor": "assets/img/cards/vi-rotor.webp",
+    "movement.stations.barrel": "",
+    "movement.stations.train": "",
+    "movement.stations.escapement": "",
+    "movement.stations.balance": "assets/img/cards/vi-balance.webp",
+    "movement.stations.rubies": "assets/img/cards/vi-movement.webp",
+    "movement.stations.finishing": "assets/img/cards/vi-caseback.webp",
+    "celeste.stations.case": "assets/img/cards/ce-case.webp",
+    "celeste.stations.bracelet": "assets/img/cards/ce-bracelet.webp",
+    "celeste.stations.coating": "assets/img/cards/ce-clasp.webp",
+    "celeste.stations.dial": "assets/img/cards/ce-dial.webp",
+    "celeste.stations.water": "assets/img/cards/ce-caseback.webp",
+    "celeste.stations.lume": "assets/img/cards/ce-lume.webp",
+    "sunset.stations.agate": "assets/img/cards/su-stones.webp",
+    "sunset.stations.unique": "assets/img/cards/su-pebble.webp",
+    "sunset.stations.slice": "assets/img/cards/su-stones.webp",
+    "sunset.stations.hard": "assets/img/cards/su-lume.webp",
+    "sunset.stations.indices": "assets/img/cards/su-dial.webp",
+    "virentia.stations.cotes": "assets/img/cards/vi-rotor.webp",
+    "virentia.stations.screws": "assets/img/cards/vi-watchmaker.webp",
+    "virentia.stations.caseback": "assets/img/cards/vi-caseback.webp",
+    "virentia.stations.rosegold": "assets/img/cards/vi-dial.webp",
+    "virentia.stations.rotor": "assets/img/cards/vi-movement.webp"
+  }
+}

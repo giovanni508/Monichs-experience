@@ -1,0 +1,50 @@
+{
+  "_info": {
+    "it": "Regia del laboratorio: le battute in ordine. key = testo in texts.json; speaker = giovanni | filippo | both; highlight (facoltativo) = sketch | drawing | watches | box, l'oggetto che si accende; event (facoltativo, anche più d'uno in una lista) = tickStop | lookUp | grow | thanks; gesture (facoltativo) = explain | pointDown | nod; pause (facoltativo) = secondi di silenzio in più dopo la battuta; gap (facoltativo) = silenzio dopo la battuta al posto di quello comune (timing.gap), più corto nei botta e risposta; section (facoltativo) = inizio di un capitolo del racconto (avanza l'indicatore in alto a sinistra). Le voci sono in italiano, in inglese doppiate: ogni battuta parla nella lingua scelta quando comincia. La durata la dà la clip di quella lingua se c'è (public/assets/audio/lab/it/g1.mp3, public/assets/audio/lab/en/g1.mp3; in inglese, senza doppiaggio, la voce italiana), altrimenti la lunghezza del testo in quella lingua.",
+    "en": "Workshop script: the lines in order (see the Italian note for the fields)."
+  },
+  "timing": {
+    "_info": "Tempi senza clip (secondi). charsPerSecond: velocità del parlato per voce; gap: silenzio fra due battute; arrive: attesa prima della prima battuta; tickSilence: silenzio dopo lo stop del tic; grow: salita della camera; white: dissolvenza nel bianco caldo; card: cartello finale.",
+    "charsPerSecond": { "giovanni": 13.2, "filippo": 14.2, "both": 9 },
+    "lineBase": 0.55,
+    "commaPause": 0.24,
+    "stopPause": 0.42,
+    "gap": 0.65,
+    "arrive": 3.6,
+    "tickSilence": 1.8,
+    "grow": 4.2,
+    "white": 2.4,
+    "card": 5.2
+  },
+  "lines": [
+    { "key": "lab.lines.g1", "speaker": "giovanni", "section": "arrivo", "gap": 0.4 },
+    { "key": "lab.lines.f1", "speaker": "filippo", "gesture": "explain" },
+    { "key": "lab.lines.g2", "speaker": "giovanni", "gap": 0.25 },
+    { "key": "lab.lines.f2", "speaker": "filippo", "pause": 1.1 },
+
+    { "key": "lab.lines.g3", "speaker": "giovanni", "highlight": "sketch", "section": "nascita" },
+    { "key": "lab.lines.f3", "speaker": "filippo", "gesture": "explain" },
+    { "key": "lab.lines.g4", "speaker": "giovanni", "pause": 1.1 },
+
+    { "key": "lab.lines.f4", "speaker": "filippo", "highlight": "drawing", "section": "percorso" },
+    { "key": "lab.lines.g5", "speaker": "giovanni" },
+    { "key": "lab.lines.f5", "speaker": "filippo", "gesture": "explain" },
+    { "key": "lab.lines.g6", "speaker": "giovanni", "gap": 0.25 },
+    { "key": "lab.lines.f6", "speaker": "filippo", "pause": 1.1 },
+
+    { "key": "lab.lines.g7", "speaker": "giovanni", "highlight": "watches", "section": "oggi" },
+    { "key": "lab.lines.f7", "speaker": "filippo", "highlight": "box" },
+    { "key": "lab.lines.g8", "speaker": "giovanni", "pause": 1.1 },
+
+    { "key": "lab.lines.f8", "speaker": "filippo", "section": "adesso", "gap": 0.3 },
+    { "key": "lab.lines.g9", "speaker": "giovanni", "gap": 0.25 },
+    { "key": "lab.lines.f9", "speaker": "filippo", "gesture": "nod", "pause": 0.4 },
+
+    { "key": "lab.lines.g10", "speaker": "giovanni", "event": ["tickStop", "lookUp"], "section": "quartaParete" },
+    { "key": "lab.lines.f10", "speaker": "filippo" },
+    { "key": "lab.lines.g11", "speaker": "giovanni", "gesture": "explain" },
+    { "key": "lab.lines.f11", "speaker": "filippo", "event": "grow" },
+    { "key": "lab.lines.g12", "speaker": "giovanni", "gap": 0.9 },
+    { "key": "lab.lines.both1", "speaker": "both", "event": "thanks" }
+  ]
+}

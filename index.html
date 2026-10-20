@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#000035" />
+    <meta name="robots" content="noindex" />
+    <title>Inside Monichs</title>
+    <link rel="icon" type="image/svg+xml" href="assets/logo/monichs-pictogram.svg" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="gl" tabindex="0"></canvas>
+      <div id="ui"></div>
+    </div>
+    <div id="boot" aria-hidden="true">
+      <div class="boot-bg" style="background-image: url('assets/video/celeste-intro-poster.webp')"></div>
+      <div class="boot-mark">
+        <svg class="boot-ring" viewBox="0 0 140 140">
+          <circle class="track" cx="70" cy="70" r="64" />
+          <circle class="bar" cx="70" cy="70" r="64" stroke-dasharray="402" stroke-dashoffset="402" transform="rotate(-90 70 70)" />
+        </svg>
+        <svg viewBox="270 330 540 420" style="inset: 36px; width: auto; height: auto">
+          <polygon fill="#ede2cd" points="653.8 483.4 539 713 768.1 712.7 653.8 483.4" />
+          <polygon fill="#ede2cd" points="424.5 483.7 309.7 713.2 538.8 713 424.5 483.7" />
+          <polygon fill="#ede2cd" points="538.4 598.4 653.1 368.9 424 369.1 538.4 598.4" />
+        </svg>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,48 @@
+VOCI DEL LABORATORIO
+
+Le voci sono in italiano; in inglese sono doppiate. Una clip mp3 per battuta, con il nome della chiave
+del copione (content/lab.json, texts.json -> lab.lines): g1, f1, g2, f2 ... g12, both1.
+
+  it/g1.mp3, it/f1.mp3, ...   voci originali in italiano
+  en/g1.mp3, en/f1.mp3, ...   doppiaggio inglese
+
+LE CLIP DI ADESSO
+Sono le voci di Giovanni e Filippo, clonate dalle loro registrazioni (due messaggi vocali di circa
+30 secondi, 8 ottobre 2026; voci "Giovanni Monichs" e "Filippo Monichs" su Higgsfield) e fatte
+recitare da ElevenLabs v3 con una regia battuta per battuta: un'emozione per ogni battuta (calore,
+gioco, orgoglio, sorpresa...), punti esclamativi per l'energia, puntini di sospensione per le pause
+(per esempio "Mon... mio. Montre... orologio. Monichs."). La regia completa, cioe' il testo esatto
+dato alla sintesi, e' in scripts/lab-voices-regia.json. "Montre" e' scritto "montre'" per farlo dire
+alla francese; gli anni sono in lettere ("duemilaventidue"); i sottotitoli restano quelli di sempre.
+Tutte le 48 clip (24 IT + 24 EN) sono pulite e allo stesso livello: -16 LUFS, picco sotto -1,5 dBFS,
+mp3 mono 44,1 kHz 96 kbps. "both1" ("Grazie.") e' la stessa parola detta dalle due voci insieme,
+Filippo 30 ms dopo.
+
+COME FUNZIONA NEL GIOCO
+- Ogni battuta parla nella lingua scelta (bandierine in alto a destra) quando comincia.
+- Se la clip c'e', si sente al posto del borbottio segnaposto e la durata della battuta e' la sua.
+- In inglese, se il doppiaggio di una battuta manca, si sente la voce italiana con i sottotitoli in inglese.
+- Se manca anche quella, la battuta usa il borbottio e i tempi calcolati sul testo.
+- Il silenzio fra una battuta e la successiva si regola in content/lab.json: "gap" per battuta (piu'
+  corto nei botta e risposta) e "pause" (in piu', a fine capitolo). Non serve rifare le clip.
+- Per l'italiano va bene anche il file direttamente in questa cartella (g1.mp3), come prima.
+- Non serve toccare il codice: basta copiare i file qui (in sviluppo) o in dist/assets/audio/lab/
+  (dopo la build; il server della fiera li vede subito, basta ricaricare la pagina).
+
+PER SOSTITUIRLE (per esempio con battute registrate davvero da Giovanni e Filippo)
+Una registrazione per battuta in una cartella, con il nome della chiave (g1.wav, f1.wav, ...; vanno
+bene anche mp3, m4a, flac). "both1" puo' essere gia' mescolata oppure due file, both1_g e both1_f.
+Poi, dalla cartella del progetto:
+
+  npm run voci -- <cartella> it        (oppure en per il doppiaggio)
+  npm run voci -- <cartella> it --tail          (come oggi: sintesi con la parola in piu')
+
+Lo script (scripts/lab-voices.mjs, serve ffmpeg) toglie il silenzio prima e dopo, porta tutto allo
+stesso livello, aggiunge dissolvenze brevi e scrive qui le clip pronte. Le sorgenti non vengono toccate.
+Il doppiaggio non deve per forza durare quanto l'originale: ogni battuta prende la durata della
+propria clip.
+
+Nota per la sintesi vocale: ElevenLabs a volte tronca l'ultima sillaba (MiniMax no, ma e' meno espressivo).
+Si evita facendo generare la battuta seguita da una pausa e da una parola in piu' (testo + riga
+vuota + "Ecco." in italiano, "Okay." in inglese); con --tail lo script toglie quella parola
+(--tail=g3,f10 solo per alcune battute).

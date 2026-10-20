@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "inside-monichs-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173,
+      "autoPort": true
+    },
+    {
+      "name": "inside-monichs-demo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "fiera"],
+      "port": 8080,
+      "url": "http://127.0.0.1:8080"
+    }
+  ]
+}

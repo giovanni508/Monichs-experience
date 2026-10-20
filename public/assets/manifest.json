@@ -1,0 +1,372 @@
+[
+  {
+    "file": "assets/img/watch/celeste.webp",
+    "source": "Modelli/Soldatini/Celeste.png",
+    "crop": null
+  },
+  {
+    "file": "assets/img/watch/sunset.webp",
+    "source": "Modelli/Soldatini/Sunset.png",
+    "crop": null
+  },
+  {
+    "file": "assets/img/watch/virentia.webp",
+    "source": "Modelli/Soldatini/Virentia.png",
+    "crop": null
+  },
+  {
+    "file": "assets/img/dial/celeste.webp",
+    "source": "Modelli/Soldatini/Celeste.png",
+    "crop": [
+      2330,
+      1844,
+      2500,
+      2500
+    ]
+  },
+  {
+    "file": "assets/img/dial/sunset.webp",
+    "source": "Modelli/Soldatini/Sunset.png",
+    "crop": [
+      2330,
+      1844,
+      2500,
+      2500
+    ]
+  },
+  {
+    "file": "assets/img/dial/virentia.webp",
+    "source": "Modelli/Soldatini/Virentia.png",
+    "crop": [
+      2330,
+      1844,
+      2500,
+      2500
+    ]
+  },
+  {
+    "file": "assets/tex/agate-bands.webp",
+    "source": "Modelli/Sunset/MNC_I25_Ed_Su (7).jpg",
+    "crop": [
+      3600,
+      2960,
+      1280,
+      560
+    ]
+  },
+  {
+    "file": "assets/tex/lab/rotor-sketch.webp",
+    "source": "Modelli/ROTORE/MNC_Dw_Rotor 2 (2).png",
+    "crop": null
+  },
+  {
+    "file": "assets/img/cards/ce-case.webp",
+    "source": "Modelli/Celeste/MNC_I25_Ed_Ce (1).png",
+    "crop": [
+      3887,
+      2871,
+      4300,
+      4300
+    ]
+  },
+  {
+    "file": "assets/img/cards/ce-dial.webp",
+    "source": "Modelli/Celeste/MNC_I25_Ed_Ce (2).png",
+    "crop": [
+      2333,
+      864,
+      2592,
+      2592
+    ]
+  },
+  {
+    "file": "assets/img/cards/ce-lume.webp",
+    "source": "Modelli/Celeste/MNC_I25_Ed_Ce (3).png",
+    "crop": [
+      2678,
+      432,
+      3283,
+      3283
+    ]
+  },
+  {
+    "file": "assets/img/cards/ce-caseback.webp",
+    "source": "Modelli/Celeste/MNC_I25_Ed_Ce (4).png",
+    "crop": [
+      2894,
+      1296,
+      2851,
+      2851
+    ]
+  },
+  {
+    "file": "assets/img/cards/ce-bracelet.webp",
+    "source": "Modelli/Celeste/MNC_I25_Ed_Ce (6).png",
+    "crop": [
+      2333,
+      1642,
+      3629,
+      3629
+    ]
+  },
+  {
+    "file": "assets/img/cards/ce-clasp.webp",
+    "source": "Modelli/Celeste/MNC_I25_Ed_Ce (7).png",
+    "crop": [
+      2851,
+      1728,
+      3283,
+      3283
+    ]
+  },
+  {
+    "file": "assets/img/cards/ce-profile.webp",
+    "source": "Modelli/Celeste/MNC_I25_Ed_Ce (12).png",
+    "crop": [
+      2419,
+      2246,
+      3629,
+      3629
+    ]
+  },
+  {
+    "file": "assets/img/cards/su-dial.webp",
+    "source": "Modelli/Sunset/MNC_I25_Ed_Su (2).jpg",
+    "crop": [
+      2938,
+      1037,
+      4493,
+      4493
+    ]
+  },
+  {
+    "file": "assets/img/cards/su-stones.webp",
+    "source": "Modelli/Sunset/MNC_I25_Ed_Su (4).png",
+    "crop": [
+      2333,
+      605,
+      3974,
+      3974
+    ]
+  },
+  {
+    "file": "assets/img/cards/su-pebble.webp",
+    "source": "Modelli/Sunset/MNC_I25_Ed_Su (7).jpg",
+    "crop": [
+      2894,
+      1642,
+      2592,
+      2592
+    ]
+  },
+  {
+    "file": "assets/img/cards/su-lume.webp",
+    "source": "Modelli/Sunset/MNC_I25_Ed_Su (10) Lu.png",
+    "crop": [
+      3067,
+      1166,
+      2851,
+      2851
+    ]
+  },
+  {
+    "file": "assets/img/cards/vi-dial.webp",
+    "source": "Modelli/Virentia/MNC_I25_Ed_Virentia (1)/MNC_I25_Ed_Vi (2).png",
+    "crop": [
+      2851,
+      864,
+      3974,
+      3974
+    ]
+  },
+  {
+    "file": "assets/img/cards/vi-caseback.webp",
+    "source": "Modelli/Virentia/MNC_I25_Ed_Virentia (1)/MNC_I25_Ed_Vi (4).png",
+    "crop": [
+      2678,
+      5098,
+      3629,
+      3629
+    ]
+  },
+  {
+    "file": "assets/img/cards/vi-balance.webp",
+    "source": "Modelli/Virentia/MNC_I25_Ed_Virentia (1)/MNC_I25_Ed_Vi (4).png",
+    "crop": [
+      4595,
+      6199,
+      1100,
+      1100
+    ]
+  },
+  {
+    "file": "assets/img/cards/vi-movement.webp",
+    "source": "Modelli/Virentia/MNC_I25_Ed_Virentia (1)/MNC_I25_Ed_Vi (4).png",
+    "crop": [
+      3450,
+      5761,
+      2000,
+      2000
+    ]
+  },
+  {
+    "file": "assets/img/cards/vi-rotor.webp",
+    "source": "Modelli/Virentia/MNC_I25_Ed_Virentia (1)/MNC_I25_Ed_Vi (7).png",
+    "crop": [
+      3110,
+      1469,
+      2592,
+      2592
+    ]
+  },
+  {
+    "file": "assets/img/cards/vi-watchmaker.webp",
+    "source": "Modelli/Virentia/MNC_I25_Ed_Virentia (1)/MNC_I25_Ed_Vi (6).png",
+    "crop": [
+      2592,
+      2074,
+      3110,
+      3110
+    ]
+  },
+  {
+    "file": "assets/video/celeste-intro.mp4",
+    "source": "CELESTE INTRO_ORIZ.mp4",
+    "crop": "0–5.85 s, 2560px, senza audio"
+  },
+  {
+    "file": "assets/models/celeste.glb",
+    "source": "Modelli/3D/celeste.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/sunset.glb",
+    "source": "Modelli/3D/sunset.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/virentia.glb",
+    "source": "Modelli/3D/virentia.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/rotore.glb",
+    "source": "Modelli/3D/rotore.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/albero_a.glb",
+    "source": "Modelli/3D/natura/albero_a.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/albero_b.glb",
+    "source": "Modelli/3D/natura/albero_b.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/albero_c.glb",
+    "source": "Modelli/3D/natura/albero_c.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/felce_a.glb",
+    "source": "Modelli/3D/natura/felce_a.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/felce_b.glb",
+    "source": "Modelli/3D/natura/felce_b.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/fiori_a.glb",
+    "source": "Modelli/3D/natura/fiori_a.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/fiori_b.glb",
+    "source": "Modelli/3D/natura/fiori_b.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/fiori_c.glb",
+    "source": "Modelli/3D/natura/fiori_c.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/erba_a.glb",
+    "source": "Modelli/3D/natura/erba_a.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/erba_b.glb",
+    "source": "Modelli/3D/natura/erba_b.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/roccia_a.glb",
+    "source": "Modelli/3D/natura/roccia_a.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/roccia_b.glb",
+    "source": "Modelli/3D/natura/roccia_b.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/funghi_luminosi.glb",
+    "source": "Modelli/3D/natura/funghi_luminosi.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/natura/tronco_caduto.glb",
+    "source": "Modelli/3D/natura/tronco_caduto.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/founder-giovanni.glb",
+    "source": "Modelli/3D/fondatori/v3/founder-giovanni.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/models/founder-filippo.glb",
+    "source": "Modelli/3D/fondatori/v3/founder-filippo.glb",
+    "crop": "texture secondarie a 1024 px"
+  },
+  {
+    "file": "assets/tex/lab/drawing.webp",
+    "source": "../Monichs Asset vari locale/MNC_T_Draw_Print.pdf (pagina 1, 400 dpi)",
+    "crop": null
+  },
+  {
+    "file": "assets/tex/lab/case-4029.webp",
+    "source": "../4029-MOS-SW200-VR13-EXPLOSION.pdf (pagina 1, 300 dpi)",
+    "crop": [
+      150,
+      276,
+      3210,
+      1943
+    ]
+  },
+  {
+    "file": "assets/logo/monichs-logo.svg",
+    "source": "Branding/Branding Monichs - 2026.zip → MNC_B25_Logo/MNC_B25_LG_Production/MNC_B25_LG_Production.svg",
+    "crop": null
+  },
+  {
+    "file": "assets/logo/monichs-pictogram.svg",
+    "source": "Branding/Branding Monichs - 2026.zip → MNC_B25_Logo/MNC_B25_LG_Pictogram/MNC_B25_Pic.svg",
+    "crop": null
+  },
+  {
+    "file": "assets/fonts/Foslin-Regular.otf",
+    "source": "Branding/Branding Monichs - 2026.zip → MNC_B25_Guidelines/Fonts/Foslin-Regular.otf",
+    "crop": null
+  },
+  {
+    "file": "assets/fonts/Foslin-Bold.otf",
+    "source": "Branding/Branding Monichs - 2026.zip → MNC_B25_Guidelines/Fonts/Foslin-Bold.otf",
+    "crop": null
+  }
+]

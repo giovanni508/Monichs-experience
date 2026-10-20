@@ -1,0 +1,28 @@
+{
+  "name": "inside-monichs",
+  "private": true,
+  "version": "1.0.0",
+  "description": "INSIDE MONICHS — esperienza 3D in prima persona dentro un orologio meccanico (Collezione Delta).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "assets": "node scripts/build-assets.mjs",
+    "fiera": "node scripts/serve-dist.mjs",
+    "voci": "node scripts/lab-voices.mjs"
+  },
+  "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/montserrat": "^5.3.0",
+    "n8ao": "^2.0.1",
+    "postprocessing": "^6.39.5",
+    "qrcode": "^1.5.4",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.5",
+    "vite": "^8.3.3",
+    "yauzl": "^3.4.0"
+  }
+}

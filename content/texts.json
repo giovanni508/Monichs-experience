@@ -1,0 +1,321 @@
+{
+  "_info": {
+    "it": "Tutti i testi dell'esperienza. Ogni voce ha la versione italiana (it) e inglese (en). Si possono modificare liberamente: in sviluppo la pagina si ricarica da sola; dopo la build modificare dist/content/texts.json e ricaricare il browser.",
+    "en": "All the texts of the experience, each in Italian (it) and English (en)."
+  },
+
+  "ui": {
+    "tagline": { "it": "Exceptional Swiss Wristwatches", "en": "Exceptional Swiss Wristwatches" },
+    "lead": { "it": "Un viaggio silenzioso\ndentro un orologio meccanico.", "en": "A silent journey\ninside a mechanical watch." },
+    "enter": { "it": "Entra nel tempo", "en": "Enter" },
+    "chapters": { "it": "Oppure scegli un capitolo", "en": "Or choose a chapter" },
+    "chapter": {
+      "movement": { "it": "Il movimento", "en": "The movement" },
+      "celeste": { "it": "Celeste", "en": "Celeste" },
+      "sunset": { "it": "Sunset", "en": "Sunset" },
+      "virentia": { "it": "Virentia", "en": "Virentia" },
+      "lab": { "it": "Il laboratorio", "en": "The workshop" }
+    },
+    "loading": { "it": "Preparazione", "en": "Preparing" },
+    "controls": {
+      "move": { "it": "muoversi", "en": "move" },
+      "look": { "it": "guardare", "en": "look" },
+      "slow": { "it": "lentamente", "en": "slowly" },
+      "interact": { "it": "interagire", "en": "interact" },
+      "fullscreen": { "it": "schermo intero", "en": "full screen" }
+    },
+    "keys": {
+      "mouse": { "it": "Mouse", "en": "Mouse" },
+      "drag": { "it": "Trascina", "en": "Drag" },
+      "space": { "it": "Spazio", "en": "Space" }
+    },
+    "pressAny": { "it": "Tocca un tasto per entrare nel tempo", "en": "Press any key to enter time" },
+    "pause": {
+      "title": { "it": "Il tempo è sospeso", "en": "Time is suspended" },
+      "hint": { "it": "Clicca per riprendere", "en": "Click to resume" },
+      "resume": { "it": "Riprendi", "en": "Resume" },
+      "home": { "it": "Torna all’inizio", "en": "Back to start" }
+    },
+    "restart": { "it": "Ricomincia", "en": "Start again" },
+    "mute": { "it": "Audio", "en": "Sound" },
+    "language": { "it": "Lingua · Language", "en": "Language · Lingua" },
+    "languageName": {
+      "it": { "it": "Italiano", "en": "Italiano" },
+      "en": { "it": "English", "en": "English" }
+    },
+    "portal": {
+      "celeste": { "it": "La cassa e il bracciale", "en": "The case and the bracelet" },
+      "sunset": { "it": "Il quadrante in agata", "en": "The agate dial" },
+      "virentia": { "it": "Il rotore e le finiture", "en": "The rotor and the finishing" },
+      "visited": { "it": "visitato", "en": "visited" },
+      "epilogue": { "it": "Epilogo", "en": "Epilogue" }
+    }
+  },
+
+  "progress": {
+    "movement": { "part": { "it": "Parte I", "en": "Part I" }, "name": { "it": "Il movimento", "en": "The movement" } },
+    "hub": { "part": { "it": "Parte II", "en": "Part II" }, "name": { "it": "Tre mondi", "en": "Three worlds" } },
+    "celeste": { "part": { "it": "Ref. M-001", "en": "Ref. M-001" }, "name": { "it": "Celeste", "en": "Celeste" } },
+    "sunset": { "part": { "it": "Ref. M-002", "en": "Ref. M-002" }, "name": { "it": "Sunset", "en": "Sunset" } },
+    "virentia": { "part": { "it": "Ref. M-003", "en": "Ref. M-003" }, "name": { "it": "Virentia", "en": "Virentia" } },
+    "lab": { "part": { "it": "Parte III", "en": "Part III" }, "name": { "it": "Il laboratorio", "en": "The workshop" } }
+  },
+
+  "attract": {
+    "movement": { "it": "Il movimento · SW200-2 Élaboré", "en": "The movement · SW200-2 Élaboré" },
+    "celeste": { "it": "Celeste · Ref. M-001", "en": "Celeste · Ref. M-001" },
+    "sunset": { "it": "Sunset · Ref. M-002", "en": "Sunset · Ref. M-002" },
+    "virentia": { "it": "Virentia · Ref. M-003", "en": "Virentia · Ref. M-003" },
+    "lab": { "it": "Il laboratorio", "en": "The workshop" }
+  },
+
+  "lab": {
+    "lines": {
+      "g1": { "it": "Eccoti. Hai fatto tutto il giro.", "en": "There you are. You made it all the way through." },
+      "f1": { "it": "Piano: da lì sotto sembriamo giganti. Ti diamo il benvenuto nel nostro laboratorio.", "en": "Gently: from down there we look like giants. Welcome to our workshop." },
+      "g2": { "it": "Io sono Giovanni.", "en": "I’m Giovanni." },
+      "f2": { "it": "Io Filippo. Quello che hai appena attraversato, quattro anni fa non esisteva.", "en": "And I’m Filippo. Four years ago, everything you’ve just walked through didn’t exist." },
+      "g3": { "it": "Era il 2022. Avevamo un’ossessione: l’orologio svizzero che avremmo voluto portare noi. Fatto bene, e non un privilegio per pochi.", "en": "It was 2022. We had one obsession: the Swiss watch we wanted to wear ourselves. Made properly, and not a privilege for the few." },
+      "f3": { "it": "Il mondo non smette mai di correre. Noi volevamo un oggetto che ti facesse rallentare.", "en": "The world never stops running. We wanted an object that would make you slow down." },
+      "g4": { "it": "E gli abbiamo dato un nome che fosse tuo. Mon, mio. Montre, orologio. Monichs.", "en": "And we gave it a name that would be yours. Mon, mine. Montre, watch. Monichs." },
+      "f4": { "it": "Nel 2023 abbiamo cominciato a disegnare. Tutto da zero: cassa, bracciale, quadrante, corona, fondello, perfino il rotore. Niente pezzi da catalogo.", "en": "In 2023 we started drawing. Everything from scratch: case, bracelet, dial, crown, caseback, even the rotor. Nothing from a catalogue." },
+      "g5": { "it": "E io quell’anno ho fatto il salto: da collezionista a imprenditore.", "en": "That year I made the leap: from collector to entrepreneur." },
+      "f5": { "it": "Poi la Svizzera: i fornitori, i prototipi, la pre-serie. Prendi il bracciale: in tanti orologi c’è uno stacco tra cassa e bracciale. Per noi era inaccettabile. Doveva essere una linea sola.", "en": "Then Switzerland: suppliers, prototypes, the pre-series. Take the bracelet: on so many watches there’s a break between case and bracelet. For us that was unacceptable. It had to be one single line." },
+      "g6": { "it": "Abbiamo passato un tempo irragionevole su ogni dettaglio.", "en": "We spent an unreasonable amount of time on every detail." },
+      "f6": { "it": "E lo rifaremmo.", "en": "And we’d do it again." },
+      "g7": { "it": "Quest’anno abbiamo presentato la Trilogia al mondo, su Kickstarter: Celeste, Sunset, Virentia.", "en": "This year we presented the Trilogy to the world, on Kickstarter: Celeste, Sunset, Virentia." },
+      "f7": { "it": "Chi ci ha creduto per primo avrà un numero di serie basso inciso sul fondello. Il suo posto nella storia di Monichs.", "en": "Those who believed in us first will have a low serial number engraved on the caseback. Their place in the Monichs story." },
+      "g8": { "it": "Le prime consegne arriveranno nei primi mesi del 2027.", "en": "The first deliveries will arrive in the early months of 2027." },
+      "f8": { "it": "E adesso?", "en": "And now?" },
+      "g9": { "it": "Adesso c’è da rimboccarsi le maniche.", "en": "Now it’s time to roll up our sleeves." },
+      "f9": { "it": "Come sempre.", "en": "As always." },
+      "g10": { "it": "Anzi, aspetta. Non sto parlando a chi è lì sul banco.", "en": "Actually, wait. I’m not talking to the one down there on the bench." },
+      "f10": { "it": "Parliamo con te. Sì, proprio tu, davanti allo schermo.", "en": "We’re talking to you. Yes, you, in front of the screen." },
+      "g11": { "it": "All’inizio ti abbiamo chiesto di diventare piccolo, per farti vedere quanto conta ogni dettaglio.", "en": "At the start we asked you to become small, to show you how much every detail matters." },
+      "f11": { "it": "Adesso torna grande.", "en": "Now grow big again." },
+      "g12": { "it": "Torna nel mondo reale. Il tempo, quello vero, ha il ritmo che decidi tu.", "en": "Go back to the real world. Real time moves at the pace you choose." },
+      "both1": { "it": "Grazie.", "en": "Thank you." }
+    },
+    "card": {
+      "title": { "it": "Grazie per aver rallentato con noi.", "en": "Thank you for slowing down with us." },
+      "names": { "it": "Giovanni · Filippo", "en": "Giovanni · Filippo" }
+    },
+    "skip": { "it": "Tieni premuto per saltare", "en": "Hold to skip" },
+    "speaker": {
+      "giovanni": { "it": "Giovanni", "en": "Giovanni" },
+      "filippo": { "it": "Filippo", "en": "Filippo" }
+    }
+  },
+
+  "movement": {
+    "kicker": { "it": "Il movimento · {n} / {total}", "en": "The movement · {n} / {total}" },
+    "narration": {
+      "intro1": { "it": "Diventa piccolo. Più piccolo di un granello di polvere.", "en": "Become small. Smaller than a speck of dust." },
+      "intro2": { "it": "Ogni viaggio comincia dalla corona.", "en": "Every journey begins at the crown." },
+      "windPrompt": { "it": "L’orologio è fermo. Carica la corona: tieni premuto Spazio, o il mouse.", "en": "The watch has stopped. Wind the crown: hold Space, or the mouse button." },
+      "wound": { "it": "La molla è carica. Il cuore riprende a battere.", "en": "The mainspring is wound. The heart begins to beat again." },
+      "stem": { "it": "Segui l’asta. Oltre la cassa, il movimento respira.", "en": "Follow the stem. Beyond the case, the movement breathes." },
+      "inside": { "it": "Sei dentro il calibro SW200-2 Élaboré. Swiss Made.", "en": "You are inside the SW200-2 Élaboré calibre. Swiss Made." },
+      "toBarrel": { "it": "Davanti a te, la riserva di tutta questa energia.", "en": "Ahead of you, the reserve of all this energy." },
+      "toTrain": { "it": "Ora segui la forza: di ruota in ruota diventa misura.", "en": "Now follow the force: from wheel to wheel it becomes measure." },
+      "toEscapement": { "it": "Ascolta. Il tic nasce qui.", "en": "Listen. The tick is born here." },
+      "toBalance": { "it": "Il cuore. Otto battiti al secondo.", "en": "The heart. Eight beats per second." },
+      "toRubies": { "it": "Guarda le pietre rosse sui perni.", "en": "Look at the red stones on the pivots." },
+      "toFinish": { "it": "Sali verso la luce. Ogni superficie è stata curata, anche quella che nessuno vedrà.", "en": "Rise towards the light. Every surface has been cared for, even those no one will see." },
+      "split": { "it": "Ora il tempo si divide. Tre mondi, tre orologi: scegli tu l’ordine.", "en": "Now time divides. Three worlds, three watches: you choose the order." },
+      "hubReturn": { "it": "Il cuore batte ancora. Scegli un altro mondo.", "en": "The heart is still beating. Choose another world." },
+      "hubAll": { "it": "Hai attraversato i tre mondi. Al centro del bilanciere, una luce ti aspetta.", "en": "You have crossed all three worlds. At the centre of the balance, a light awaits." },
+      "timelapse": { "it": "Un’ora, in un minuto.", "en": "An hour, in a minute." },
+      "slowmo": { "it": "Il tempo rallenta. Guarda l’ancora: libera, riceve, blocca.", "en": "Time slows down. Watch the lever: it releases, receives, locks." },
+      "wind": { "it": "La molla si stringe, spira dopo spira.", "en": "The spring tightens, coil after coil." },
+      "jewels": { "it": "Ventisei.", "en": "Twenty-six." },
+      "sweep": { "it": "La luce scorre sulle onde come sull’acqua.", "en": "Light flows over the waves as over water." }
+    },
+    "stations": {
+      "crown": {
+        "title": { "it": "La corona e l’asta di carica", "en": "The crown and the winding stem" },
+        "body": { "it": "La corona è l’unico punto in cui la mano entra nel movimento. Spinta a fondo, fa girare il pignone di carica: attraverso la ruota corona e il rocchetto tende la molla nel bariletto. Estratta, sposta il pignone scorrevole verso il rinvio e permette di regolare le lancette.", "en": "The crown is the only place where the hand enters the movement. Pushed in, it turns the winding pinion: through the crown wheel and the ratchet wheel it tensions the mainspring in the barrel. Pulled out, it shifts the sliding pinion towards the setting wheel, so the hands can be set." },
+        "poem": { "it": "Una soglia: da fuori a dentro, dalla mano al tempo.", "en": "A threshold: from outside to inside, from the hand to time." },
+        "action": { "it": "Tieni premuto per caricare", "en": "Hold to wind" }
+      },
+      "rotor": {
+        "title": { "it": "Il rotore e la carica automatica", "en": "The rotor and automatic winding" },
+        "body": { "it": "Il rotore è una massa oscillante, libera di girare a ogni movimento del polso. Le ruote d’inversione raddrizzano le sue oscillazioni nei due sensi e le trasmettono al rocchetto: la molla si carica da sola, mentre vivi. In Virentia lo vedrai da vicino.", "en": "The rotor is an oscillating weight, free to turn with every movement of the wrist. The reversing wheels rectify its swings in both directions and pass them on to the ratchet wheel: the spring winds itself while you live. In Virentia you will see it up close." },
+        "poem": { "it": "Il tuo movimento diventa il suo.", "en": "Your motion becomes its motion." }
+      },
+      "barrel": {
+        "title": { "it": "Il bariletto e la molla di carica", "en": "The barrel and the mainspring" },
+        "body": { "it": "In questo tamburo dentato è avvolta la molla motrice, una lama di lega speciale lunga e sottilissima. Caricata, accumula energia e la restituisce lentamente facendo ruotare il bariletto: è la sorgente di tutto ciò che si muove nel calibro.", "en": "Coiled inside this toothed drum is the mainspring, a long and very thin blade of special alloy. Once wound, it stores energy and releases it slowly, turning the barrel: it is the source of everything that moves in the calibre." },
+        "poem": { "it": "Il tempo, qui, non scorre: si ricarica.", "en": "Here, time does not flow: it winds." },
+        "action": { "it": "Carica la molla", "en": "Wind the spring" }
+      },
+      "train": {
+        "title": { "it": "Il rodaggio", "en": "The going train" },
+        "body": { "it": "Ruota centrale, terza ruota, quarta ruota, ruota di scappamento: ogni ingranaggio moltiplica la velocità del precedente e ne divide la forza. La ruota centrale compie un giro all’ora; la quarta, un giro al minuto, come la lancetta dei secondi.", "en": "Centre wheel, third wheel, fourth wheel, escape wheel: each gearing multiplies the speed of the one before and divides its force. The centre wheel turns once an hour; the fourth wheel once a minute, like the seconds hand." },
+        "poem": { "it": "Una forza che diventa misura.", "en": "A force that becomes measure." },
+        "action": { "it": "Accelera il tempo", "en": "Speed up time" }
+      },
+      "escapement": {
+        "title": { "it": "L’ancora e la ruota di scappamento", "en": "The pallet lever and the escape wheel" },
+        "body": { "it": "Lo scappamento ad ancora svizzero libera la ruota di scappamento mezzo dente alla volta. A ogni alternanza l’ancora si sposta, la ruota avanza e un dente ricade sulla paletta in rubino: è il tic che senti. In cambio, l’ancora dà al bilanciere una piccola spinta.", "en": "The Swiss lever escapement releases the escape wheel half a tooth at a time. At every beat the lever swings, the wheel advances and a tooth drops onto a ruby pallet stone: that is the tick you hear. In return, the lever gives the balance a small impulse." },
+        "poem": { "it": "Il tempo, diviso in istanti uguali.", "en": "Time, divided into equal instants." },
+        "action": { "it": "Rallenta il tempo", "en": "Slow time down" }
+      },
+      "balance": {
+        "title": { "it": "Il bilanciere e la spirale", "en": "The balance wheel and the hairspring" },
+        "body": { "it": "È l’organo regolatore: il bilanciere oscilla avanti e indietro, richiamato dalla spirale, sempre con lo stesso periodo. 28.800 alternanze all’ora, cioè 4 Hz: otto battiti al secondo. Dalla sua regolarità dipende la precisione dell’intero orologio.", "en": "This is the regulating organ: the balance swings back and forth, returned by the hairspring, always with the same period. 28,800 vibrations per hour, that is 4 Hz: eight beats per second. The precision of the whole watch depends on its regularity." },
+        "poem": { "it": "Il cuore: avanti, indietro, senza fine.", "en": "The heart: forth and back, without end." }
+      },
+      "rubies": {
+        "title": { "it": "I 26 rubini", "en": "The 26 jewels" },
+        "body": { "it": "Il calibro conta 26 rubini sintetici. Forati e lucidati, accolgono i perni delle ruote e del bilanciere e riducono attrito e usura dove il metallo girerebbe contro il metallo. Anche le palette dell’ancora e l’ellisse del bilanciere sono rubini.", "en": "The calibre has 26 synthetic rubies. Pierced and polished, they hold the pivots of the wheels and of the balance, reducing friction and wear where metal would otherwise turn against metal. The pallet stones and the impulse jewel are rubies too." },
+        "poem": { "it": "Gemme nascoste, perché il tempo non si fermi.", "en": "Hidden gems, so that time never stops." },
+        "action": { "it": "Accendi i rubini", "en": "Light up the jewels" }
+      },
+      "finishing": {
+        "title": { "it": "La finitura", "en": "The finishing" },
+        "body": { "it": "Côtes de Genève, viti lucidate, smussi: la decorazione non fa funzionare il calibro, ma racconta con quanta cura è stato fatto. Le onde parallele sono tracciate da una mola, passata dopo passata. Le ritroverai, al massimo, in Virentia.", "en": "Côtes de Genève, polished screws, bevelled edges: decoration does not make the calibre work, it tells how carefully it was made. The parallel waves are traced by a rotating wheel, pass after pass. You will find them at their finest in Virentia." },
+        "poem": { "it": "La bellezza che resta, anche al buio.", "en": "Beauty that remains, even in the dark." },
+        "action": { "it": "Fai scorrere la luce", "en": "Sweep the light" }
+      }
+    }
+  },
+
+  "celeste": {
+    "kicker": { "it": "Celeste · M-001 · {n} / {total}", "en": "Celeste · M-001 · {n} / {total}" },
+    "narration": {
+      "arrive": { "it": "Rallentare. Alzare lo sguardo. Fermarsi ad ascoltare il tempo.", "en": "Slow down. Look up. Stop and listen to time." },
+      "arrive2": { "it": "Celeste. Ref. M-001.", "en": "Celeste. Ref. M-001." },
+      "bridge": { "it": "Le maglie del bracciale ti portano verso la cassa.", "en": "The bracelet links lead you towards the case." },
+      "dusk": { "it": "Ora la luce del giorno si ritira.", "en": "Now the daylight withdraws." },
+      "night": { "it": "E gli indici si accendono.", "en": "And the indices light up." },
+      "silence": { "it": "Ascolta.", "en": "Listen." },
+      "exit": { "it": "Quando vuoi, la luce ti riporta al cuore del movimento.", "en": "Whenever you wish, the light will take you back to the heart of the movement." }
+    },
+    "stations": {
+      "case": {
+        "title": { "it": "La cassa: 38 mm, acciaio 316L", "en": "The case: 38 mm, 316L steel" },
+        "body": { "it": "Diametro 38 mm, spessore di circa 10,5 mm: proporzioni pensate per stare al polso senza imporsi. L’acciaio inossidabile 316L, a basso tenore di carbonio, resiste alla corrosione e accetta finiture satinate e lucide sulla stessa superficie.", "en": "38 mm in diameter, about 10.5 mm thick: proportions designed to sit on the wrist without imposing. 316L stainless steel, low in carbon, resists corrosion and takes satin and polished finishes on the same surface." },
+        "poem": { "it": "Un profilo che si ricorda, senza alzare la voce.", "en": "A profile you remember, without it raising its voice." }
+      },
+      "bracelet": {
+        "title": { "it": "Il bracciale integrato", "en": "The integrated bracelet" },
+        "body": { "it": "Il bracciale è disegnato da Monichs insieme alla cassa: nessuno stacco, la prima maglia prosegue la linea della carrure. Maglie satinate e lucide si alternano e guidano la luce lungo il polso.", "en": "The bracelet is designed by Monichs together with the case: no break, the first link continues the line of the case middle. Satin and polished links alternate and guide the light along the wrist." },
+        "poem": { "it": "Una sola linea, dal quadrante al polso.", "en": "A single line, from dial to wrist." }
+      },
+      "coating": {
+        "title": { "it": "Hard coating 1.200 Vickers", "en": "1,200 Vickers hard coating" },
+        "body": { "it": "Il bracciale riceve un hard coating, un trattamento superficiale che porta la durezza a 1.200 HV sulla scala Vickers. Un acciaio 316L non trattato si ferma in genere intorno ai 200 HV: la superficie trattata resiste molto meglio ai graffi di ogni giorno.", "en": "The bracelet receives a hard coating, a surface treatment that brings its hardness to 1,200 HV on the Vickers scale. Untreated 316L steel typically stays around 200 HV: the treated surface resists everyday scratches far better." },
+        "poem": { "it": "Il tempo passa. I suoi segni, molto meno.", "en": "Time passes. Its marks, far less." },
+        "action": { "it": "Prova a graffiare", "en": "Try to scratch it" }
+      },
+      "dial": {
+        "title": { "it": "Quadrante laccato, indici applicati", "en": "Lacquered dial, applied indices" },
+        "body": { "it": "Il quadrante azzurro polvere è laccato: la lacca dà al colore profondità e brillantezza sopra il motivo a triangoli. Gli indici non sono stampati ma applicati, uno a uno: le loro sfaccettature lucide catturano la luce a ogni inclinazione del polso.", "en": "The powder-blue dial is lacquered: the lacquer gives the colour depth and brilliance over the triangular pattern. The indices are not printed but applied, one by one: their polished facets catch the light at every tilt of the wrist." },
+        "poem": { "it": "Un cielo da portare al polso.", "en": "A sky to wear on your wrist." }
+      },
+      "water": {
+        "title": { "it": "10 ATM · 100 metri", "en": "10 ATM · 100 metres" },
+        "body": { "it": "La tenuta all’acqua è di 10 atmosfere, l’equivalente della pressione di 100 metri d’acqua in prova statica. Il vetro zaffiro con trattamento antiriflesso protegge il quadrante e lo lascia leggere anche in piena luce.", "en": "Water resistance is 10 atmospheres, the equivalent of the pressure of 100 metres of water in a static test. The sapphire crystal with anti-reflective coating protects the dial and keeps it legible even in full light." },
+        "poem": { "it": "Sopra le nuvole o sotto la pioggia: lo stesso tempo.", "en": "Above the clouds or under the rain: the same time." }
+      },
+      "lume": {
+        "title": { "it": "Super-LumiNova", "en": "Super-LumiNova" },
+        "body": { "it": "Lancette e indici sono riempiti di Super-LumiNova, un pigmento che assorbe la luce e la restituisce al buio, senza alcuna radioattività. Più luce ha ricevuto, più a lungo brilla.", "en": "Hands and indices are filled with Super-LumiNova, a pigment that absorbs light and gives it back in the dark, with no radioactivity at all. The more light it has received, the longer it glows." },
+        "poem": { "it": "Il giorno se ne va. La luce resta.", "en": "The day leaves. The light stays." },
+        "action": { "it": "Lascia che scenda la sera", "en": "Let evening fall" }
+      }
+    }
+  },
+
+  "sunset": {
+    "kicker": { "it": "Sunset · M-002 · {n} / {total}", "en": "Sunset · M-002 · {n} / {total}" },
+    "narration": {
+      "arrive": { "it": "Dove la luce si modella alla bellezza.", "en": "Where light shapes itself to beauty." },
+      "arrive2": { "it": "Sunset. Ref. M-002. Sei dentro la pietra.", "en": "Sunset. Ref. M-002. You are inside the stone." },
+      "unique": { "it": "Queste venature sono nate adesso, per te. Nessun’altra visita sarà uguale.", "en": "These veins were born just now, for you. No other visit will be the same." },
+      "toCathedral": { "it": "Segui la luce che attraversa la pietra.", "en": "Follow the light passing through the stone." },
+      "wow": { "it": "Il tuo Sunset non esiste da nessun’altra parte al mondo.", "en": "Your Sunset exists nowhere else in the world." },
+      "wow2": { "it": "Come un tramonto, ogni pezzo è unico.", "en": "Like a sunset, every piece is unique." },
+      "exit": { "it": "Quando vuoi, la luce ti riporta al cuore del movimento.", "en": "Whenever you wish, the light will take you back to the heart of the movement." }
+    },
+    "stations": {
+      "agate": {
+        "title": { "it": "Cos’è l’agata", "en": "What agate is" },
+        "body": { "it": "L’agata è una varietà di calcedonio, un quarzo microcristallino. Nasce quando soluzioni ricche di silice si depositano, strato dopo strato, nelle cavità delle rocce: ogni banda è un tempo diverso, un’acqua diversa, una traccia diversa di minerale.", "en": "Agate is a variety of chalcedony, a microcrystalline quartz. It forms when silica-rich solutions settle, layer after layer, inside cavities in rock: each band is a different time, a different water, a different trace of mineral." },
+        "poem": { "it": "Il tempo della terra, in sottili strati di luce.", "en": "The earth’s time, in thin layers of light." }
+      },
+      "unique": {
+        "title": { "it": "Perché ogni quadrante è irripetibile", "en": "Why every dial is one of a kind" },
+        "body": { "it": "Il disegno di un quadrante dipende da dove la lama attraversa la pietra. Basta spostarsi di un millimetro e le bande cambiano spessore, curva e colore: due quadranti Sunset non saranno mai uguali.", "en": "The pattern of a dial depends on where the blade passes through the stone. Move a single millimetre and the bands change thickness, curve and colour: no two Sunset dials will ever be the same." },
+        "poem": { "it": "Come un tramonto, ogni pezzo è unico.", "en": "Like a sunset, every piece is unique." }
+      },
+      "slice": {
+        "title": { "it": "Dal blocco al quadrante", "en": "From block to dial" },
+        "body": { "it": "La pietra viene tagliata in fette sottili con lame diamantate, poi lappata fino a pochi decimi di millimetro e lucidata. Dal disco si ricava il quadrante: foro centrale, contorno, una superficie che non deve avere imperfezioni.", "en": "The stone is cut into thin slices with diamond blades, then lapped down to a few tenths of a millimetre and polished. The dial is taken from the disc: centre hole, outline, a surface that must be flawless." },
+        "poem": { "it": "Togliere materia, finché resta solo la luce.", "en": "Taking material away, until only light remains." },
+        "action": { "it": "Taglia la pietra", "en": "Slice the stone" }
+      },
+      "hard": {
+        "title": { "it": "Una pietra dura, a misura d’orologio", "en": "A hard stone, at watch scale" },
+        "body": { "it": "L’agata è dura, circa 7 sulla scala di Mohs, ma fragile: non si piega, si rompe. Lavorarla a spessori da orologeria richiede tagli lenti, pressioni minime e la pazienza di scartare. Ogni foro, ogni bordo è un rischio calcolato.", "en": "Agate is hard, around 7 on the Mohs scale, yet brittle: it does not bend, it breaks. Working it to watchmaking thicknesses takes slow cuts, minimal pressure and the patience to reject. Every hole, every edge is a calculated risk." },
+        "poem": { "it": "La fragilità, trattata con precisione.", "en": "Fragility, handled with precision." }
+      },
+      "indices": {
+        "title": { "it": "Indici e lancette", "en": "Indices and hands" },
+        "body": { "it": "Su un fondo vivo servono segni netti: indici applicati lucidati e lancette con Super-LumiNova restano leggibili qualunque sia il disegno della pietra. La pietra parla, l’ora resta chiara.", "en": "A living background needs clear marks: polished applied indices and hands with Super-LumiNova stay legible whatever the pattern of the stone. The stone speaks; the time stays clear." },
+        "poem": { "it": "Ordine sul caos, con gentilezza.", "en": "Order upon chaos, gently." },
+        "action": { "it": "Mostra i quadranti", "en": "Show the dials" }
+      }
+    }
+  },
+
+  "virentia": {
+    "kicker": { "it": "Virentia · M-003 · {n} / {total}", "en": "Virentia · M-003 · {n} / {total}" },
+    "narration": {
+      "arrive": { "it": "Il battito silenzioso della natura.", "en": "The silent heartbeat of nature." },
+      "arrive2": { "it": "Virentia. Ref. M-003. Un arazzo vegetale, custodito nel tempo.", "en": "Virentia. Ref. M-003. A tapestry of leaves, kept in time." },
+      "toRotor": { "it": "Alza lo sguardo: il sole di questa foresta è un rotore.", "en": "Look up: the sun of this forest is a rotor." },
+      "windPrompt": { "it": "Muovi il mouse avanti e indietro, come un polso che vive.", "en": "Move the mouse back and forth, like a living wrist." },
+      "windMid": { "it": "La molla si stringe. La foresta si accende.", "en": "The spring tightens. The forest lights up." },
+      "windDone": { "it": "Ecco: il tuo gesto è diventato tempo.", "en": "There: your gesture has become time." },
+      "exit": { "it": "Quando vuoi, la luce ti riporta al cuore del movimento.", "en": "Whenever you wish, the light will take you back to the heart of the movement." }
+    },
+    "stations": {
+      "cotes": {
+        "title": { "it": "Côtes de Genève", "en": "Côtes de Genève" },
+        "body": { "it": "Una decorazione legata alla tradizione ginevrina: una mola rotante, appoggiata con pressione costante, traccia bande regolari che catturano la luce come onde. Sul rotore Monichs le Côtes de Genève girano con ogni movimento del polso.", "en": "A decoration rooted in Geneva’s tradition: a rotating wheel, applied with constant pressure, traces regular bands that catch the light like waves. On the Monichs rotor, the Côtes de Genève turn with every movement of the wrist." },
+        "poem": { "it": "Onde ferme, che si muovono con la luce.", "en": "Still waves that move with the light." }
+      },
+      "screws": {
+        "title": { "it": "Viti lucidate e anglage", "en": "Polished screws and anglage" },
+        "body": { "it": "Nella finitura orologiera le teste delle viti vengono lucidate e gli spigoli di ponti e componenti smussati e lucidati: è l’anglage. Pochi decimi di millimetro che separano un pezzo che funziona da un pezzo rifinito.", "en": "In watch finishing, screw heads are polished and the edges of bridges and parts are bevelled and polished: this is anglage. A few tenths of a millimetre that separate a part that works from a part that is finished." },
+        "poem": { "it": "La cura si vede negli angoli.", "en": "Care shows in the corners." }
+      },
+      "caseback": {
+        "title": { "it": "Il fondello aperto in zaffiro", "en": "The open sapphire caseback" },
+        "body": { "it": "Virentia ha un fondello in vetro zaffiro: il movimento resta in vista, con il rotore decorato su misura da Monichs. Celeste e Sunset hanno invece un fondello pieno, inciso. Qui la meccanica entra nel disegno.", "en": "Virentia has a sapphire crystal caseback: the movement stays in view, with a rotor decorated to Monichs’ own design. Celeste and Sunset have a solid, engraved caseback instead. Here the mechanics become part of the design." },
+        "poem": { "it": "Un orologio che non nasconde il proprio cuore.", "en": "A watch that does not hide its heart." }
+      },
+      "rosegold": {
+        "title": { "it": "Oro rosa: lunetta e maglie centrali", "en": "Rose gold: bezel and centre links" },
+        "body": { "it": "In Virentia la lunetta e le maglie centrali del bracciale sono in oro rosa, come le lancette e gli accenti del quadrante. Accanto all’acciaio satinato, il calore dell’oro rosa disegna un ritmo: freddo e caldo, opaco e lucido, come luce tra le foglie.", "en": "On Virentia the bezel and the bracelet’s centre links are in rose gold, like the hands and the dial accents. Next to satin-finished steel, the warmth of rose gold sets a rhythm: cool and warm, matte and bright, like light through leaves." },
+        "poem": { "it": "Il calore, misurato.", "en": "Warmth, measured." }
+      },
+      "rotor": {
+        "title": { "it": "Il rotore e la carica automatica", "en": "The rotor and automatic winding" },
+        "body": { "it": "Ogni movimento del polso fa ruotare il rotore attorno al suo asse. Le ruote d’inversione trasformano le oscillazioni in una rotazione in un solo senso, che raggiunge il rocchetto e tende la molla nel bariletto. Chi lo indossa lo carica, semplicemente vivendo.", "en": "Every movement of the wrist turns the rotor around its axis. The reversing wheels turn its swings into rotation in a single direction, which reaches the ratchet wheel and tensions the mainspring in the barrel. Whoever wears it winds it, simply by living." },
+        "poem": { "it": "Il polso muove il sole.", "en": "The wrist moves the sun." },
+        "action": { "it": "Carica l’orologio", "en": "Wind the watch" }
+      }
+    }
+  },
+
+  "epilogue": {
+    "quote": { "it": "Il tempo come esperienza personale, non solo come misura.", "en": "Time as a personal experience, not merely a measure." },
+    "name": { "it": "Mon, mio. Montre, orologio. Monichs.", "en": "Mon, mine. Montre, watch. Monichs." },
+    "trilogy": { "it": "Collezione Delta · The Trilogy", "en": "Delta Collection · The Trilogy" },
+    "claim": { "it": "Design italiano. Manifattura svizzera.", "en": "Italian design. Swiss manufacture." },
+    "claimEn": { "it": "Designed in Italy · Engineered in Switzerland", "en": "Designed in Italy · Engineered in Switzerland" }
+  }
+}
