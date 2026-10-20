@@ -9,15 +9,6 @@ Modelli/
 Branding/
 /CELESTE INTRO_ORIZ.mp4
 
-# materiale di terzi che non si pubblica senza permesso o licenza (il gioco funziona anche senza:
-# il foglio resta grigio, il logo usa Montserrat)
-#  - tavola 4029 e maschere ricavate dalle tavole del fornitore della cassa: "no part may be reproduced
-#    without written permission"
-#  - Foslin: font del brand con licenza commerciale
-public/assets/tex/lab/case-4029.webp
-scripts/blender/textures_src/caseback_*_disegno.png
-**/Foslin-*.otf
-
 # file locali: backup di Blender, cache di Python, strumenti delle sessioni (le skill di Blender sono
 # una raccolta di terzi installata qui per il lavoro sui modelli)
 *.blend1

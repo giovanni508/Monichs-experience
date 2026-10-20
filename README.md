@@ -28,11 +28,8 @@ Si apre su `http://localhost:5173`. Le modifiche a codice e testi si vedono subi
 Il progetto sta su [github.com/giovanni508/Monichs-experience](https://github.com/giovanni508/Monichs-experience), che è **pubblico**. Ogni modifica va pushata lì. Restano fuori (vedi `.gitignore`):
 - `node_modules/` e `dist/`: si rifanno con `npm install` e `npm run build`.
 - Le sorgenti grezze: `Modelli/`, `Branding/` e il film originale. Sono oltre 3 GB e contengono anche le foto vere dei fondatori, che non si caricano mai. Restano su questo PC, e `npm run assets` le legge da qui.
-- Il materiale di terzi senza permesso o licenza:
-  - la tavola 4029 e le maschere ricavate dalle tavole del fornitore della cassa ("no part may be reproduced without written permission");
-  - il font Foslin del brand.
 
-Da un clone il gioco parte lo stesso: il foglio 4029 resta grigio e il logo usa Montserrat. Per la fiera serve il PC che ha anche questi file.
+Il materiale di terzi (la tavola 4029 e le maschere ricavate dalle tavole del fornitore della cassa, il font Foslin del brand) è nel repository dal 20 ottobre 2026: Giovanni ha i permessi per pubblicarlo.
 
 ## 2. Build
 
