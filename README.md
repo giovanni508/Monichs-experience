@@ -59,7 +59,7 @@ Consigli per il PC della fiera: alimentazione collegata, risparmio energetico di
 
 ### Trailer per Kickstarter
 
-Un video di 45 s in 16:9 (1920×1080, 30 fps), lento, che presenta l'esperienza senza il laboratorio: le tre Delta, la corona, gli ingranaggi, Celeste dal giorno alla notte, Sunset, Virentia, "The art of slowing down" e il cartello "INSIDE MONICHS · Unlocks at $50,000 · Free for every backer". Al centro, in Montserrat ExtraBold, le frasi della narrazione del gioco anticipano quello che si vedrà ("Become small.", "Every journey begins at the crown.", "And the indices light up."…). Esce in inglese e in italiano.
+Un video di 45 s in 16:9 (1920×1080, 30 fps), lento, che presenta l'esperienza senza il laboratorio: le tre Delta, la corona, gli ingranaggi, Celeste dal giorno alla notte, Sunset, Virentia e il cartello "INSIDE MONICHS · An interactive experience, at your own pace · Unlocks at $50,000 · Free for every backer". Al centro, in Montserrat ExtraBold, cinque frasi lunghe sullo schermo dicono che cosa si fa nell'esperienza, con le azioni vere del gioco ("Become small. Explore Monichs from the inside.", "Wind the crown and walk inside the movement.", "Let evening fall and watch the indices glow.", "Discover why no two dials are alike.", "Wind the rotor and wake the forest."). Esce in inglese e in italiano.
 
 ```bash
 npm run dev        # in un altro terminale

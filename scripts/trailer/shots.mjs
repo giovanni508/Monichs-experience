@@ -1,9 +1,9 @@
 // I piani del trailer: camera, fuoco e regia di ogni mondo, a 60 sottofotogrammi al secondo (il
 // montaggio li fonde a due a due: 30 fps con un filo di mosso, come un otturatore a 180°).
 // Le coordinate sono quelle dei mondi (vedi worlds/*.js); i piani durano un po' più del necessario,
-// il montaggio ne prende la parte centrale. Movimenti lenti; dove c'è un titolo (al centro) il piano
-// comincia su un fondo tranquillo (stelle, bosco, agata, il cielo che si fa notte) e poi una
-// panoramica scopre l'orologio mentre il titolo sfuma.
+// il montaggio ne prende la parte centrale. Movimenti lenti; la frase sta al centro su un fondo
+// tranquillo (stelle, il cielo che si fa notte, agata, bosco): dove l'orologio è al centro una
+// panoramica lo scopre quando la frase sfuma, altrove l'orologio resta sul terzo destro.
 import fs from 'node:fs';
 import path from 'node:path';
 import { bootGame, saveDataURL } from './browser.mjs';
@@ -26,13 +26,13 @@ export const SHOTS = [
     cam: (u) => {
       const k = glide(u);
       const pos = lerp([-8, 24, 92], [4, 27, 104], k);
-      const look = lerp([-2, 78, 208], [1.5, 26.5, 208], smooth(0.556, 0.81, u));
+      const look = lerp([-2, 78, 208], [1.5, 26.5, 208], smooth(0.633, 0.856, u));
       return { pos, look, fov: 44 - 1.5 * k, focus: dist(pos, [0, 26, 208]) };
     },
   },
   {
     id: 'B', // la passerella verso la corona, e dentro il tubo: accelera piano, come risucchiati
-    world: 'movement', dur: 6.8,
+    world: 'movement', dur: 6.2,
     setup: 'app.clock.time = 1010; app.clock.setScale(1, 100); app.clock.scale = 1;',
     cam: (u) => {
       const k = Math.pow(u, 1.4);
@@ -42,7 +42,7 @@ export const SHOTS = [
   },
   {
     id: 'C', // gli ingranaggi del rodaggio sotto la passerella di zaffiro, in time-lapse (×10)
-    world: 'movement', dur: 7.6,
+    world: 'movement', dur: 7.2,
     setup: 'app.clock.time = 1020; app.clock.setScale(10, 100); app.clock.scale = 10;',
     cam: (u) => {
       const k = glide(u);
@@ -54,42 +54,42 @@ export const SHOTS = [
   {
     id: 'D', // Celeste: il cielo-quadrante sopra l'orologio; scende la notte, gli indici sospesi si
     // accendono, poi la panoramica scende sulla Super-LumiNova del quadrante
-    world: 'celeste', dur: 9.6,
+    world: 'celeste', dur: 10.5,
     setup: 'w.setNight(0);',
     hook: 'w.setNight(t);',
-    hookArg: (u) => smooth(0.375, 0.583, u),
+    hookArg: (u) => smooth(0.248, 0.457, u),
     cam: (u) => {
       const k = glide(u);
       const pos = lerp([7, 12, -128], [-3, 18.5, -168], k);
-      const look = lerp([0, 170, -292], [0, 71.5, -292], smooth(0.625, 0.896, u));
+      const look = lerp([0, 170, -292], [0, 71.5, -292], smooth(0.686, 0.895, u));
       return { pos, look, fov: 40 - 2 * k, focus: dist(pos, [0, 72, -292]) - 8 };
     },
   },
   {
-    id: 'E', // Sunset: le pareti d'agata, poi la panoramica gira sull'orologio nell'abside
-    world: 'sunset', dur: 7,
+    id: 'E', // Sunset: le pareti d'agata al centro, l'orologio sul terzo destro; si avvicina piano
+    world: 'sunset', dur: 7.5,
     cam: (u) => {
       const k = glide(u);
       // all'altezza del quadrante il vetro riflette l'agata scura e non la volta chiara: la pietra
       // resta rosso profondo, come nelle foto (dal basso diventava rosa)
-      const pos = lerp([-7, 33.5, -196], [-1.5, 34.8, -208], k);
-      const look = lerp([-75, 30, -277], [0, 35.6, -277], smooth(0.47, 0.83, u));
-      return { pos, look, fov: 40 - 2 * k, focus: dist(pos, [0, 36, -277]) - 2 };
+      const pos = lerp([-4, 33.5, -190], [-3.5, 34.2, -199], k);
+      const look = lerp([-47, 31, -277], [-42, 32, -277], k);
+      return { pos, look, fov: 41, focus: dist(pos, [0, 36, -277]) - 2 };
     },
   },
   {
-    id: 'F', // Virentia: un carrello laterale tra i tronchi fino alla porta con il rotore, carico a tre quarti
-    world: 'virentia', dur: 6.3,
+    id: 'F', // Virentia: il bosco al centro, la porta con il rotore (carico a tre quarti) sul terzo destro
+    world: 'virentia', dur: 7.8,
     hook: 'w.energy = 0.75;',
     cam: (u) => {
       const k = glide(u);
-      const pos = lerp([-26, 6, -62], [-2, 7, -78], k);
-      return { pos, look: lerp([-24, 15, -160], [0, 21.5, -160], k), fov: 42, focus: dist(pos, [0, 14, -112]) };
+      const pos = lerp([-30, 6, -58], [-21, 6.2, -64], k);
+      return { pos, look: lerp([-28, 15, -160], [-20, 16, -160], k), fov: 42, focus: dist(pos, [0, 14, -112]) };
     },
   },
   {
     id: 'G', // i tre orologi dell'epilogo: il montaggio li sfoca dietro il cartello finale
-    world: 'epilogue', dur: 9.3,
+    world: 'epilogue', dur: 7.3,
     setup: 'w.time = 6;',
     hook: 'w.watches.forEach((x) => (x.userData.label.visible = false));',
     cam: (u) => ({ pos: lerp([0, 1.65, 18], [0, 1.55, 16.4], u), look: [0, 0.95, 0], fov: 40, focus: 17 }),

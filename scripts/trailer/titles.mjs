@@ -1,46 +1,38 @@
 // I titoli del trailer, composti in Chrome con i font del brand e salvati come PNG trasparenti
 // 1920×1080, tutti al centro. Le frasi, in Montserrat ExtraBold maiuscolo, raccontano in anticipo
-// quello che si vedrà e si farà: vengono dalla narrazione del gioco (content/texts.json: intro1,
-// intro2, wound, split, celeste arrive e night, sunset arrive2, virentia toRotor), e "The Art of
-// Slowing Down" dalla presentazione della Collezione Delta. Sotto la frase di ogni mondo, piccolo,
-// il suo nome in Foslin. Il cartello finale: pittogramma e INSIDE MONICHS in Foslin, il sottotitolo
-// in Cormorant Garamond corsivo, l'invito in Montserrat.
+// che cosa si vedrà e si farà nell'esperienza; sotto la frase di ogni mondo, piccolo, il suo nome
+// in Foslin. Il cartello finale: pittogramma e INSIDE MONICHS in Foslin, il sottotitolo in
+// Cormorant Garamond corsivo ("al ritmo che decidi tu", dalla presentazione della Collezione Delta),
+// l'invito in Montserrat.
 import fs from 'node:fs';
 import path from 'node:path';
 import { launchChrome } from './browser.mjs';
 
-// le frasi, nell'ordine in cui compaiono (i tempi sono in edit.mjs); "\n" manda a capo
-export const BEATS = ['small', 'dust', 'crown', 'heart', 'worlds', 'look', 'lume', 'stone', 'rotor', 'art'];
-const WORLD = { look: 'CELESTE', stone: 'SUNSET', rotor: 'VIRENTIA' };
+// le frasi, nell'ordine in cui compaiono (i tempi sono in edit.mjs); "\n" manda a capo. Dicono che
+// cosa si fa nell'esperienza, con le azioni vere del gioco: si cammina dentro l'orologio, si carica
+// la corona, su Celeste si lascia scendere la sera (tappa "lume"), in Sunset si scopre perché ogni
+// quadrante è irripetibile (tappa "unique"), in Virentia si carica il rotore
+export const BEATS = ['explore', 'crown', 'night', 'unique', 'rotor'];
+const WORLD = { night: 'CELESTE', unique: 'SUNSET', rotor: 'VIRENTIA' };
 
 export const TEXT = {
   en: {
-    small: 'Become small.',
-    dust: 'Smaller than a speck of dust.',
-    crown: 'Every journey begins at the crown.',
-    heart: 'The heart begins to beat again.',
-    worlds: 'Three worlds.\nYou choose the order.',
-    look: 'Slow down. Look up.',
-    lume: 'And the indices light up.',
-    stone: 'You are inside the stone.',
-    rotor: 'The sun of this forest is a rotor.',
-    art: 'The art of slowing down.',
-    sub: 'An interactive journey inside a mechanical watch.',
+    explore: 'Become small.\nExplore Monichs from the inside.',
+    crown: 'Wind the crown\nand walk inside the movement.',
+    night: 'Let evening fall\nand watch the indices glow.',
+    unique: 'Discover why no two\ndials are alike.',
+    rotor: 'Wind the rotor\nand wake the forest.',
+    sub: 'An interactive experience, at your own pace.',
     unlock: 'Unlocks at $50,000',
     free: 'Free for every backer',
   },
   it: {
-    small: 'Diventa piccolo.',
-    dust: 'Più piccolo di un granello di polvere.',
-    crown: 'Ogni viaggio comincia dalla corona.',
-    heart: 'Il cuore riprende a battere.',
-    worlds: 'Tre mondi.\nScegli tu l’ordine.',
-    look: 'Rallenta. Alza lo sguardo.',
-    lume: 'E gli indici si accendono.',
-    stone: 'Sei dentro la pietra.',
-    rotor: 'Il sole di questa foresta è un rotore.',
-    art: 'L’arte di rallentare.',
-    sub: 'Un viaggio interattivo dentro un orologio meccanico.',
+    explore: 'Diventa piccolo.\nEsplora Monichs dall’interno.',
+    crown: 'Carica la corona\ne cammina dentro il movimento.',
+    night: 'Lascia che scenda la sera\ne guarda gli indici accendersi.',
+    unique: 'Scopri perché nessun\nquadrante è uguale.',
+    rotor: 'Carica il rotore\ne risveglia il bosco.',
+    sub: 'Un’esperienza interattiva, al ritmo che decidi tu.',
     unlock: 'Si sblocca a $50.000',
     free: 'Gratis per tutti i backer',
   },
@@ -71,8 +63,8 @@ html,body{margin:0;width:1920px;height:1080px;background:transparent;overflow:hi
 .mid{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;}
 .mid::before{content:'';position:absolute;left:50%;top:50%;width:1700px;height:420px;transform:translate(-50%,-50%);
   background:radial-gradient(closest-side,rgba(2,3,16,.46),rgba(2,3,16,.2) 60%,rgba(2,3,16,0));}
-.beat{position:relative;max-width:1380px;text-align:center;text-wrap:balance;font-family:'Montserrat';font-weight:800;
-  font-size:64px;line-height:1.14;letter-spacing:0.07em;text-transform:uppercase;color:var(--white);
+.beat{position:relative;max-width:1500px;text-align:center;text-wrap:balance;font-family:'Montserrat';font-weight:800;
+  font-size:60px;line-height:1.18;letter-spacing:0.07em;text-transform:uppercase;color:var(--white);
   text-shadow:0 0 34px rgba(0,0,12,.65),0 0 8px rgba(0,0,12,.45);}
 .world{position:relative;margin-top:30px;display:flex;align-items:center;gap:22px;font-family:'Foslin';font-size:24px;
   letter-spacing:0.6em;padding-left:0.6em;color:var(--rose2);text-shadow:0 0 18px rgba(0,0,10,.7);}

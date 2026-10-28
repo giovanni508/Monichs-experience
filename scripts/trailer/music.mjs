@@ -1,7 +1,7 @@
 // La musica del trailer: un pianoforte a feltro leggero sul motivo di Monichs (6-3-2-1, lo stesso
 // che apre la melodia di ogni mondo nel gioco), un pad sotto, qualche tic dello scappamento
 // all'inizio e un riverbero da sala. 60 BPM (un battito = 1 s), 45 s, note rade; l'armonia cambia
-// sui tagli del montaggio (8, 13, 19, 27, 32,5, 37 s: vedi edit.mjs) e una nota della melodia entra
+// sui tagli del montaggio (8, 12,5, 18, 27, 33, 39 s: vedi edit.mjs) e una nota della melodia entra
 // con ogni frase.
 //
 // Il pianoforte è sintetizzato in differita, quindi senza i limiti del gioco (dove la CPU serve alla
@@ -32,52 +32,52 @@ const NOTE = (s) => {
 
 // ------------------------------------------------------------------ partitura (re maggiore)
 // [battito, nota, velocità]; il pedale si rialza all'inizio di ogni tratto (battiti)
-const PEDAL = [0, 8, 13, 19, 27, 32.5, 37, 99];
+const PEDAL = [0, 8, 12.5, 18, 27, 33, 39, 99];
 const SCORE = [
-  // A, le stelle e le tre Delta: basso re, il motivo 6-3-2-1 (si fa# mi... re), una nota per frase
+  // A, le stelle e le tre Delta: basso re, il motivo 6-3-2-1 (si fa# mi... re)
   [0.3, 'D2', 0.3], [0.33, 'A2', 0.24],
   [1.2, 'B4', 0.46],
-  [3.6, 'F#4', 0.4],
+  [3.4, 'F#4', 0.4],
   [5.4, 'E4', 0.38],
   [6.6, 'A3', 0.2],
   // B, si entra nella corona: il motivo si posa (re su si minore), poi risale piano
   [8.0, 'B1', 0.3], [8.03, 'F#2', 0.24], [8.0, 'D4', 0.42],
   [10.0, 'E4', 0.32],
-  [11.6, 'F#4', 0.32],
-  // C, gli ingranaggi: un arpeggio lento su mi minore con la nona, poi "tre mondi"
-  [13.0, 'E2', 0.3], [13.03, 'B2', 0.22],
-  [13.0, 'G3', 0.26], [13.9, 'B3', 0.25], [14.8, 'D4', 0.27], [15.7, 'F#4', 0.29],
-  [16.4, 'A4', 0.32],
-  [17.6, 'B4', 0.34],
+  [11.4, 'F#4', 0.32],
+  // C, gli ingranaggi: un arpeggio lento su mi minore con la nona
+  [12.5, 'E2', 0.3], [12.53, 'B2', 0.22],
+  [12.5, 'G3', 0.26], [13.4, 'B3', 0.25], [14.3, 'D4', 0.27], [15.2, 'F#4', 0.29],
+  [16.2, 'A4', 0.32],
+  [17.2, 'B4', 0.34],
   // D, Celeste: alto e arioso; quando si accendono gli indici, una nota in alto
-  [19.0, 'G2', 0.3], [19.03, 'D3', 0.23], [19.06, 'B3', 0.17], [19.0, 'D5', 0.44],
-  [20.6, 'E5', 0.36],
-  [23.0, 'A5', 0.36],
-  [24.6, 'F#5', 0.3],
-  [26.0, 'E5', 0.28],
+  [18.0, 'G2', 0.3], [18.03, 'D3', 0.23], [18.06, 'B3', 0.17], [18.0, 'D5', 0.44],
+  [19.8, 'E5', 0.36],
+  [21.6, 'A5', 0.36],
+  [23.4, 'F#5', 0.3],
+  [25.2, 'E5', 0.28],
   // E, Sunset
   [27.0, 'A2', 0.3], [27.03, 'E3', 0.23], [27.06, 'C#4', 0.15], [27.0, 'F#5', 0.44],
   [28.8, 'A5', 0.36],
-  [30.6, 'E5', 0.32],
+  [30.8, 'E5', 0.32],
   // F, Virentia: mi minore, il bosco; la melodia scende verso casa
-  [32.5, 'E2', 0.3], [32.53, 'B2', 0.23], [32.56, 'G3', 0.18], [32.5, 'B5', 0.46],
-  [34.0, 'A5', 0.42],
-  [35.4, 'F#5', 0.4],
-  // G, "l'arte di rallentare" e il cartello: a casa, re con la nona, e tre echi che si spengono
-  [37.0, 'D2', 0.34], [37.03, 'A2', 0.27], [37.06, 'E3', 0.2], [37.09, 'F#3', 0.2], [37.0, 'D5', 0.48],
-  [40.2, 'F#5', 0.26],
-  [41.6, 'D6', 0.2],
-  [43.0, 'A5', 0.15],
+  [33.0, 'E2', 0.3], [33.03, 'B2', 0.23], [33.06, 'G3', 0.18], [33.0, 'B5', 0.46],
+  [34.8, 'A5', 0.42],
+  [36.6, 'F#5', 0.4],
+  // G, il cartello: a casa, re con la nona, e tre echi che si spengono
+  [39.0, 'D2', 0.34], [39.03, 'A2', 0.27], [39.06, 'E3', 0.2], [39.09, 'F#3', 0.2], [39.0, 'D5', 0.48],
+  [40.6, 'F#5', 0.26],
+  [42.0, 'D6', 0.2],
+  [43.2, 'A5', 0.15],
 ];
 // gli accordi del pad sotto il pianoforte (battiti → note)
 const PAD = [
   [0, 8, ['D3', 'A3', 'F#4']],
-  [8, 13, ['B2', 'F#3', 'D4']],
-  [13, 19, ['E3', 'G3', 'B3']],
-  [19, 27, ['G3', 'B3', 'D4']],
-  [27, 32.5, ['A3', 'C#4', 'E4']],
-  [32.5, 37, ['E3', 'G3', 'B3']],
-  [37, 46, ['D3', 'A3', 'F#4']],
+  [8, 12.5, ['B2', 'F#3', 'D4']],
+  [12.5, 18, ['E3', 'G3', 'B3']],
+  [18, 27, ['G3', 'B3', 'D4']],
+  [27, 33, ['A3', 'C#4', 'E4']],
+  [33, 39, ['E3', 'G3', 'B3']],
+  [39, 46, ['D3', 'A3', 'F#4']],
 ];
 
 // ------------------------------------------------------------------ una nota di pianoforte a feltro
