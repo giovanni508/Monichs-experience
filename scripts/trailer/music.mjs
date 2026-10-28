@@ -1,7 +1,7 @@
 // La musica del trailer: un pianoforte a feltro leggero sul motivo di Monichs (6-3-2-1, lo stesso
 // che apre la melodia di ogni mondo nel gioco), un pad sotto, qualche tic dello scappamento
-// all'inizio e un riverbero da sala. 64 BPM (un battito = 0,9375 s): 16 battiti = 15 s, e
-// l'armonia cambia sui tagli del montaggio (battiti 3, 5, 7, 9, 11, 13).
+// all'inizio e un riverbero da sala. 60 BPM (un battito = 1 s), 30 s, note rade; l'armonia cambia
+// sui tagli del montaggio (5, 8,5, 12, 16,5, 20,5, 24,5 s: vedi edit.mjs).
 //
 // Il pianoforte è sintetizzato in differita, quindi senza i limiti del gioco (dove la CPU serve alla
 // grafica): fino a 40 parziali appena inarmoniche per nota, due corde scordate di un capello nelle
@@ -12,9 +12,10 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const SR = 48000;
-const LEN = 15.6;
+const TOTAL = 30;
+const LEN = TOTAL + 0.6;
 const N = Math.ceil(LEN * SR);
-const BEAT = 60 / 64;
+const BEAT = 1;
 
 let seed = 7;
 const rnd = () => {
@@ -30,39 +31,46 @@ const NOTE = (s) => {
 
 // ------------------------------------------------------------------ partitura (re maggiore)
 // [battito, nota, velocità]; il pedale si rialza all'inizio di ogni tratto (battiti)
-const PEDAL = [0, 3, 4, 7, 9, 11, 13, 99];
+const PEDAL = [0, 5, 8.5, 12, 16.5, 20.5, 24.5, 99];
 const SCORE = [
-  // A, le tre Delta: basso re, il motivo 6-3-2-1 (si fa# mi re)
-  [0.0, 'D2', 0.3], [0.03, 'A2', 0.24],
-  [0.5, 'B4', 0.46],
-  [2.0, 'F#4', 0.4],
-  // B, si entra: sol sotto il mi
-  [3.0, 'G2', 0.3], [3.03, 'D3', 0.22], [3.0, 'E4', 0.4],
-  // il motivo si posa (si minore), poi gli ingranaggi: un arpeggio che sale
-  [4.0, 'B1', 0.3], [4.03, 'F#2', 0.24], [4.0, 'D4', 0.38],
-  [5.0, 'B3', 0.26], [5.5, 'D4', 0.25], [6.0, 'F#4', 0.27], [6.5, 'A4', 0.29],
-  // D, Celeste: alto e arioso
-  [7.0, 'G2', 0.3], [7.03, 'D3', 0.23], [7.06, 'B3', 0.17], [7.0, 'D5', 0.42],
-  [8.0, 'E5', 0.37],
+  // A, le tre Delta: basso re, il motivo 6-3-2-1 (si fa# mi... re)
+  [0.3, 'D2', 0.3], [0.33, 'A2', 0.24],
+  [1.0, 'B4', 0.46],
+  [2.5, 'F#4', 0.4],
+  [3.6, 'E4', 0.38],
+  // B, si entra nella corona: il motivo si posa (re su si minore), poi risale piano
+  [5.0, 'B1', 0.3], [5.03, 'F#2', 0.24], [5.0, 'D4', 0.4],
+  [6.6, 'E4', 0.3],
+  [7.6, 'F#4', 0.32],
+  // C, gli ingranaggi: un arpeggio lento su mi minore con la nona
+  [8.5, 'E2', 0.3], [8.53, 'B2', 0.22],
+  [8.5, 'G3', 0.26], [9.25, 'B3', 0.25], [10.0, 'D4', 0.27], [10.75, 'F#4', 0.29],
+  // D, Celeste: alto e arioso; quando si accende la Super-LumiNova, una nota in alto
+  [12.0, 'G2', 0.3], [12.03, 'D3', 0.23], [12.06, 'B3', 0.17], [12.0, 'D5', 0.42],
+  [13.6, 'E5', 0.36],
+  [14.8, 'A5', 0.3],
   // E, Sunset
-  [9.0, 'A2', 0.3], [9.03, 'E3', 0.23], [9.06, 'C#4', 0.15], [9.0, 'F#5', 0.42],
-  [10.5, 'B5', 0.32],
-  // F, Virentia: mi minore, il bosco
-  [11.0, 'E2', 0.3], [11.03, 'B2', 0.23], [11.06, 'G3', 0.18], [11.0, 'A5', 0.38],
-  [12.0, 'F#5', 0.34],
-  // G, il cartello: a casa, re con la nona
-  [13.0, 'D2', 0.34], [13.03, 'A2', 0.27], [13.06, 'E3', 0.2], [13.09, 'F#3', 0.2], [13.0, 'D5', 0.4],
-  [14.4, 'D6', 0.2],
+  [16.5, 'A2', 0.3], [16.53, 'E3', 0.23], [16.56, 'C#4', 0.15], [16.5, 'F#5', 0.42],
+  [18.0, 'A5', 0.33],
+  [19.3, 'E5', 0.3],
+  // F, Virentia: mi minore, il bosco; la melodia scende verso casa
+  [20.5, 'E2', 0.3], [20.53, 'B2', 0.23], [20.56, 'G3', 0.18], [20.5, 'B5', 0.46],
+  [21.8, 'A5', 0.42],
+  [23.0, 'F#5', 0.4],
+  // G, il cartello: a casa, re con la nona, e due echi che si spengono
+  [24.5, 'D2', 0.34], [24.53, 'A2', 0.27], [24.56, 'E3', 0.2], [24.59, 'F#3', 0.2], [24.5, 'D5', 0.48],
+  [26.3, 'A5', 0.22],
+  [27.6, 'D6', 0.18],
 ];
 // gli accordi del pad sotto il pianoforte (battiti → note)
 const PAD = [
-  [0, 3, ['D3', 'A3', 'F#4']],
-  [3, 4, ['G3', 'B3', 'D4']],
-  [4, 7, ['B2', 'F#3', 'D4']],
-  [7, 9, ['G3', 'B3', 'D4']],
-  [9, 11, ['A3', 'C#4', 'E4']],
-  [11, 13, ['E3', 'G3', 'B3']],
-  [13, 16.6, ['D3', 'A3', 'F#4']],
+  [0, 5, ['D3', 'A3', 'F#4']],
+  [5, 8.5, ['B2', 'F#3', 'D4']],
+  [8.5, 12, ['E3', 'G3', 'B3']],
+  [12, 16.5, ['G3', 'B3', 'D4']],
+  [16.5, 20.5, ['A3', 'C#4', 'E4']],
+  [20.5, 24.5, ['E3', 'G3', 'B3']],
+  [24.5, 31, ['D3', 'A3', 'F#4']],
 ];
 
 // ------------------------------------------------------------------ una nota di pianoforte a feltro
@@ -153,8 +161,8 @@ function pad(L, R) {
           const up = Math.min(1, Math.max(0, (t - t0) / 1.1));
           const down = t > t1 ? Math.exp(-(t - t1) / 0.5) : 1;
           const env = Math.sin((up * Math.PI) / 2) ** 2 * down;
-          // un gonfiarsi lento verso il "si entra" (battiti 2–3)
-          const swell = 1 + 0.6 * Math.exp(-Math.pow((t - 2.7) / 0.5, 2));
+          // un gonfiarsi lento verso il "si entra" (la corona, a 5 s)
+          const swell = 1 + 0.6 * Math.exp(-Math.pow((t - 4.6) / 0.7, 2));
           const s = (Math.sin(ph) + 0.18 * Math.sin(2 * ph)) * env * swell * 0.0045;
           L[i] += s * gl;
           R[i] += s * gr;
@@ -259,12 +267,12 @@ export async function renderMusic({ dir }) {
   writeWav(path.join(dir, 'ir.wav'), impulse());
 
   // missaggio: pianoforte e pad nella sala (un terzo di riverbero), i tic asciutti, un filo di
-  // corpo a 220 Hz, -16 LUFS con il picco sotto -1,5 dBFS, dissolvenza negli ultimi 0,65 s
+  // corpo a 220 Hz, -16 LUFS con il picco sotto -1,5 dBFS, dissolvenza nell'ultimo secondo
   const f = (n) => path.join(dir, n);
   const r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-i', f('piano.wav'), '-i', f('pad.wav'), '-i', f('ticks.wav'), '-i', f('ir.wav'), '-filter_complex',
     "[0][1]amix=inputs=2:weights='1 1':normalize=0[pp];[pp]asplit[dry][tow];[tow][3]afir=dry=1:wet=1:irgain=1[rev];" +
     "[dry][rev]amix=inputs=2:weights='1 0.32':normalize=0[mix];[mix][2]amix=inputs=2:weights='1 1':normalize=0," +
-    'equalizer=f=220:t=q:w=1:g=1.5,equalizer=f=3500:t=q:w=1.2:g=-1,atrim=0:15,afade=t=out:st=14.35:d=0.65,' +
+    `equalizer=f=220:t=q:w=1:g=1.5,equalizer=f=3500:t=q:w=1.2:g=-1,atrim=0:${TOTAL},afade=t=out:st=${TOTAL - 1}:d=1,` +
     'loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000[out]',
     '-map', '[out]', '-c:a', 'pcm_s16le', f('mix.wav')], { stdio: 'inherit' });
   if (r.status !== 0) throw new Error('ffmpeg: missaggio non riuscito');

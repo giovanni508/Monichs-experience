@@ -1,6 +1,6 @@
-// Trailer di INSIDE MONICHS per Kickstarter: 15 s, 1920×1080, 30 fps, senza il laboratorio.
+// Trailer di INSIDE MONICHS per Kickstarter: 30 s, 1920×1080, 30 fps, senza il laboratorio, lento.
 // Le riprese vengono dal gioco vero, guidato fotogramma per fotogramma; la musica è un pianoforte
-// a feltro sintetizzato qui sul motivo 6-3-2-1, a 64 BPM, con i cambi d'armonia sui tagli.
+// a feltro sintetizzato qui sul motivo 6-3-2-1, a 60 BPM, con i cambi d'armonia sui tagli.
 //
 //   npm run dev                                 → prima, in un altro terminale (porta 5173, o PORT)
 //   npm run trailer                             → tutto: riprese, musica, titoli, montaggio IT ed EN

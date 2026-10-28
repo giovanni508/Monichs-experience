@@ -1,7 +1,9 @@
 // I piani del trailer: camera, fuoco e regia di ogni mondo, a 60 sottofotogrammi al secondo (il
 // montaggio li fonde a due a due: 30 fps con un filo di mosso, come un otturatore a 180°).
 // Le coordinate sono quelle dei mondi (vedi worlds/*.js); i piani durano un po' più del necessario,
-// il montaggio ne prende la parte centrale.
+// il montaggio ne prende la parte centrale. Movimenti lenti; dove c'è un titolo (al centro) il piano
+// comincia su un fondo tranquillo (stelle, bosco, agata, il cielo che si fa notte) e poi una
+// panoramica scopre l'orologio mentre il titolo sfuma.
 import fs from 'node:fs';
 import path from 'node:path';
 import { bootGame, saveDataURL } from './browser.mjs';
@@ -18,75 +20,79 @@ const glide = (u) => 0.82 * u + 0.18 * (0.5 - 0.5 * Math.cos(Math.PI * u));
 
 export const SHOTS = [
   {
-    id: 'A', // le tre Delta sospese nel vuoto, dietro la partenza
-    world: 'movement', dur: 3.4,
+    id: 'A', // le stelle, poi la panoramica scende sulle tre Delta sospese nel vuoto
+    world: 'movement', dur: 6,
     setup: 'app.clock.time = 1000; app.clock.setScale(1, 100); app.clock.scale = 1;',
     cam: (u) => {
       const k = glide(u);
-      const pos = lerp([-11, 24, 90], [5, 27.5, 107], k);
-      return { pos, look: lerp([-3, 26, 208], [2, 26.5, 208], k), fov: 46 - 2.5 * k, focus: dist(pos, [0, 26, 208]) };
+      const pos = lerp([-8, 24, 92], [4, 27, 104], k);
+      const look = lerp([-2, 78, 208], [1.5, 26.5, 208], smooth(0.38, 0.97, u));
+      return { pos, look, fov: 44 - 1.5 * k, focus: dist(pos, [0, 26, 208]) };
     },
   },
   {
-    id: 'B', // la passerella verso la corona, e dentro il tubo: accelera, come risucchiati
-    world: 'movement', dur: 2.8,
+    id: 'B', // la passerella verso la corona, e dentro il tubo: accelera piano, come risucchiati
+    world: 'movement', dur: 5,
     setup: 'app.clock.time = 1010; app.clock.setScale(1, 100); app.clock.scale = 1;',
     cam: (u) => {
-      const k = Math.pow(u, 1.5);
-      const pos = lerp([0, 7.7, 119], [0, 6.9, 91], k);
-      return { pos, look: [0, 6.3, 60], fov: 40 + 7 * k, focus: Math.max(9, pos[2] - 82) };
+      const k = Math.pow(u, 1.4);
+      const pos = lerp([0, 7.7, 119], [0, 7.0, 95], k);
+      return { pos, look: [0, 6.3, 60], fov: 40 + 6 * k, focus: Math.max(9, pos[2] - 82) };
     },
   },
   {
-    id: 'C', // gli ingranaggi del rodaggio sotto la passerella di zaffiro, in time-lapse (×20)
-    world: 'movement', dur: 2.8,
-    setup: 'app.clock.time = 1020; app.clock.setScale(20, 100); app.clock.scale = 20;',
+    id: 'C', // gli ingranaggi del rodaggio sotto la passerella di zaffiro, in time-lapse (×12)
+    world: 'movement', dur: 5,
+    setup: 'app.clock.time = 1020; app.clock.setScale(12, 100); app.clock.scale = 12;',
     cam: (u) => {
       const k = glide(u);
-      const pos = lerp([27.5, 12.7, -0.5], [20, 11.6, -11], k);
-      const look = lerp([3, 2, -20], [1, 2, -26], k);
+      const pos = lerp([27.5, 12.7, -0.5], [22, 11.9, -8.5], k);
+      const look = lerp([3, 2, -20], [1.5, 2, -24.5], k);
       return { pos, look, fov: 42, focus: dist(pos, look) };
     },
   },
   {
-    id: 'D', // Celeste: dal giorno alla notte, si accende la Super-LumiNova
-    world: 'celeste', dur: 2.8,
+    id: 'D', // Celeste: il cielo-quadrante sopra l'orologio; scende la notte, gli indici sospesi si
+    // accendono, poi la panoramica scende sulla Super-LumiNova del quadrante
+    world: 'celeste', dur: 6,
     setup: 'w.setNight(0);',
     hook: 'w.setNight(t);',
-    hookArg: (u) => smooth(0.32, 0.66, u),
+    hookArg: (u) => smooth(0.18, 0.45, u),
     cam: (u) => {
       const k = glide(u);
-      const pos = lerp([9, 11, -118], [-3, 18.5, -168], k);
-      return { pos, look: lerp([0, 66, -292], [0, 71.5, -292], k), fov: 40 - 2 * k, focus: dist(pos, [0, 72, -292]) - 8 };
+      const pos = lerp([7, 12, -128], [-3, 18.5, -168], k);
+      const look = lerp([0, 170, -292], [0, 71.5, -292], smooth(0.5, 0.88, u));
+      return { pos, look, fov: 40 - 2 * k, focus: dist(pos, [0, 72, -292]) - 8 };
     },
   },
   {
-    id: 'E', // Sunset nell'abside, tra le pareti d'agata
-    world: 'sunset', dur: 2.8,
+    id: 'E', // Sunset: le pareti d'agata, poi la panoramica gira sull'orologio nell'abside
+    world: 'sunset', dur: 5.4,
     cam: (u) => {
       const k = glide(u);
       // all'altezza del quadrante il vetro riflette l'agata scura e non la volta chiara: la pietra
       // resta rosso profondo, come nelle foto (dal basso diventava rosa)
       const pos = lerp([-7, 33.5, -196], [-1.5, 34.8, -208], k);
-      return { pos, look: lerp([0, 35.5, -277], [0, 35.6, -277], k), fov: 40 - 2 * k, focus: dist(pos, [0, 36, -277]) - 2 };
+      const look = lerp([-75, 30, -277], [0, 35.6, -277], smooth(0.38, 0.85, u));
+      return { pos, look, fov: 40 - 2 * k, focus: dist(pos, [0, 36, -277]) - 2 };
     },
   },
   {
-    id: 'F', // Virentia: il viale del bosco verso la porta con il rotore, carico a tre quarti
-    world: 'virentia', dur: 2.8,
+    id: 'F', // Virentia: un carrello laterale tra i tronchi fino alla porta con il rotore, carico a tre quarti
+    world: 'virentia', dur: 5.6,
     hook: 'w.energy = 0.75;',
     cam: (u) => {
       const k = glide(u);
-      const pos = lerp([0.5, 5.6, -56], [0, 7.2, -78], k);
-      return { pos, look: lerp([0, 20.5, -160], [0, 22, -160], k), fov: 42, focus: dist(pos, [0, 14, -112]) };
+      const pos = lerp([-26, 6, -62], [-2, 7, -78], k);
+      return { pos, look: lerp([-24, 15, -160], [0, 21.5, -160], k), fov: 42, focus: dist(pos, [0, 14, -112]) };
     },
   },
   {
     id: 'G', // i tre orologi dell'epilogo: il montaggio li sfoca dietro il cartello finale
-    world: 'epilogue', dur: 3.4,
+    world: 'epilogue', dur: 6.8,
     setup: 'w.time = 6;',
     hook: 'w.watches.forEach((x) => (x.userData.label.visible = false));',
-    cam: (u) => ({ pos: lerp([0, 1.65, 17.5], [0, 1.55, 16.2], u), look: [0, 0.95, 0], fov: 40, focus: 17 }),
+    cam: (u) => ({ pos: lerp([0, 1.65, 17.8], [0, 1.55, 16.4], u), look: [0, 0.95, 0], fov: 40, focus: 17 }),
   },
 ];
 

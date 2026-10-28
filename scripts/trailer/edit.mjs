@@ -1,25 +1,25 @@
 // Il montaggio (ffmpeg): sottofotogrammi a 60 fps fusi a due a due in 30 fps con un filo di mosso,
-// ridotti da 2880×1620 a 1080p (sovracampionamento), dissolvenze centrate sui cambi d'armonia della
-// musica, il passaggio al nero dentro il tubo della corona, i titoli, il cartello finale sui tre
+// ridotti da 2880×1620 a 1080p (sovracampionamento), dissolvenze lunghe centrate sui cambi d'armonia
+// della musica, il passaggio al nero dentro il tubo della corona, i titoli, il cartello finale sui tre
 // orologi dell'epilogo sfocati e scuriti (restano tre bagliori: blu, rosso, verde).
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 
-const BEAT = 60 / 64;
-const TOTAL = 15;
+const TOTAL = 30;
 
-// piano, punto d'attacco nel girato (s); tagli sui battiti 3, 5, 7, 9, 11, 13
+// piano, punto d'attacco nel girato (s); i tagli (centro delle dissolvenze, in secondi) cadono sui
+// cambi d'armonia della musica (60 BPM: vedi music.mjs)
 const SHOTS = [
   { id: 'A', in: 0.1 },
-  { id: 'B', in: 0.47 },
-  { id: 'C', in: 0.26, tr: 'fadeblack' }, // dal buio del tubo della corona agli ingranaggi
-  { id: 'D', in: 0.45 },
-  { id: 'E', in: 0.28 },
+  { id: 'B', in: 0.3 },
+  { id: 'C', in: 0.2, tr: 'fadeblack' }, // dal buio del tubo della corona agli ingranaggi
+  { id: 'D', in: 0.25 },
+  { id: 'E', in: 0.2 },
   { id: 'F', in: 0.2 },
-  { id: 'G', in: 0.15, endcard: true },
+  { id: 'G', in: 0.3, endcard: true },
 ];
-const CUTS = [3, 5, 7, 9, 11, 13].map((b) => b * BEAT);
-const DISSOLVE = [0.4, 0.4, 0.4, 0.36, 0.36, 0.7];
+const CUTS = [5, 8.5, 12, 16.5, 20.5, 24.5];
+const DISSOLVE = [1.0, 1.2, 1.0, 1.0, 1.0, 1.4];
 
 export function edit({ work, lang, out }) {
   const offsets = CUTS.map((c, i) => c - DISSOLVE[i] / 2);
@@ -43,30 +43,32 @@ export function edit({ work, lang, out }) {
     f.push(`[${prev}][v${i}]xfade=transition=${SHOTS[i].tr || 'fade'}:duration=${DISSOLVE[i - 1]}:offset=${offsets[i - 1].toFixed(4)}[x${i}]`);
     prev = `x${i}`;
   }
-  // una correzione leggera su tutto il film, e l'immagine che sale dal nero
-  f.push(`[${prev}]eq=contrast=1.03:saturation=1.03,fade=t=in:st=0:d=0.55,trim=duration=${TOTAL}[base]`);
+  // una correzione leggera su tutto il film, e l'immagine che sale lenta dal nero
+  f.push(`[${prev}]eq=contrast=1.03:saturation=1.03,fade=t=in:st=0:d=1.4,trim=duration=${TOTAL}[base]`);
 
-  // titoli: [png, entrata, uscita (null = resta fino alla fine)]
+  // titoli: [png, entrata, uscita (null = resta fino alla fine)]; entrano in 1,1 s ed escono in 0,9 s,
+  // prima che la panoramica porti l'orologio al centro
   const T = (n) => path.join(work, 'titoli', n);
   const titles = [
-    [T(`line_${lang}.png`), 0.75, 3.9],
-    [T('celeste.png'), CUTS[2] + 0.18, CUTS[3] - 0.45],
-    [T('sunset.png'), CUTS[3] + 0.18, CUTS[4] - 0.45],
-    [T('virentia.png'), CUTS[4] + 0.18, CUTS[5] - 0.5],
-    [T('card1.png'), CUTS[5] + 0.05, null],
-    [T(`card2_${lang}.png`), CUTS[5] + 0.5, null],
-    [T(`card3_${lang}.png`), CUTS[5] + 1.0, null],
+    [T(`line_${lang}.png`), 0.9, 3.4],
+    [T('celeste.png'), 13.0, 14.6],
+    [T('sunset.png'), 16.6, 18.0],
+    [T('virentia.png'), 20.6, 22.4],
+    [T('card1.png'), CUTS[5] - 0.2, null],
+    [T(`card2_${lang}.png`), CUTS[5] + 0.6, null],
+    [T(`card3_${lang}.png`), CUTS[5] + 1.4, null],
   ];
   let cur = 'base';
   titles.forEach(([png, tin, tout], k) => {
     args.push('-loop', '1', '-framerate', '30', '-t', String(TOTAL), '-i', png);
-    let c = `[${SHOTS.length + k}:v]format=rgba,fade=t=in:st=${tin.toFixed(3)}:d=0.55:alpha=1`;
-    if (tout != null) c += `,fade=t=out:st=${tout.toFixed(3)}:d=0.4:alpha=1`;
+    let c = `[${SHOTS.length + k}:v]format=rgba,fade=t=in:st=${tin.toFixed(3)}:d=1.1:alpha=1`;
+    if (tout != null) c += `,fade=t=out:st=${tout.toFixed(3)}:d=0.9:alpha=1`;
     f.push(`${c}[t${k}]`);
     f.push(`[${cur}][t${k}]overlay=format=auto:eof_action=pass[o${k}]`);
     cur = `o${k}`;
   });
-  f.push(`[${cur}]format=yuv420p,setsar=1[vout]`);
+  // in chiusura, cartello compreso, tutto scende lentamente nel nero insieme alla musica
+  f.push(`[${cur}]fade=t=out:st=${TOTAL - 1.2}:d=1.2,format=yuv420p,setsar=1[vout]`);
   args.push('-i', path.join(work, 'audio', 'mix.wav'));
   args.push('-filter_complex', f.join(';'), '-map', '[vout]', '-map', `${SHOTS.length + titles.length}:a`);
   args.push('-t', String(TOTAL), '-r', '30', '-c:v', 'libx264', '-preset', 'slow', '-crf', '15', '-profile:v', 'high', '-level', '4.2',
@@ -74,7 +76,7 @@ export function edit({ work, lang, out }) {
     '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-movflags', '+faststart', out);
   let r = spawnSync('ffmpeg', args, { stdio: 'inherit' });
   if (r.status !== 0) throw new Error(`ffmpeg: montaggio ${lang} non riuscito`);
-  // l'ultimo fotogramma, il cartello: anteprima per la pagina della campagna
-  r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-ss', '14.9', '-i', out, '-frames:v', '1', '-q:v', '2', out.replace(/\.mp4$/, '-poster.jpg')], { stdio: 'inherit' });
+  // il cartello completo, prima della dissolvenza finale: anteprima per la pagina della campagna
+  r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-ss', String(TOTAL - 2), '-i', out, '-frames:v', '1', '-q:v', '2', out.replace(/\.mp4$/, '-poster.jpg')], { stdio: 'inherit' });
   if (r.status !== 0) throw new Error('ffmpeg: anteprima non riuscita');
 }
