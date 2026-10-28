@@ -5,21 +5,36 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 
-const TOTAL = 30;
+const TOTAL = 45;
 
 // piano, punto d'attacco nel girato (s); i tagli (centro delle dissolvenze, in secondi) cadono sui
 // cambi d'armonia della musica (60 BPM: vedi music.mjs)
 const SHOTS = [
   { id: 'A', in: 0.1 },
-  { id: 'B', in: 0.3 },
-  { id: 'C', in: 0.2, tr: 'fadeblack' }, // dal buio del tubo della corona agli ingranaggi
-  { id: 'D', in: 0.25 },
-  { id: 'E', in: 0.2 },
+  { id: 'B', in: 0.2 },
+  { id: 'C', in: 0.15, tr: 'fadeblack' }, // dal buio del tubo della corona agli ingranaggi
+  { id: 'D', in: 0.2 },
+  { id: 'E', in: 0.15 },
   { id: 'F', in: 0.2 },
   { id: 'G', in: 0.3, endcard: true },
 ];
-const CUTS = [5, 8.5, 12, 16.5, 20.5, 24.5];
-const DISSOLVE = [1.0, 1.2, 1.0, 1.0, 1.0, 1.4];
+const CUTS = [8, 13, 19, 27, 32.5, 37];
+const DISSOLVE = [1.4, 1.4, 1.2, 1.2, 1.2, 1.6];
+
+// le frasi (titles.mjs): [chiave, entrata, uscita], in secondi. Ognuna sta sul fondo tranquillo con
+// cui comincia il suo piano e sfuma prima che la panoramica porti l'orologio al centro
+const BEAT_TIMES = [
+  ['small', 0.9, 2.8],
+  ['dust', 3.6, 5.6],
+  ['crown', 9.0, 11.4],
+  ['heart', 13.6, 15.5],
+  ['worlds', 16.2, 17.9],
+  ['look', 19.6, 21.3],
+  ['lume', 22.6, 24.5],
+  ['stone', 27.4, 29.0],
+  ['rotor', 32.9, 34.6],
+  ['art', 37.4, 38.9],
+];
 
 export function edit({ work, lang, out }) {
   const offsets = CUTS.map((c, i) => c - DISSOLVE[i] / 2);
@@ -46,17 +61,13 @@ export function edit({ work, lang, out }) {
   // una correzione leggera su tutto il film, e l'immagine che sale lenta dal nero
   f.push(`[${prev}]eq=contrast=1.03:saturation=1.03,fade=t=in:st=0:d=1.4,trim=duration=${TOTAL}[base]`);
 
-  // titoli: [png, entrata, uscita (null = resta fino alla fine)]; entrano in 1,1 s ed escono in 0,9 s,
-  // prima che la panoramica porti l'orologio al centro
+  // titoli: [png, entrata, uscita (null = resta fino alla fine)]; entrano in 1,1 s ed escono in 0,9 s
   const T = (n) => path.join(work, 'titoli', n);
   const titles = [
-    [T(`line_${lang}.png`), 0.9, 3.4],
-    [T('celeste.png'), 13.0, 14.6],
-    [T('sunset.png'), 16.6, 18.0],
-    [T('virentia.png'), 20.6, 22.4],
-    [T('card1.png'), CUTS[5] - 0.2, null],
-    [T(`card2_${lang}.png`), CUTS[5] + 0.6, null],
-    [T(`card3_${lang}.png`), CUTS[5] + 1.4, null],
+    ...BEAT_TIMES.map(([id, tin, tout]) => [T(`${id}_${lang}.png`), tin, tout]),
+    [T('card1.png'), CUTS[5] + 2.6, null],
+    [T(`card2_${lang}.png`), CUTS[5] + 3.2, null],
+    [T(`card3_${lang}.png`), CUTS[5] + 3.8, null],
   ];
   let cur = 'base';
   titles.forEach(([png, tin, tout], k) => {
@@ -68,7 +79,7 @@ export function edit({ work, lang, out }) {
     cur = `o${k}`;
   });
   // in chiusura, cartello compreso, tutto scende lentamente nel nero insieme alla musica
-  f.push(`[${cur}]fade=t=out:st=${TOTAL - 1.2}:d=1.2,format=yuv420p,setsar=1[vout]`);
+  f.push(`[${cur}]fade=t=out:st=${TOTAL - 0.8}:d=0.8,format=yuv420p,setsar=1[vout]`);
   args.push('-i', path.join(work, 'audio', 'mix.wav'));
   args.push('-filter_complex', f.join(';'), '-map', '[vout]', '-map', `${SHOTS.length + titles.length}:a`);
   args.push('-t', String(TOTAL), '-r', '30', '-c:v', 'libx264', '-preset', 'slow', '-crf', '15', '-profile:v', 'high', '-level', '4.2',

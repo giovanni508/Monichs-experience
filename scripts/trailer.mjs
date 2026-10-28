@@ -1,4 +1,5 @@
-// Trailer di INSIDE MONICHS per Kickstarter: 30 s, 1920×1080, 30 fps, senza il laboratorio, lento.
+// Trailer di INSIDE MONICHS per Kickstarter: 45 s, 1920×1080, 30 fps, senza il laboratorio, lento,
+// con le frasi del gioco al centro in Montserrat ExtraBold.
 // Le riprese vengono dal gioco vero, guidato fotogramma per fotogramma; la musica è un pianoforte
 // a feltro sintetizzato qui sul motivo 6-3-2-1, a 60 BPM, con i cambi d'armonia sui tagli.
 //

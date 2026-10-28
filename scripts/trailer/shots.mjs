@@ -21,32 +21,32 @@ const glide = (u) => 0.82 * u + 0.18 * (0.5 - 0.5 * Math.cos(Math.PI * u));
 export const SHOTS = [
   {
     id: 'A', // le stelle, poi la panoramica scende sulle tre Delta sospese nel vuoto
-    world: 'movement', dur: 6,
+    world: 'movement', dur: 9,
     setup: 'app.clock.time = 1000; app.clock.setScale(1, 100); app.clock.scale = 1;',
     cam: (u) => {
       const k = glide(u);
       const pos = lerp([-8, 24, 92], [4, 27, 104], k);
-      const look = lerp([-2, 78, 208], [1.5, 26.5, 208], smooth(0.38, 0.97, u));
+      const look = lerp([-2, 78, 208], [1.5, 26.5, 208], smooth(0.556, 0.81, u));
       return { pos, look, fov: 44 - 1.5 * k, focus: dist(pos, [0, 26, 208]) };
     },
   },
   {
     id: 'B', // la passerella verso la corona, e dentro il tubo: accelera piano, come risucchiati
-    world: 'movement', dur: 5,
+    world: 'movement', dur: 6.8,
     setup: 'app.clock.time = 1010; app.clock.setScale(1, 100); app.clock.scale = 1;',
     cam: (u) => {
       const k = Math.pow(u, 1.4);
-      const pos = lerp([0, 7.7, 119], [0, 7.0, 95], k);
+      const pos = lerp([0, 7.7, 119], [0, 7.0, 96], k);
       return { pos, look: [0, 6.3, 60], fov: 40 + 6 * k, focus: Math.max(9, pos[2] - 82) };
     },
   },
   {
-    id: 'C', // gli ingranaggi del rodaggio sotto la passerella di zaffiro, in time-lapse (×12)
-    world: 'movement', dur: 5,
-    setup: 'app.clock.time = 1020; app.clock.setScale(12, 100); app.clock.scale = 12;',
+    id: 'C', // gli ingranaggi del rodaggio sotto la passerella di zaffiro, in time-lapse (×10)
+    world: 'movement', dur: 7.6,
+    setup: 'app.clock.time = 1020; app.clock.setScale(10, 100); app.clock.scale = 10;',
     cam: (u) => {
       const k = glide(u);
-      const pos = lerp([27.5, 12.7, -0.5], [22, 11.9, -8.5], k);
+      const pos = lerp([27.5, 12.7, -0.5], [22.5, 11.9, -8], k);
       const look = lerp([3, 2, -20], [1.5, 2, -24.5], k);
       return { pos, look, fov: 42, focus: dist(pos, look) };
     },
@@ -54,32 +54,32 @@ export const SHOTS = [
   {
     id: 'D', // Celeste: il cielo-quadrante sopra l'orologio; scende la notte, gli indici sospesi si
     // accendono, poi la panoramica scende sulla Super-LumiNova del quadrante
-    world: 'celeste', dur: 6,
+    world: 'celeste', dur: 9.6,
     setup: 'w.setNight(0);',
     hook: 'w.setNight(t);',
-    hookArg: (u) => smooth(0.18, 0.45, u),
+    hookArg: (u) => smooth(0.375, 0.583, u),
     cam: (u) => {
       const k = glide(u);
       const pos = lerp([7, 12, -128], [-3, 18.5, -168], k);
-      const look = lerp([0, 170, -292], [0, 71.5, -292], smooth(0.5, 0.88, u));
+      const look = lerp([0, 170, -292], [0, 71.5, -292], smooth(0.625, 0.896, u));
       return { pos, look, fov: 40 - 2 * k, focus: dist(pos, [0, 72, -292]) - 8 };
     },
   },
   {
     id: 'E', // Sunset: le pareti d'agata, poi la panoramica gira sull'orologio nell'abside
-    world: 'sunset', dur: 5.4,
+    world: 'sunset', dur: 7,
     cam: (u) => {
       const k = glide(u);
       // all'altezza del quadrante il vetro riflette l'agata scura e non la volta chiara: la pietra
       // resta rosso profondo, come nelle foto (dal basso diventava rosa)
       const pos = lerp([-7, 33.5, -196], [-1.5, 34.8, -208], k);
-      const look = lerp([-75, 30, -277], [0, 35.6, -277], smooth(0.38, 0.85, u));
+      const look = lerp([-75, 30, -277], [0, 35.6, -277], smooth(0.47, 0.83, u));
       return { pos, look, fov: 40 - 2 * k, focus: dist(pos, [0, 36, -277]) - 2 };
     },
   },
   {
     id: 'F', // Virentia: un carrello laterale tra i tronchi fino alla porta con il rotore, carico a tre quarti
-    world: 'virentia', dur: 5.6,
+    world: 'virentia', dur: 6.3,
     hook: 'w.energy = 0.75;',
     cam: (u) => {
       const k = glide(u);
@@ -89,10 +89,10 @@ export const SHOTS = [
   },
   {
     id: 'G', // i tre orologi dell'epilogo: il montaggio li sfoca dietro il cartello finale
-    world: 'epilogue', dur: 6.8,
+    world: 'epilogue', dur: 9.3,
     setup: 'w.time = 6;',
     hook: 'w.watches.forEach((x) => (x.userData.label.visible = false));',
-    cam: (u) => ({ pos: lerp([0, 1.65, 17.8], [0, 1.55, 16.4], u), look: [0, 0.95, 0], fov: 40, focus: 17 }),
+    cam: (u) => ({ pos: lerp([0, 1.65, 18], [0, 1.55, 16.4], u), look: [0, 0.95, 0], fov: 40, focus: 17 }),
   },
 ];
 

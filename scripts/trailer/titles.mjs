@@ -1,20 +1,45 @@
 // I titoli del trailer, composti in Chrome con i font del brand e salvati come PNG trasparenti
-// 1920×1080, tutti al centro: Foslin per le parole del logo (senza accenti), Cormorant Garamond
-// corsivo per la frase, Montserrat per l'invito. La frase d'apertura è la prima del gioco (texts.json, intro1); il
-// sottotitolo del cartello riprende la frase del menu ("Un viaggio silenzioso dentro...").
+// 1920×1080, tutti al centro. Le frasi, in Montserrat ExtraBold maiuscolo, raccontano in anticipo
+// quello che si vedrà e si farà: vengono dalla narrazione del gioco (content/texts.json: intro1,
+// intro2, wound, split, celeste arrive e night, sunset arrive2, virentia toRotor), e "The Art of
+// Slowing Down" dalla presentazione della Collezione Delta. Sotto la frase di ogni mondo, piccolo,
+// il suo nome in Foslin. Il cartello finale: pittogramma e INSIDE MONICHS in Foslin, il sottotitolo
+// in Cormorant Garamond corsivo, l'invito in Montserrat.
 import fs from 'node:fs';
 import path from 'node:path';
 import { launchChrome } from './browser.mjs';
 
+// le frasi, nell'ordine in cui compaiono (i tempi sono in edit.mjs); "\n" manda a capo
+export const BEATS = ['small', 'dust', 'crown', 'heart', 'worlds', 'look', 'lume', 'stone', 'rotor', 'art'];
+const WORLD = { look: 'CELESTE', stone: 'SUNSET', rotor: 'VIRENTIA' };
+
 export const TEXT = {
   en: {
-    line: 'Become small. Smaller than a speck of dust.',
+    small: 'Become small.',
+    dust: 'Smaller than a speck of dust.',
+    crown: 'Every journey begins at the crown.',
+    heart: 'The heart begins to beat again.',
+    worlds: 'Three worlds.\nYou choose the order.',
+    look: 'Slow down. Look up.',
+    lume: 'And the indices light up.',
+    stone: 'You are inside the stone.',
+    rotor: 'The sun of this forest is a rotor.',
+    art: 'The art of slowing down.',
     sub: 'An interactive journey inside a mechanical watch.',
     unlock: 'Unlocks at $50,000',
     free: 'Free for every backer',
   },
   it: {
-    line: 'Diventa piccolo. Più piccolo di un granello di polvere.',
+    small: 'Diventa piccolo.',
+    dust: 'Più piccolo di un granello di polvere.',
+    crown: 'Ogni viaggio comincia dalla corona.',
+    heart: 'Il cuore riprende a battere.',
+    worlds: 'Tre mondi.\nScegli tu l’ordine.',
+    look: 'Rallenta. Alza lo sguardo.',
+    lume: 'E gli indici si accendono.',
+    stone: 'Sei dentro la pietra.',
+    rotor: 'Il sole di questa foresta è un rotore.',
+    art: 'L’arte di rallentare.',
     sub: 'Un viaggio interattivo dentro un orologio meccanico.',
     unlock: 'Si sblocca a $50.000',
     free: 'Gratis per tutti i backer',
@@ -28,30 +53,31 @@ export async function renderTitles({ root, dir }) {
     `@font-face{font-family:'${family}';src:url(data:font/${fmt};base64,${b64(file)}) format('${fmt === 'otf' ? 'opentype' : fmt}');font-weight:${weight};font-style:${style};}`;
   const fonts = [
     font('Foslin', 'public/assets/fonts/Foslin-Regular.otf', 400, 'normal', 'otf'),
-    font('Cormorant', 'node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-300-italic.woff2', 300, 'italic', 'woff2'),
     font('Cormorant', 'node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-400-italic.woff2', 400, 'italic', 'woff2'),
     font('Montserrat', 'node_modules/@fontsource/montserrat/files/montserrat-latin-500-normal.woff2', 500, 'normal', 'woff2'),
+    font('Montserrat', 'node_modules/@fontsource/montserrat/files/montserrat-latin-800-normal.woff2', 800, 'normal', 'woff2'),
   ].join('\n');
   // il pittogramma, in avorio
   const picto = fs
     .readFileSync(path.join(root, 'public/assets/logo/monichs-pictogram.svg'), 'utf8')
     .replace(/<\?xml[^>]*>/, '')
     .replace(/fill:\s*#[0-9a-fA-F]{3,6}/g, 'fill: #f6f3ec');
-  // stessi colori del gioco (src/styles/main.css). Tutti i titoli stanno al centro dell'inquadratura;
-  // dietro le lettere un velo scuro morbido, solo lì (il film resta nitido e luminoso)
+  // stessi colori del gioco (src/styles/main.css). Dietro le lettere un velo scuro morbido, solo lì
+  // (il film resta nitido e luminoso)
   const css = `${fonts}
 :root{--white:#f6f3ec;--ivory:#ede2cd;--rose:#d8a28a;--rose2:#e9bea9;}
 html,body{margin:0;width:1920px;height:1080px;background:transparent;overflow:hidden;}
 .layer{position:absolute;inset:0;display:none;}
-.mid{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;justify-content:center;align-items:center;}
-.mid::before{content:'';position:absolute;left:50%;top:50%;width:1500px;height:330px;transform:translate(-50%,-50%);
-  background:radial-gradient(closest-side,rgba(2,3,16,.42),rgba(2,3,16,.18) 60%,rgba(2,3,16,0));}
-.line{position:relative;font-family:'Cormorant';font-style:italic;font-weight:300;font-size:66px;letter-spacing:0.01em;
-  color:var(--white);text-shadow:0 0 30px rgba(0,0,12,.7),0 0 6px rgba(0,0,12,.5);}
-.label{position:relative;display:flex;align-items:center;gap:34px;font-family:'Foslin';font-size:46px;letter-spacing:0.62em;
-  padding-left:0.62em;color:var(--white);text-shadow:0 0 26px rgba(0,0,10,.7),0 0 5px rgba(0,0,10,.5);}
-.label::before,.label::after{content:'';width:90px;height:1.5px;background:var(--rose2);box-shadow:0 0 10px rgba(0,0,10,.5);}
-.label::before{margin-right:0.38em;}
+.mid{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;}
+.mid::before{content:'';position:absolute;left:50%;top:50%;width:1700px;height:420px;transform:translate(-50%,-50%);
+  background:radial-gradient(closest-side,rgba(2,3,16,.46),rgba(2,3,16,.2) 60%,rgba(2,3,16,0));}
+.beat{position:relative;max-width:1380px;text-align:center;text-wrap:balance;font-family:'Montserrat';font-weight:800;
+  font-size:64px;line-height:1.14;letter-spacing:0.07em;text-transform:uppercase;color:var(--white);
+  text-shadow:0 0 34px rgba(0,0,12,.65),0 0 8px rgba(0,0,12,.45);}
+.world{position:relative;margin-top:30px;display:flex;align-items:center;gap:22px;font-family:'Foslin';font-size:24px;
+  letter-spacing:0.6em;padding-left:0.6em;color:var(--rose2);text-shadow:0 0 18px rgba(0,0,10,.7);}
+.world::before,.world::after{content:'';width:46px;height:1.5px;background:var(--rose2);}
+.world::before{margin-right:0.36em;}
 .card{position:absolute;left:0;right:0;text-align:center;}
 .picto{top:232px;}
 .picto svg{width:150px;height:150px;}
@@ -61,28 +87,26 @@ html,body{margin:0;width:1920px;height:1080px;background:transparent;overflow:hi
 .cta,.cta2{font-family:'Montserrat';font-weight:500;font-size:25px;letter-spacing:0.32em;padding-left:0.32em;text-transform:uppercase;}
 .cta{top:650px;color:var(--white);}
 .cta2{top:700px;color:var(--rose2);}`;
+  const beat = (t, id) =>
+    `<div class="layer" id="${id}"><div class="mid"><div class="beat">${t[id].replace('\n', '<br>')}</div>${WORLD[id] ? `<div class="world">${WORLD[id]}</div>` : ''}</div></div>`;
   const html = (t) => `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>
-<div class="layer" id="line"><div class="mid"><div class="line">${t.line}</div></div></div>
-<div class="layer" id="celeste"><div class="mid"><div class="label">CELESTE</div></div></div>
-<div class="layer" id="sunset"><div class="mid"><div class="label">SUNSET</div></div></div>
-<div class="layer" id="virentia"><div class="mid"><div class="label">VIRENTIA</div></div></div>
+${BEATS.map((id) => beat(t, id)).join('\n')}
 <div class="layer" id="card1"><div class="card picto">${picto}</div><div class="card title">INSIDE MONICHS</div></div>
 <div class="layer" id="card2"><div class="card sub">${t.sub}</div></div>
 <div class="layer" id="card3"><div class="card rule"></div><div class="card cta">${t.unlock}</div><div class="card cta2">${t.free}</div></div>
 </body></html>`;
 
-  const shared = ['celeste', 'sunset', 'virentia', 'card1']; // uguali nelle due lingue
   const browser = await launchChrome();
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   for (const [lang, t] of Object.entries(TEXT)) {
     await page.setContent(html(t));
-    for (const id of ['line', 'celeste', 'sunset', 'virentia', 'card1', 'card2', 'card3']) {
-      if (lang !== 'en' && shared.includes(id)) continue;
+    for (const id of [...BEATS, 'card1', 'card2', 'card3']) {
+      if (lang !== 'en' && id === 'card1') continue; // uguale nelle due lingue
       await page.evaluate(async (id) => {
         document.querySelectorAll('.layer').forEach((l) => (l.style.display = l.id === id ? 'block' : 'none'));
         await document.fonts.ready;
       }, id);
-      await page.screenshot({ path: path.join(dir, shared.includes(id) ? `${id}.png` : `${id}_${lang}.png`), omitBackground: true });
+      await page.screenshot({ path: path.join(dir, id === 'card1' ? 'card1.png' : `${id}_${lang}.png`), omitBackground: true });
     }
   }
   await browser.close();

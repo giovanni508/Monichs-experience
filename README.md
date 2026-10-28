@@ -59,14 +59,14 @@ Consigli per il PC della fiera: alimentazione collegata, risparmio energetico di
 
 ### Trailer per Kickstarter
 
-Un video di 30 s in 16:9 (1920×1080, 30 fps), lento, che presenta l'esperienza senza il laboratorio: le tre Delta, la corona, gli ingranaggi, Celeste dal giorno alla notte, Sunset, Virentia, e il cartello "INSIDE MONICHS · Unlocks at $50,000 · Free for every backer". Titoli al centro. Esce in inglese e in italiano.
+Un video di 45 s in 16:9 (1920×1080, 30 fps), lento, che presenta l'esperienza senza il laboratorio: le tre Delta, la corona, gli ingranaggi, Celeste dal giorno alla notte, Sunset, Virentia, "The art of slowing down" e il cartello "INSIDE MONICHS · Unlocks at $50,000 · Free for every backer". Al centro, in Montserrat ExtraBold, le frasi della narrazione del gioco anticipano quello che si vedrà ("Become small.", "Every journey begins at the crown.", "And the indices light up."…). Esce in inglese e in italiano.
 
 ```bash
 npm run dev        # in un altro terminale
 npm run trailer    # riprese, musica, titoli e montaggio: trailer/Inside-Monichs-Trailer-EN.mp4 e -IT.mp4
 ```
 
-Le riprese vengono dal gioco, guidato fotogramma per fotogramma in Chrome senza finestra (qualità ultra, 2880×1620 ridotto a 1080p); la musica è un pianoforte a feltro sintetizzato sul motivo 6-3-2-1, a 60 BPM, con i cambi d'armonia sui tagli. Piani e camere sono in `scripts/trailer/shots.mjs`, testi in `scripts/trailer/titles.mjs`, partitura in `scripts/trailer/music.mjs`; per rifare solo una parte: `npm run trailer -- musica montaggio` (o `riprese --piani=D,E`). Servono ffmpeg, Google Chrome e Playwright (dettagli in testa a `scripts/trailer.mjs`). La cartella `trailer/` resta fuori dal repository.
+Le riprese vengono dal gioco, guidato fotogramma per fotogramma in Chrome senza finestra (qualità ultra, 2880×1620 ridotto a 1080p); la musica è un pianoforte a feltro sintetizzato sul motivo 6-3-2-1, a 60 BPM, con i cambi d'armonia sui tagli. Piani e camere sono in `scripts/trailer/shots.mjs`, frasi in `scripts/trailer/titles.mjs` (i tempi in `edit.mjs`), partitura in `scripts/trailer/music.mjs`; per rifare solo una parte: `npm run trailer -- musica montaggio` (o `riprese --piani=D,E`). Servono ffmpeg, Google Chrome e Playwright (dettagli in testa a `scripts/trailer.mjs`). La cartella `trailer/` resta fuori dal repository.
 
 ## 4. Comandi
 

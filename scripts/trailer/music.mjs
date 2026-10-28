@@ -1,7 +1,8 @@
 // La musica del trailer: un pianoforte a feltro leggero sul motivo di Monichs (6-3-2-1, lo stesso
 // che apre la melodia di ogni mondo nel gioco), un pad sotto, qualche tic dello scappamento
-// all'inizio e un riverbero da sala. 60 BPM (un battito = 1 s), 30 s, note rade; l'armonia cambia
-// sui tagli del montaggio (5, 8,5, 12, 16,5, 20,5, 24,5 s: vedi edit.mjs).
+// all'inizio e un riverbero da sala. 60 BPM (un battito = 1 s), 45 s, note rade; l'armonia cambia
+// sui tagli del montaggio (8, 13, 19, 27, 32,5, 37 s: vedi edit.mjs) e una nota della melodia entra
+// con ogni frase.
 //
 // Il pianoforte è sintetizzato in differita, quindi senza i limiti del gioco (dove la CPU serve alla
 // grafica): fino a 40 parziali appena inarmoniche per nota, due corde scordate di un capello nelle
@@ -12,7 +13,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const SR = 48000;
-const TOTAL = 30;
+const TOTAL = 45;
 const LEN = TOTAL + 0.6;
 const N = Math.ceil(LEN * SR);
 const BEAT = 1;
@@ -31,46 +32,52 @@ const NOTE = (s) => {
 
 // ------------------------------------------------------------------ partitura (re maggiore)
 // [battito, nota, velocità]; il pedale si rialza all'inizio di ogni tratto (battiti)
-const PEDAL = [0, 5, 8.5, 12, 16.5, 20.5, 24.5, 99];
+const PEDAL = [0, 8, 13, 19, 27, 32.5, 37, 99];
 const SCORE = [
-  // A, le tre Delta: basso re, il motivo 6-3-2-1 (si fa# mi... re)
+  // A, le stelle e le tre Delta: basso re, il motivo 6-3-2-1 (si fa# mi... re), una nota per frase
   [0.3, 'D2', 0.3], [0.33, 'A2', 0.24],
-  [1.0, 'B4', 0.46],
-  [2.5, 'F#4', 0.4],
-  [3.6, 'E4', 0.38],
+  [1.2, 'B4', 0.46],
+  [3.6, 'F#4', 0.4],
+  [5.4, 'E4', 0.38],
+  [6.6, 'A3', 0.2],
   // B, si entra nella corona: il motivo si posa (re su si minore), poi risale piano
-  [5.0, 'B1', 0.3], [5.03, 'F#2', 0.24], [5.0, 'D4', 0.4],
-  [6.6, 'E4', 0.3],
-  [7.6, 'F#4', 0.32],
-  // C, gli ingranaggi: un arpeggio lento su mi minore con la nona
-  [8.5, 'E2', 0.3], [8.53, 'B2', 0.22],
-  [8.5, 'G3', 0.26], [9.25, 'B3', 0.25], [10.0, 'D4', 0.27], [10.75, 'F#4', 0.29],
-  // D, Celeste: alto e arioso; quando si accende la Super-LumiNova, una nota in alto
-  [12.0, 'G2', 0.3], [12.03, 'D3', 0.23], [12.06, 'B3', 0.17], [12.0, 'D5', 0.42],
-  [13.6, 'E5', 0.36],
-  [14.8, 'A5', 0.3],
+  [8.0, 'B1', 0.3], [8.03, 'F#2', 0.24], [8.0, 'D4', 0.42],
+  [10.0, 'E4', 0.32],
+  [11.6, 'F#4', 0.32],
+  // C, gli ingranaggi: un arpeggio lento su mi minore con la nona, poi "tre mondi"
+  [13.0, 'E2', 0.3], [13.03, 'B2', 0.22],
+  [13.0, 'G3', 0.26], [13.9, 'B3', 0.25], [14.8, 'D4', 0.27], [15.7, 'F#4', 0.29],
+  [16.4, 'A4', 0.32],
+  [17.6, 'B4', 0.34],
+  // D, Celeste: alto e arioso; quando si accendono gli indici, una nota in alto
+  [19.0, 'G2', 0.3], [19.03, 'D3', 0.23], [19.06, 'B3', 0.17], [19.0, 'D5', 0.44],
+  [20.6, 'E5', 0.36],
+  [23.0, 'A5', 0.36],
+  [24.6, 'F#5', 0.3],
+  [26.0, 'E5', 0.28],
   // E, Sunset
-  [16.5, 'A2', 0.3], [16.53, 'E3', 0.23], [16.56, 'C#4', 0.15], [16.5, 'F#5', 0.42],
-  [18.0, 'A5', 0.33],
-  [19.3, 'E5', 0.3],
+  [27.0, 'A2', 0.3], [27.03, 'E3', 0.23], [27.06, 'C#4', 0.15], [27.0, 'F#5', 0.44],
+  [28.8, 'A5', 0.36],
+  [30.6, 'E5', 0.32],
   // F, Virentia: mi minore, il bosco; la melodia scende verso casa
-  [20.5, 'E2', 0.3], [20.53, 'B2', 0.23], [20.56, 'G3', 0.18], [20.5, 'B5', 0.46],
-  [21.8, 'A5', 0.42],
-  [23.0, 'F#5', 0.4],
-  // G, il cartello: a casa, re con la nona, e due echi che si spengono
-  [24.5, 'D2', 0.34], [24.53, 'A2', 0.27], [24.56, 'E3', 0.2], [24.59, 'F#3', 0.2], [24.5, 'D5', 0.48],
-  [26.3, 'A5', 0.22],
-  [27.6, 'D6', 0.18],
+  [32.5, 'E2', 0.3], [32.53, 'B2', 0.23], [32.56, 'G3', 0.18], [32.5, 'B5', 0.46],
+  [34.0, 'A5', 0.42],
+  [35.4, 'F#5', 0.4],
+  // G, "l'arte di rallentare" e il cartello: a casa, re con la nona, e tre echi che si spengono
+  [37.0, 'D2', 0.34], [37.03, 'A2', 0.27], [37.06, 'E3', 0.2], [37.09, 'F#3', 0.2], [37.0, 'D5', 0.48],
+  [40.2, 'F#5', 0.26],
+  [41.6, 'D6', 0.2],
+  [43.0, 'A5', 0.15],
 ];
 // gli accordi del pad sotto il pianoforte (battiti → note)
 const PAD = [
-  [0, 5, ['D3', 'A3', 'F#4']],
-  [5, 8.5, ['B2', 'F#3', 'D4']],
-  [8.5, 12, ['E3', 'G3', 'B3']],
-  [12, 16.5, ['G3', 'B3', 'D4']],
-  [16.5, 20.5, ['A3', 'C#4', 'E4']],
-  [20.5, 24.5, ['E3', 'G3', 'B3']],
-  [24.5, 31, ['D3', 'A3', 'F#4']],
+  [0, 8, ['D3', 'A3', 'F#4']],
+  [8, 13, ['B2', 'F#3', 'D4']],
+  [13, 19, ['E3', 'G3', 'B3']],
+  [19, 27, ['G3', 'B3', 'D4']],
+  [27, 32.5, ['A3', 'C#4', 'E4']],
+  [32.5, 37, ['E3', 'G3', 'B3']],
+  [37, 46, ['D3', 'A3', 'F#4']],
 ];
 
 // ------------------------------------------------------------------ una nota di pianoforte a feltro
@@ -161,8 +168,8 @@ function pad(L, R) {
           const up = Math.min(1, Math.max(0, (t - t0) / 1.1));
           const down = t > t1 ? Math.exp(-(t - t1) / 0.5) : 1;
           const env = Math.sin((up * Math.PI) / 2) ** 2 * down;
-          // un gonfiarsi lento verso il "si entra" (la corona, a 5 s)
-          const swell = 1 + 0.6 * Math.exp(-Math.pow((t - 4.6) / 0.7, 2));
+          // un gonfiarsi lento verso il "si entra" (la corona, a 8 s)
+          const swell = 1 + 0.6 * Math.exp(-Math.pow((t - 7.5) / 0.8, 2));
           const s = (Math.sin(ph) + 0.18 * Math.sin(2 * ph)) * env * swell * 0.0045;
           L[i] += s * gl;
           R[i] += s * gr;
