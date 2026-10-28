@@ -9,6 +9,10 @@ Modelli/
 Branding/
 /CELESTE INTRO_ORIZ.mp4
 
+# il trailer per Kickstarter e i suoi fotogrammi di lavoro (circa 1 GB): si rifanno con `npm run
+# trailer`; il video non va nel repository pubblico prima che esca con la campagna
+/trailer/
+
 # file locali: backup di Blender, cache di Python, strumenti delle sessioni (le skill di Blender sono
 # una raccolta di terzi installata qui per il lavoro sui modelli)
 *.blend1

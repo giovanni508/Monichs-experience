@@ -10,7 +10,8 @@
     "preview": "vite preview --port 4173 --strictPort",
     "assets": "node scripts/build-assets.mjs",
     "fiera": "node scripts/serve-dist.mjs",
-    "voci": "node scripts/lab-voices.mjs"
+    "voci": "node scripts/lab-voices.mjs",
+    "trailer": "node scripts/trailer.mjs"
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.3.0",

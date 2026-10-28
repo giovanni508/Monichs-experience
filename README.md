@@ -57,6 +57,17 @@ Poi aprire `http://localhost:8080` e premere **F** per lo schermo intero.
 
 Consigli per il PC della fiera: alimentazione collegata, risparmio energetico disattivato, Chrome aggiornato. Per uscire dalla modalità kiosk: **Alt+F4** (Windows) o **Cmd+Q** (Mac).
 
+### Trailer per Kickstarter
+
+Un video di 15 s in 16:9 (1920×1080, 30 fps) che presenta l'esperienza senza il laboratorio: le tre Delta, la corona, gli ingranaggi, Celeste dal giorno alla notte, Sunset, Virentia, e il cartello "INSIDE MONICHS · Unlocks at CHF 60,000 · Free for every backer". Esce in inglese e in italiano.
+
+```bash
+npm run dev        # in un altro terminale
+npm run trailer    # riprese, musica, titoli e montaggio: trailer/Inside-Monichs-Trailer-EN.mp4 e -IT.mp4
+```
+
+Le riprese vengono dal gioco, guidato fotogramma per fotogramma in Chrome senza finestra (qualità ultra, 2880×1620 ridotto a 1080p); la musica è un pianoforte a feltro sintetizzato sul motivo 6-3-2-1, con i cambi d'armonia sui tagli. Piani e camere sono in `scripts/trailer/shots.mjs`, testi in `scripts/trailer/titles.mjs`, partitura in `scripts/trailer/music.mjs`; per rifare solo una parte: `npm run trailer -- musica montaggio` (o `riprese --piani=D,E`). Servono ffmpeg, Google Chrome e Playwright (dettagli in testa a `scripts/trailer.mjs`). La cartella `trailer/` resta fuori dal repository.
+
 ## 4. Comandi
 
 | Azione | Tastiera / mouse | Controller (in fiera) |
@@ -172,7 +183,7 @@ L'inventario completo (cosa mostra ogni file, dove è usato, cosa è inutilizzat
 ```
 content/            testi e configurazione (modificabili senza toccare il codice)
 public/assets/      immagini, video, font del logo, SVG (generati da `npm run assets`)
-scripts/            pipeline asset, voci del laboratorio, server offline per la fiera
+scripts/            pipeline asset, voci del laboratorio, server offline per la fiera, trailer
 src/core/           App, regia, input, giocatore, audio, hotspot, narratore, modalità fiera
 src/gfx/            renderer e post-processing (riflessi in ray tracing, occlusione, ombre,
                     profondità di campo), modelli 3D degli orologi, materiali e finiture
