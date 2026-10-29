@@ -68,6 +68,8 @@ npm run trailer    # riprese, musica, titoli e montaggio: trailer/Inside-Monichs
 
 Le riprese vengono dal gioco, guidato fotogramma per fotogramma in Chrome senza finestra (qualità ultra, 2880×1620 ridotto a 1080p); la musica è un pianoforte a feltro sintetizzato sul motivo 6-3-2-1, a 60 BPM, con i cambi d'armonia sui tagli. Piani e camere sono in `scripts/trailer/shots.mjs`, frasi in `scripts/trailer/titles.mjs` (i tempi in `edit.mjs`), partitura in `scripts/trailer/music.mjs`; per rifare solo una parte: `npm run trailer -- musica montaggio` (o `riprese --piani=D,E`). Servono ffmpeg, Google Chrome e Playwright (dettagli in testa a `scripts/trailer.mjs`). La cartella `trailer/` resta fuori dal repository.
 
+Lo stesso comando prepara anche tre copertine di YouTube in inglese per il test A/B (1280×720 JPG: `trailer/Inside-Monichs-Thumbnail-A-Celeste.jpg`, `-B-Delta`, `-C-Sunset`). Sono fotogrammi del gioco girati apposta con il gancio "WALK INSIDE THE WATCH" e la riga "INTERACTIVE EXPERIENCE"; solo loro: `npm run trailer -- copertine` (`scripts/trailer/thumbnails.mjs`).
+
 ## 4. Comandi
 
 | Azione | Tastiera / mouse | Controller (in fiera) |
