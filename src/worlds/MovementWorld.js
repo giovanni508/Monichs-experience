@@ -774,6 +774,8 @@ export class MovementWorld extends World {
     this.attract = !!opts.attract;
     this.timeAction = null;
     this.introTurn = 0;
+    // i monoliti guardano già la partenza (dopo l'attrazione erano voltati verso l'ultima inquadratura)
+    this.monolithGroups.forEach((g) => faceViewer(g, START, 1));
     const director = this.app.director;
     this.portals.forEach((p) => (p.visited = director.progress.visited.has(p.id)));
     if (opts.hub) {
