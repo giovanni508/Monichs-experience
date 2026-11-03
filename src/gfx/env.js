@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 // Environment map procedurali (PMREM) per riflessi metallici credibili: una sfera a gradiente
 // e alcuni "softbox" emissivi, come in uno studio di fotografia di orologi.
@@ -83,17 +82,112 @@ void main() {
 const ENV_SIZE = 512;
 let studioEnv = null;
 
+// Studio fotografico degli orologi: una "tenda di luce" che avvolge l'orologio davanti (le superfici
+// satinate restano chiare), il buio dietro, bandiere nere che disegnano i riflessi sul lucido (lunetta,
+// smussi, maglie centrali) e strisce luminose sui fianchi e sopra, come nelle foto ufficiali. Sotto, un
+// piano chiaro come il tavolo luminoso dei fotografi: il visitatore guarda spesso i monoliti dal basso,
+// e senza il lucido della lunetta rifletterebbe il buio.
+// La stanza neutra di three.js (RoomEnvironment) era tutta chiara: l'acciaio ne usciva grigio uniforme,
+// come plastica. gain tiene conto delle intensità con cui i mondi usano lo studio (0,4–0,6).
+const STUDIO = {
+  gain: 1.8,
+  front: 0.55, back: 0.1, top: 0.3, bottom: 0.42,
+  flags: [
+    { pos: [-4.2, 0.5, 8], size: [1.3, 14] },
+    { pos: [4.2, 0.5, 8], size: [1.3, 14] },
+    { pos: [0, -4.2, 8], size: [14, 1.1] },
+  ],
+  boxes: [
+    { pos: [0, 9, 3], size: [10, 5], power: 3, grad: 0.3 },
+    { pos: [-8.5, 1.5, 2], size: [1.8, 10], power: 5 },
+    { pos: [8.5, 1.5, 2], size: [1.8, 10], power: 5 },
+    { pos: [0, 6, -9], size: [14, 1.4], power: 3, color: 0xdde6ff },
+  ],
+};
+
+const tentFrag = /* glsl */ `
+uniform float uFront; uniform float uBack; uniform float uTop; uniform float uBottom;
+varying vec3 vDir;
+void main() {
+  vec3 d = normalize(vDir);
+  float L = mix(uBack, uFront, smoothstep(-0.25, 0.65, d.z)) + uTop * smoothstep(0.35, 0.95, d.y) + uBottom * smoothstep(0.25, 0.9, -d.y);
+  gl_FragColor = vec4(vec3(L), 1.0);
+}`;
+
+// softbox dai bordi morbidi, più chiaro al centro (grad) come i softbox graduati da still life
+const panelVert = /* glsl */ `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+const panelFrag = /* glsl */ `
+uniform vec3 uColor; uniform float uGrad;
+varying vec2 vUv;
+void main() {
+  vec2 d = abs(vUv - 0.5) * 2.0;
+  float e = (1.0 - smoothstep(0.65, 1.0, d.x)) * (1.0 - smoothstep(0.65, 1.0, d.y));
+  e *= mix(1.0, 1.0 - d.y * d.y, uGrad);
+  gl_FragColor = vec4(uColor * e, 1.0);
+}`;
+
+function studioScene() {
+  const p = STUDIO;
+  const scene = new THREE.Scene();
+  scene.add(
+    new THREE.Mesh(
+      new THREE.SphereGeometry(20, 64, 32),
+      new THREE.ShaderMaterial({
+        side: THREE.BackSide,
+        depthWrite: false,
+        uniforms: {
+          uFront: { value: p.front * p.gain },
+          uBack: { value: p.back * p.gain },
+          uTop: { value: p.top * p.gain },
+          uBottom: { value: p.bottom * p.gain },
+        },
+        vertexShader: skyVert,
+        fragmentShader: tentFrag,
+      }),
+    ),
+  );
+  const black = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
+  for (const f of p.flags) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(f.size[0], f.size[1]), black);
+    m.position.set(...f.pos);
+    m.lookAt(0, 0, 0);
+    scene.add(m);
+  }
+  for (const b of p.boxes) {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(b.size[0], b.size[1]),
+      new THREE.ShaderMaterial({
+        side: THREE.DoubleSide,
+        uniforms: { uColor: { value: new THREE.Color(b.color ?? 0xffffff).multiplyScalar(b.power * p.gain) }, uGrad: { value: b.grad ?? 0.5 } },
+        vertexShader: panelVert,
+        fragmentShader: panelFrag,
+      }),
+    );
+    m.position.set(...b.pos);
+    m.lookAt(0, 0, 0);
+    scene.add(m);
+  }
+  return scene;
+}
+
 export function createEnvironment(renderer, presetName = 'workshop') {
-  // "studio": la stanza neutra con pannelli luminosi di three.js, pensata per il rendering di
-  // prodotto: sull'acciaio dà le ampie sfumature bianche delle foto degli orologi. È sempre uguale:
-  // la si genera una volta sola e la si condivide (orologi dell'epilogo, monoliti, vetrina di Sunset)
+  // "studio": lo studio fotografico qui sopra. È sempre uguale: lo si genera una volta sola e lo si
+  // condivide (orologi dell'epilogo, monoliti, vetrina di Sunset, cancello di Virentia)
   if (presetName === 'studio') {
     if (studioEnv) return studioEnv;
+    const scene = studioScene();
     const pmrem = new THREE.PMREMGenerator(renderer);
-    const room = new RoomEnvironment();
-    const rt = pmrem.fromScene(room, 0.02, 0.1, 100, { size: ENV_SIZE });
+    const rt = pmrem.fromScene(scene, 0, 0.1, 100, { size: ENV_SIZE });
     pmrem.dispose();
-    room.dispose();
+    scene.traverse((o) => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) o.material.dispose();
+    });
     studioEnv = rt.texture;
     return studioEnv;
   }

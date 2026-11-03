@@ -123,7 +123,7 @@ def principled(name, color, metal=0.0, rough=0.5, brush=None, **kw):
     return m
 
 
-STEEL = (0.80, 0.80, 0.81)
+STEEL = (0.62, 0.62, 0.63)   # acciaio inox 316L: riflettanza ~0,62 (0,80 lo faceva sembrare alluminio)
 IPRG = (0.86, 0.50, 0.38)
 MAT = {
     "brushed": principled("Acciaio satinato 12-6", STEEL, 1.0, 0.26, brush="X"),

@@ -43,6 +43,63 @@ export function watchGlassMaterial() {
   return mat;
 }
 
+// Satinatura visibile: le righe fini della spazzolatura ("Brusher" lineare sulla cassa e sul bracciale,
+// "Circular Busher" sulla lunetta, nella tavola 4029). L'anisotropia allunga i riflessi; le righe, come
+// nell'acciaio vero, riflettono ognuna un po' diversamente: riflettanza (tone), ruvidità e normale
+// variano riga per riga. Si spengono quando diventano più fini di un pixel (da lontano niente
+// sfarfallio). Il file è in millimetri: freq = righe per mm.
+const BRUSH = { freq: 10, tone: 0.05, rough: 0.22, strength: 0.1 };
+
+function addBrushLines(material, circular) {
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uBrushFreq = { value: BRUSH.freq };
+    shader.uniforms.uBrushTone = { value: BRUSH.tone };
+    shader.uniforms.uBrushRough = { value: BRUSH.rough };
+    shader.uniforms.uBrushStrength = { value: BRUSH.strength };
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vBrushPos;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\n\tvBrushPos = position;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+varying vec3 vBrushPos;
+uniform float uBrushFreq;
+uniform float uBrushTone;
+uniform float uBrushRough;
+uniform float uBrushStrength;
+float brushHash(float x) { return fract(sin(x * 127.1) * 43758.5453); }
+float brushLines(float f) {
+  float a = mix(brushHash(floor(f)), brushHash(floor(f) + 1.0), smoothstep(0.0, 1.0, fract(f)));
+  float g = f * 3.7;
+  float b = mix(brushHash(floor(g) + 31.0), brushHash(floor(g) + 32.0), smoothstep(0.0, 1.0, fract(g)));
+  return a * 0.65 + b * 0.35;
+}`,
+      )
+      .replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+  // attraverso le righe: la distanza dall'asse (circolare) o la posizione sul piano (lineare, righe da ore 12 a ore 6)
+  float brushF = (${circular ? 'length(vBrushPos.xz)' : 'vBrushPos.x + vBrushPos.y'}) * uBrushFreq;
+  float brushV = (brushLines(brushF) * 2.0 - 1.0) * (1.0 - smoothstep(0.2, 0.55, fwidth(brushF)));
+  diffuseColor.rgb *= 1.0 + brushV * uBrushTone;`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        `#include <roughnessmap_fragment>
+  roughnessFactor = clamp(roughnessFactor * (1.0 + brushV * uBrushRough), 0.04, 1.0);`,
+      )
+      .replace(
+        '#include <normal_fragment_maps>',
+        `#include <normal_fragment_maps>
+#ifdef USE_TANGENT
+  normal = normalize(normal + tbn[1] * brushV * uBrushStrength);
+#endif`,
+      );
+  };
+  material.customProgramCacheKey = () => (circular ? 'brush-circular' : 'brush-linear');
+}
+
 function prepareTemplate(scene) {
   const glass = watchGlassMaterial();
   scene.traverse((o) => {
@@ -55,8 +112,10 @@ function prepareTemplate(scene) {
     }
     // anisotropia senza tangenti né UV: la direzione della satinatura la diamo noi
     if (m.anisotropy > 0 && !o.geometry.attributes.tangent) {
-      if (/12-6/.test(m.name)) addLinearTangents(o.geometry, new THREE.Vector3(0, 0, 1));
+      const linear = /12-6/.test(m.name);
+      if (linear) addLinearTangents(o.geometry, new THREE.Vector3(0, 0, 1));
       else addCircularTangents(o.geometry);
+      if (!m.customProgramCacheKey().startsWith('brush')) addBrushLines(m, !linear);
     }
     if (/luminova/i.test(m.name)) {
       m.emissive = new THREE.Color(0x7ff6ff);
