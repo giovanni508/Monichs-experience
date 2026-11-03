@@ -156,7 +156,7 @@ export class Director {
     const shots = [];
     const intro = { world: 'intro', duration: 11 };
     shots.push(intro);
-    for (const id of ['movement', 'celeste', 'sunset', 'virentia', 'lab']) {
+    for (const id of ['movement', 'celeste', 'sunset', 'virentia']) {
       const w = this.app.worlds[id];
       if (w?.loaded && w.attractShots?.length) w.attractShots.forEach((s) => shots.push({ ...s, world: id }));
     }

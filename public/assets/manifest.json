@@ -55,11 +55,6 @@
     ]
   },
   {
-    "file": "assets/tex/lab/rotor-sketch.webp",
-    "source": "Modelli/ROTORE/MNC_Dw_Rotor 2 (2).png",
-    "crop": null
-  },
-  {
     "file": "assets/img/cards/ce-case.webp",
     "source": "Modelli/Celeste/MNC_I25_Ed_Ce (1).png",
     "crop": [
@@ -323,31 +318,6 @@
     "file": "assets/models/natura/tronco_caduto.glb",
     "source": "Modelli/3D/natura/tronco_caduto.glb",
     "crop": "texture secondarie a 1024 px"
-  },
-  {
-    "file": "assets/models/founder-giovanni.glb",
-    "source": "Modelli/3D/fondatori/v3/founder-giovanni.glb",
-    "crop": "texture secondarie a 1024 px"
-  },
-  {
-    "file": "assets/models/founder-filippo.glb",
-    "source": "Modelli/3D/fondatori/v3/founder-filippo.glb",
-    "crop": "texture secondarie a 1024 px"
-  },
-  {
-    "file": "assets/tex/lab/drawing.webp",
-    "source": "../Monichs Asset vari locale/MNC_T_Draw_Print.pdf (pagina 1, 400 dpi)",
-    "crop": null
-  },
-  {
-    "file": "assets/tex/lab/case-4029.webp",
-    "source": "../4029-MOS-SW200-VR13-EXPLOSION.pdf (pagina 1, 300 dpi)",
-    "crop": [
-      150,
-      276,
-      3210,
-      1943
-    ]
   },
   {
     "file": "assets/logo/monichs-logo.svg",

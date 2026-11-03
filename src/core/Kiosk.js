@@ -12,8 +12,8 @@ export class Kiosk {
   update() {
     const { director, input } = this.app;
     const now = performance.now();
-    // mentre i fondatori raccontano il reset per inattività è sospeso; finito il racconto l'attesa
-    // riparte da zero, così chi ha guardato senza toccare nulla vede il cartello e l'epilogo
+    // un mondo può sospendere il reset per inattività (holdsIdle), per esempio mentre racconta qualcosa
+    // da guardare senza toccare nulla; quando smette l'attesa riparte da zero
     if (director.world?.holdsIdle) this.heldAt = now;
     const idle = Math.min(input.idleSeconds(), (now - (this.heldAt ?? -Infinity)) / 1000);
     const s = director.state;

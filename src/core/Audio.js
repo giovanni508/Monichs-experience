@@ -2,131 +2,8 @@
 // - Palette ambient per mondo (drone, pad, rumori filtrati, campane FM, glissandi)
 // - Tick meccanico schedulato sugli eventi dello scappamento: 8 alternanze/s (28.800 A/h)
 // - Suoni d'interfaccia discreti (rintocco di scoperta, soffio di transizione, cricchetto)
-// - Voci del laboratorio: un "borbottio" segnaposto di sillabe senza parole, oppure, se c'è, la clip
-//   registrata della battuta (public/assets/audio/lab/<chiave>.mp3)
 
 const BEAT = 0.125; // secondi meccanici tra due alternanze (1/8 s)
-
-// ---------------------------------------------------------------- borbottio (voce segnaposto)
-
-// Formanti delle vocali italiane (Hz: F1, F2, F3) e peso della seconda: la "i" viene addolcita
-const VOWELS = {
-  a: [760, 1300, 2500, 0.8],
-  e: [500, 1750, 2500, 0.6],
-  i: [320, 2100, 2800, 0.32],
-  o: [520, 920, 2400, 0.8],
-  u: [350, 780, 2300, 0.7],
-};
-
-// Due timbri riconoscibili anche senza leggere: registro, colore (formanti e filtro), legato.
-// Giovanni più basso, scuro e legato; Filippo più alto, chiaro e staccato.
-export const BABBLE_VOICES = {
-  giovanni: { f0: 106, range: 2.6, formant: 0.93, lp: 1650, legato: 0.86, gain: 0.15, glide: -0.7 },
-  filippo: { f0: 142, range: 3.6, formant: 1.08, lp: 2250, legato: 0.7, gain: 0.12, glide: -0.35 },
-};
-
-const PAUSE_WEIGHT = { ',': 1.3, ':': 1.6, ';': 1.6, '—': 1.2, '.': 2.3, '!': 2.3, '?': 2.3 };
-
-function seeded(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-// Sillabe di una parola italiana: gruppi di vocali (le cifre valgono circa una sillaba e mezza)
-function syllablesOf(word) {
-  if (/^\d+$/.test(word)) return Array.from({ length: Math.round(word.length * 1.6) }, (_, i) => 'aeoie'[i % 5]);
-  const groups = word.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').match(/[aeiouy]+/g) || ['e'];
-  // dittonghi con i/u atone: la vocale "piena" del gruppo dà il colore
-  return groups.map((g) => (g.length > 1 ? [...g].find((c) => 'aeo'.includes(c)) || g[g.length - 1] : g).replace('y', 'i'));
-}
-
-/**
- * Partitura del borbottio di una battuta: sillabe brevi con intonazione che scende lungo la frase,
- * pause sulla punteggiatura e cadenza finale (in salita sulle domande), distribuite su `duration`.
- * Restituisce { events: [{ t, dur, f0, f1, vowel, amp }], duration }.
- */
-export function babblePlan(text, voiceName, duration, seed = 1) {
-  const v = BABBLE_VOICES[voiceName] || BABBLE_VOICES.giovanni;
-  const rnd = seeded(seed * 9973 + text.length);
-  const tokens = text.match(/[\p{L}\d’']+|[.,:;?!—]/gu) || [];
-  const units = [];
-  let phrase = [];
-  const closePhrase = (mark) => {
-    const n = phrase.length;
-    phrase.forEach((u, i) => {
-      const k = n > 1 ? i / (n - 1) : 0;
-      let st = 1.4 - 2.8 * k; // declinazione
-      if (mark === '?' && i >= n - 2) st += i === n - 1 ? 4.5 : 2;
-      else if ((mark === '.' || mark === '!') && i === n - 1) st -= 2.2;
-      else if (mark && i === n - 1) st += 1; // virgola: la frase continua
-      u.st = (st + (u.stress ? 1.1 : 0)) * (v.range / 3) + (rnd() - 0.5) * 1.2;
-      u.cadence = (mark === '.' || mark === '!') && i === n - 1;
-    });
-    phrase = [];
-  };
-  for (const tok of tokens) {
-    if (PAUSE_WEIGHT[tok]) {
-      closePhrase(tok);
-      units.push({ pause: PAUSE_WEIGHT[tok] });
-      continue;
-    }
-    const syl = syllablesOf(tok.replace(/[’']/g, ''));
-    syl.forEach((vowel, i) => {
-      // accento sulla penultima (parola piana, la più comune in italiano)
-      const u = { vowel, stress: syl.length > 1 && i === syl.length - 2, wordEnd: i === syl.length - 1 };
-      units.push(u);
-      phrase.push(u);
-    });
-  }
-  closePhrase('.');
-  // l'ultima pausa non conta: la battuta finisce lì
-  while (units.length && units[units.length - 1].pause) units.pop();
-
-  let W = 0;
-  for (const u of units) W += u.pause ?? (u.stress ? 1.15 : 1) + (u.wordEnd ? 0.12 : 0);
-  const lead = 0.08;
-  const tail = 0.24;
-  const slot = Math.max(0.09, (duration - lead - tail) / Math.max(1, W));
-  const events = [];
-  let t = lead;
-  for (const u of units) {
-    if (u.pause) {
-      t += u.pause * slot;
-      continue;
-    }
-    const w = u.stress ? 1.15 : 1;
-    const dur = Math.min(0.3, Math.max(0.07, slot * w * v.legato * (u.cadence ? 1.35 : 1)));
-    const f0 = v.f0 * Math.pow(2, u.st / 12);
-    const glide = u.cadence ? -2.4 : v.glide;
-    events.push({ t, dur, f0, f1: f0 * Math.pow(2, glide / 12), vowel: u.vowel, amp: (u.stress ? 1 : 0.84) * (0.92 + rnd() * 0.12) * (u.cadence ? 0.85 : 1) });
-    t += slot * w + (u.wordEnd ? slot * 0.12 : 0);
-  }
-  return { events, duration, voice: voiceName };
-}
-
-/** Apertura della bocca (0..1) e vocale del borbottio all'istante t della battuta. */
-export function babbleLevel(plan, t) {
-  const ev = plan.events;
-  let lo = 0;
-  let hi = ev.length - 1;
-  while (lo < hi) {
-    const mid = (lo + hi + 1) >> 1;
-    if (ev[mid].t <= t) lo = mid;
-    else hi = mid - 1;
-  }
-  const e = ev[lo];
-  if (!e || t < e.t) return { level: 0, vowel: 'a' };
-  const k = (t - e.t) / e.dur;
-  if (k > 1.25) return { level: 0, vowel: e.vowel };
-  const env = k < 0.18 ? k / 0.18 : k < 0.6 ? 1 : Math.max(0, 1 - (k - 0.6) / 0.65);
-  return { level: env * e.amp, vowel: e.vowel };
-}
 
 // Livelli e colore del tic per mondo. Otto alternanze al secondo per minuti stancano: il tic sta sotto
 // la musica, scuro (niente brillantezza oltre 5–6 kHz) e un po' nel riverbero, così si sente senza pungere.
@@ -142,8 +19,6 @@ const TICK_TIMBRES = {
 // (come un orologio vero, che dopo un po' non si nota più); risale avvicinandosi alla sorgente.
 const TICK_REST = 0.45;
 const TICK_SETTLE = 24; // secondi per passare da 1 a 0 (si ferma a TICK_REST)
-// mentre parlano le voci del laboratorio il tic si fa da parte
-const TICK_UNDER_VOICE = 0.5;
 
 function rand(a, b) {
   return a + Math.random() * (b - a);
@@ -178,8 +53,6 @@ export class AudioEngine {
     this.tickState = { presence: 0.6, pan: 0, timbre: 'intro', enabled: false };
     this.tickAttention = 1;
     this.lastPresence = null;
-    this.clipsPlaying = 0;
-    this.lastVoiceAt = -Infinity;
     this.events = [];
   }
 
@@ -228,25 +101,6 @@ export class AudioEngine {
     this.sfxSend.gain.value = 0.7;
     this.sfxBus.connect(this.sfxSend);
     this.sfxSend.connect(this.reverb);
-
-    // Voci del laboratorio: un filtro per timbro, poi un bus unico verso il master (M le spegne)
-    this.voiceBus = ctx.createGain();
-    this.voiceBus.gain.value = 1;
-    this.voiceBus.connect(this.master);
-    this.voiceSend = ctx.createGain();
-    this.voiceSend.gain.value = 0.12;
-    this.voiceBus.connect(this.voiceSend);
-    this.voiceSend.connect(this.reverb);
-    this.voiceLP = {};
-    for (const [name, v] of Object.entries(BABBLE_VOICES)) {
-      const f = ctx.createBiquadFilter();
-      f.type = 'lowpass';
-      f.frequency.value = v.lp;
-      f.Q.value = 0.5;
-      f.connect(this.voiceBus);
-      this.voiceLP[name] = f;
-    }
-    this.waves = new Map();
 
     // Catena del tick: sorgente → passa-alto → passa-basso → panner → guadagno → bus (+ mandata riverbero)
     this.tickHP = ctx.createBiquadFilter();
@@ -448,8 +302,7 @@ export class AudioEngine {
     const rise = Math.max(0, st.presence - (this.lastPresence ?? st.presence));
     this.lastPresence = st.presence;
     this.tickAttention = Math.min(1, Math.max(TICK_REST, this.tickAttention - dt / TICK_SETTLE + rise * 1.5));
-    const duck = this.clipsPlaying > 0 ? TICK_UNDER_VOICE : 1;
-    const target = tb.gain * st.presence * this.tickAttention * duck;
+    const target = tb.gain * st.presence * this.tickAttention;
     this.tickGain.gain.setTargetAtTime(target, now, 0.12);
     if (this.tickPan) this.tickPan.pan.setTargetAtTime(Math.max(-1, Math.min(1, st.pan)), now, 0.15);
 
@@ -656,8 +509,8 @@ export class AudioEngine {
       timers.push((dt) => {
         wait -= dt;
         if (wait > 0) return;
-        // la frase aspetta che i fondatori abbiano finito di parlare, e che passi il "respiro di silenzio"
-        if (!this.running || this.voiceRecent(1.5) || this.musicBus.gain.value < 0.4) {
+        // la frase aspetta che l'audio sia sbloccato e che passi il "respiro di silenzio" di Celeste
+        if (!this.running || this.musicBus.gain.value < 0.4) {
           wait = 0.5;
           return;
         }
@@ -749,16 +602,6 @@ export class AudioEngine {
         every(10, 16, sparkle([1046.5, 1318.5, 1567.98], 0.01));
         piano({ root: 60, low: 60, high: 79, bpm: 46, gain: 0.218, rest: [6, 11] }); // do maggiore, si chiude
         break;
-      case 'lab':
-        // una stanza quieta di sera: fondo d'aria, un accordo caldo appena accennato, rare note lontane
-        P.level = 0.4;
-        drone([65.41], 0.03);
-        pad([130.81, 196, 261.63, 329.63, 392], { type: 'sine', gain: 0.02, cutoff: 1300, lfoDepth: 280, lfoRate: 0.02 });
-        noiseBed({ color: 'pink', type: 'lowpass', freq: 420, q: 0.4, gain: 0.028, freqLfo: [0.03, 80], gainLfo: [0.04, 0.4] });
-        every(14, 24, sparkle([1046.5, 1318.5, 1567.98], 0.005));
-        // nel laboratorio parlano i fondatori: il pianoforte è quasi un ricordo, solo fra una battuta e l'altra
-        piano({ root: 60, low: 60, high: 76, bpm: 44, gain: 0.064, rest: [10, 18], bass: 0.35 });
-        break;
       default:
         break;
     }
@@ -784,134 +627,6 @@ export class AudioEngine {
     if (!this.ready) return;
     if (this.current && this.current.update && this.running) this.current.update(dt);
     if (clock) this.updateTicks(clock, dt);
-  }
-
-  // ---------------------------------------------------------------- voci del laboratorio
-
-  // Forma d'onda di una vocale per un timbro: armoniche pesate dalle formanti. Basta un solo
-  // oscillatore per sillaba, e il colore resta quello di una voce anche senza parole.
-  vowelWave(voiceName, vowel) {
-    const key = `${voiceName}:${vowel}`;
-    if (this.waves.has(key)) return this.waves.get(key);
-    const v = BABBLE_VOICES[voiceName] || BABBLE_VOICES.giovanni;
-    const [F1, F2, F3, w2] = VOWELS[vowel] || VOWELS.a;
-    const n = 30;
-    const real = new Float32Array(n + 1);
-    const imag = new Float32Array(n + 1);
-    const res = (f, F, bw) => 1 / (1 + ((f - F * v.formant) / bw) ** 2);
-    for (let k = 1; k <= n; k++) {
-      const f = k * v.f0;
-      imag[k] = (res(f, F1, 120) + w2 * res(f, F2, 170) + 0.22 * res(f, F3, 240) + 0.08) * Math.pow(k, -0.55);
-    }
-    const wave = this.ctx.createPeriodicWave(real, imag);
-    this.waves.set(key, wave);
-    return wave;
-  }
-
-  // Una sillaba: attacco morbido, intonazione che scivola appena, coda breve (niente clic)
-  syllable(e, voiceName, when) {
-    const ctx = this.ctx;
-    const v = BABBLE_VOICES[voiceName] || BABBLE_VOICES.giovanni;
-    const o = ctx.createOscillator();
-    o.setPeriodicWave(this.vowelWave(voiceName, e.vowel));
-    o.frequency.setValueAtTime(e.f0, when);
-    o.frequency.linearRampToValueAtTime(e.f1, when + e.dur);
-    const g = ctx.createGain();
-    const peak = v.gain * e.amp;
-    g.gain.setValueAtTime(0, when);
-    g.gain.linearRampToValueAtTime(peak, when + Math.min(0.03, e.dur * 0.25));
-    g.gain.setValueAtTime(peak, when + e.dur * 0.55);
-    g.gain.setTargetAtTime(0, when + e.dur * 0.55, e.dur * 0.2);
-    o.connect(g);
-    g.connect(this.voiceLP[voiceName] || this.voiceBus);
-    o.start(when);
-    o.stop(when + e.dur * 1.6 + 0.05);
-    o.onended = () => {
-      o.disconnect();
-      g.disconnect();
-    };
-  }
-
-  /**
-   * Fa suonare le sillabe di una partitura (vedi babblePlan) fino a `elapsed` secondi dall'inizio
-   * della battuta, più un piccolo anticipo. `state` = { plan, voice, cursor }; va chiamata a ogni
-   * fotogramma finché la battuta è in corso (in pausa non la si chiama: il borbottio si ferma).
-   */
-  scheduleBabble(state, elapsed) {
-    if (!this.ready || !this.running) return;
-    const now = this.ctx.currentTime;
-    this.lastVoiceAt = now;
-    const ev = state.plan.events;
-    while (state.cursor < ev.length) {
-      const e = ev[state.cursor];
-      const dt = e.t - elapsed;
-      if (dt > 0.12) break;
-      state.cursor++;
-      if (dt < -0.06) continue; // già passata (audio sbloccato in ritardo, salto)
-      this.syllable(e, state.voice, now + Math.max(0, dt));
-    }
-  }
-
-  /** C'è una voce (clip o borbottio), o c'è stata negli ultimi `hold` secondi. */
-  voiceRecent(hold = 0) {
-    return this.clipsPlaying > 0 || (!!this.ctx && this.ctx.currentTime - this.lastVoiceAt < hold);
-  }
-
-  /** Clip registrata (mp3): decodificata una volta, null se manca o non è audio. */
-  async loadClip(url) {
-    if (!this.ctx) return null;
-    try {
-      const res = await fetch(url);
-      if (!res.ok) return null;
-      const data = await res.arrayBuffer();
-      return await this.ctx.decodeAudioData(data);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /** Suona una clip della voce da `offset` secondi; restituisce il "nastro" da fermare o misurare. */
-  playClip(buffer, offset = 0) {
-    if (!this.ready || !buffer) return null;
-    const ctx = this.ctx;
-    const src = ctx.createBufferSource();
-    src.buffer = buffer;
-    const an = ctx.createAnalyser();
-    an.fftSize = 1024;
-    src.connect(an);
-    an.connect(this.voiceBus);
-    src.start(ctx.currentTime, Math.max(0, Math.min(offset, buffer.duration - 0.01)));
-    const tape = { src, an, data: new Float32Array(an.fftSize) };
-    // quante voci stanno parlando: il tic si abbassa sotto di loro
-    this.clipsPlaying++;
-    src.onended = () => {
-      this.clipsPlaying = Math.max(0, this.clipsPlaying - 1);
-      this.lastVoiceAt = ctx.currentTime;
-      try {
-        src.disconnect();
-        an.disconnect();
-      } catch (e) { /* già scollegato */ }
-    };
-    return tape;
-  }
-
-  stopClip(tape) {
-    if (!tape) return;
-    try {
-      tape.src.stop();
-    } catch (e) { /* già fermo */ }
-  }
-
-  /**
-   * Volume istantaneo di una clip (0..1), per muovere la bocca. Tarato sulle clip a -16 LUFS: le
-   * sillabe medie (RMS circa 0,15) aprono a metà, solo gli accenti (RMS sopra 0,28) del tutto.
-   */
-  clipLevel(tape) {
-    if (!tape) return 0;
-    tape.an.getFloatTimeDomainData(tape.data);
-    let s = 0;
-    for (let i = 0; i < tape.data.length; i++) s += tape.data[i] * tape.data[i];
-    return Math.min(1, Math.sqrt(s / tape.data.length) * 3.5);
   }
 
   // ---------------------------------------------------------------- piccoli strumenti

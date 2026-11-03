@@ -15,7 +15,6 @@ import { MovementWorld } from '../worlds/MovementWorld.js';
 import { CelesteWorld } from '../worlds/CelesteWorld.js';
 import { SunsetWorld } from '../worlds/SunsetWorld.js';
 import { VirentiaWorld } from '../worlds/VirentiaWorld.js';
-import { LabWorld } from '../worlds/LabWorld.js';
 import { EpilogueWorld } from '../worlds/EpilogueWorld.js';
 
 const params = new URLSearchParams(location.search);
@@ -47,7 +46,7 @@ export class App {
     const [texts, config, index] = await Promise.all([
       loadJSON('content/texts.json'),
       loadJSON('content/config.json'),
-      // indice dei file in assets/: dice se un file facoltativo c'è (voci registrate, modelli dei fondatori)
+      // indice dei file in assets/: dice se un file facoltativo c'è (vedi hasAsset)
       loadJSON('assets/index.json').catch(() => null),
     ]);
     this.config = config;
@@ -94,7 +93,7 @@ export class App {
     if (this.debug) this.installDebug();
 
     // Mondi
-    const W = { intro: IntroWorld, movement: MovementWorld, celeste: CelesteWorld, sunset: SunsetWorld, virentia: VirentiaWorld, lab: LabWorld, epilogue: EpilogueWorld };
+    const W = { intro: IntroWorld, movement: MovementWorld, celeste: CelesteWorld, sunset: SunsetWorld, virentia: VirentiaWorld, epilogue: EpilogueWorld };
     for (const [id, Cls] of Object.entries(W)) this.worlds[id] = new Cls(this);
 
     await this.loadWorld('intro');
@@ -116,7 +115,7 @@ export class App {
     }
 
     // Caricamento progressivo degli altri mondi, in ordine di percorso
-    const order = ['movement', 'celeste', 'sunset', 'virentia', 'lab', 'epilogue'];
+    const order = ['movement', 'celeste', 'sunset', 'virentia', 'epilogue'];
     let done = 0;
     for (const id of order) {
       this.ui.setLoading(done / order.length);

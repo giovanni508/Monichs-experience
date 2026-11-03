@@ -123,8 +123,7 @@ export class EpilogueWorld extends World {
     });
     if (!opts.attract) {
       this.app.ui.showEpilogue(true);
-      // dal laboratorio no: "Mon, mio. Montre, orologio." l'hanno già detto i fondatori
-      if (!opts.fromLab) this.app.narrator.say('epilogue.name', { delay: 3.5, hold: 5 });
+      this.app.narrator.say('epilogue.name', { delay: 3.5, hold: 5 });
     }
   }
 

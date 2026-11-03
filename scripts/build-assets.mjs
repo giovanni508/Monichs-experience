@@ -205,7 +205,7 @@ async function buildModel(job) {
 
 for (const m of MODELS || []) await buildModel(m);
 
-// Fogli del laboratorio dai PDF: pdftoppm (Poppler) rasterizza la pagina, sharp ritaglia e comprime
+// Fogli dai PDF (PDFS nel manifest): pdftoppm (Poppler) rasterizza la pagina, sharp ritaglia e comprime
 function hasPdftoppm() {
   const r = spawnSync('pdftoppm', ['-v'], { stdio: 'ignore' });
   return !r.error;
@@ -240,7 +240,7 @@ async function buildPdf(job) {
 
 if (PDFS?.length) {
   if (hasPdftoppm()) for (const p of PDFS) await buildPdf(p);
-  else console.log('  !       pdftoppm non trovato: fogli del laboratorio non rigenerati (restano quelli in public/assets/tex/lab)');
+  else console.log('  !       pdftoppm non trovato: fogli dai PDF non rigenerati (restano quelli già presenti in public/assets)');
 }
 
 // Riepilogo leggibile (usato anche per la documentazione)

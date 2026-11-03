@@ -13,8 +13,7 @@
       "movement": { "it": "Il movimento", "en": "The movement" },
       "celeste": { "it": "Celeste", "en": "Celeste" },
       "sunset": { "it": "Sunset", "en": "Sunset" },
-      "virentia": { "it": "Virentia", "en": "Virentia" },
-      "lab": { "it": "Il laboratorio", "en": "The workshop" }
+      "virentia": { "it": "Virentia", "en": "Virentia" }
     },
     "loading": { "it": "Preparazione", "en": "Preparing" },
     "controls": {
@@ -60,54 +59,14 @@
     "hub": { "part": { "it": "Parte II", "en": "Part II" }, "name": { "it": "Tre mondi", "en": "Three worlds" } },
     "celeste": { "part": { "it": "Ref. M-001", "en": "Ref. M-001" }, "name": { "it": "Celeste", "en": "Celeste" } },
     "sunset": { "part": { "it": "Ref. M-002", "en": "Ref. M-002" }, "name": { "it": "Sunset", "en": "Sunset" } },
-    "virentia": { "part": { "it": "Ref. M-003", "en": "Ref. M-003" }, "name": { "it": "Virentia", "en": "Virentia" } },
-    "lab": { "part": { "it": "Parte III", "en": "Part III" }, "name": { "it": "Il laboratorio", "en": "The workshop" } }
+    "virentia": { "part": { "it": "Ref. M-003", "en": "Ref. M-003" }, "name": { "it": "Virentia", "en": "Virentia" } }
   },
 
   "attract": {
     "movement": { "it": "Il movimento · SW200-2 Élaboré", "en": "The movement · SW200-2 Élaboré" },
     "celeste": { "it": "Celeste · Ref. M-001", "en": "Celeste · Ref. M-001" },
     "sunset": { "it": "Sunset · Ref. M-002", "en": "Sunset · Ref. M-002" },
-    "virentia": { "it": "Virentia · Ref. M-003", "en": "Virentia · Ref. M-003" },
-    "lab": { "it": "Il laboratorio", "en": "The workshop" }
-  },
-
-  "lab": {
-    "lines": {
-      "g1": { "it": "Eccoti. Hai fatto tutto il giro.", "en": "There you are. You made it all the way through." },
-      "f1": { "it": "Piano: da lì sotto sembriamo giganti. Ti diamo il benvenuto nel nostro laboratorio.", "en": "Gently: from down there we look like giants. Welcome to our workshop." },
-      "g2": { "it": "Io sono Giovanni.", "en": "I’m Giovanni." },
-      "f2": { "it": "Io Filippo. Quello che hai appena attraversato, quattro anni fa non esisteva.", "en": "And I’m Filippo. Four years ago, everything you’ve just walked through didn’t exist." },
-      "g3": { "it": "Era il 2022. Avevamo un’ossessione: l’orologio svizzero che avremmo voluto portare noi. Fatto bene, e non un privilegio per pochi.", "en": "It was 2022. We had one obsession: the Swiss watch we wanted to wear ourselves. Made properly, and not a privilege for the few." },
-      "f3": { "it": "Il mondo non smette mai di correre. Noi volevamo un oggetto che ti facesse rallentare.", "en": "The world never stops running. We wanted an object that would make you slow down." },
-      "g4": { "it": "E gli abbiamo dato un nome che fosse tuo. Mon, mio. Montre, orologio. Monichs.", "en": "And we gave it a name that would be yours. Mon, mine. Montre, watch. Monichs." },
-      "f4": { "it": "Nel 2023 abbiamo cominciato a disegnare. Tutto da zero: cassa, bracciale, quadrante, corona, fondello, perfino il rotore. Niente pezzi da catalogo.", "en": "In 2023 we started drawing. Everything from scratch: case, bracelet, dial, crown, caseback, even the rotor. Nothing from a catalogue." },
-      "g5": { "it": "E io quell’anno ho fatto il salto: da collezionista a imprenditore.", "en": "That year I made the leap: from collector to entrepreneur." },
-      "f5": { "it": "Poi la Svizzera: i fornitori, i prototipi, la pre-serie. Prendi il bracciale: in tanti orologi c’è uno stacco tra cassa e bracciale. Per noi era inaccettabile. Doveva essere una linea sola.", "en": "Then Switzerland: suppliers, prototypes, the pre-series. Take the bracelet: on so many watches there’s a break between case and bracelet. For us that was unacceptable. It had to be one single line." },
-      "g6": { "it": "Abbiamo passato un tempo irragionevole su ogni dettaglio.", "en": "We spent an unreasonable amount of time on every detail." },
-      "f6": { "it": "E lo rifaremmo.", "en": "And we’d do it again." },
-      "g7": { "it": "Quest’anno abbiamo presentato la Trilogia al mondo, su Kickstarter: Celeste, Sunset, Virentia.", "en": "This year we presented the Trilogy to the world, on Kickstarter: Celeste, Sunset, Virentia." },
-      "f7": { "it": "Chi ci ha creduto per primo avrà un numero di serie basso inciso sul fondello. Il suo posto nella storia di Monichs.", "en": "Those who believed in us first will have a low serial number engraved on the caseback. Their place in the Monichs story." },
-      "g8": { "it": "Le prime consegne arriveranno nei primi mesi del 2027.", "en": "The first deliveries will arrive in the early months of 2027." },
-      "f8": { "it": "E adesso?", "en": "And now?" },
-      "g9": { "it": "Adesso c’è da rimboccarsi le maniche.", "en": "Now it’s time to roll up our sleeves." },
-      "f9": { "it": "Come sempre.", "en": "As always." },
-      "g10": { "it": "Anzi, aspetta. Non sto parlando a chi è lì sul banco.", "en": "Actually, wait. I’m not talking to the one down there on the bench." },
-      "f10": { "it": "Parliamo con te. Sì, proprio tu, davanti allo schermo.", "en": "We’re talking to you. Yes, you, in front of the screen." },
-      "g11": { "it": "All’inizio ti abbiamo chiesto di diventare piccolo, per farti vedere quanto conta ogni dettaglio.", "en": "At the start we asked you to become small, to show you how much every detail matters." },
-      "f11": { "it": "Adesso torna grande.", "en": "Now grow big again." },
-      "g12": { "it": "Torna nel mondo reale. Il tempo, quello vero, ha il ritmo che decidi tu.", "en": "Go back to the real world. Real time moves at the pace you choose." },
-      "both1": { "it": "Grazie.", "en": "Thank you." }
-    },
-    "card": {
-      "title": { "it": "Grazie per aver rallentato con noi.", "en": "Thank you for slowing down with us." },
-      "names": { "it": "Giovanni · Filippo", "en": "Giovanni · Filippo" }
-    },
-    "skip": { "it": "Tieni premuto per saltare", "en": "Hold to skip" },
-    "speaker": {
-      "giovanni": { "it": "Giovanni", "en": "Giovanni" },
-      "filippo": { "it": "Filippo", "en": "Filippo" }
-    }
+    "virentia": { "it": "Virentia · Ref. M-003", "en": "Virentia · Ref. M-003" }
   },
 
   "movement": {

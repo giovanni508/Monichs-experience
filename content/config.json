@@ -56,13 +56,7 @@
     "model.celeste": "assets/models/celeste.glb",
     "model.sunset": "assets/models/sunset.glb",
     "model.virentia": "assets/models/virentia.glb",
-    "model.rotor": "assets/models/rotore.glb",
-    "model.founder.giovanni": "assets/models/founder-giovanni.glb",
-    "model.founder.filippo": "assets/models/founder-filippo.glb",
-    "lab.drawing": "assets/tex/lab/drawing.webp",
-    "lab.case4029": "assets/tex/lab/case-4029.webp",
-    "lab.sketch": "assets/tex/lab/rotor-sketch.webp",
-    "lab.voices": "assets/audio/lab/"
+    "model.rotor": "assets/models/rotore.glb"
   },
 
   "cards": {

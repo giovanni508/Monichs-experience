@@ -1,3 +1,5 @@
+> **Il laboratorio è stato tolto dall'esperienza il 3 novembre 2026** (vedi il README): questa specifica resta come documentazione.
+
 # Il laboratorio: specifica di game design
 
 - **Stato:** storia e vincoli approvati da Giovanni il 7 ottobre 2026. Revisione 2: i fondatori sono **modelli 3D ricavati dalle loro foto**, non riprese video.

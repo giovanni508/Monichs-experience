@@ -1181,8 +1181,8 @@ export class MovementWorld extends World {
       this.epiReveal += ((all ? 1 : 0) - this.epiReveal) * (1 - Math.exp(-dt * 0.8));
       if (all && this.epiReveal > 0.6) {
         const dh = Math.hypot(player.x - H.x, player.z - H.z);
-        // la luce al centro del bilanciere porta al laboratorio (poi l'epilogo)
-        if (dh < 3.2 && Math.abs(player.y - H.y) < 3) this.app.director.goTo('lab', {});
+        // la luce al centro del bilanciere porta all'epilogo
+        if (dh < 3.2 && Math.abs(player.y - H.y) < 3) this.app.director.goTo('epilogue', {});
       }
     }
     this.epiShaft.material.uniforms.uIntensity.value = this.epiReveal * 0.5;

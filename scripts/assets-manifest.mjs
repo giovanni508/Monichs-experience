@@ -26,22 +26,14 @@ export const SOURCES = {
   solCeleste: 'Modelli/Soldatini/Celeste.png',
   solSunset: 'Modelli/Soldatini/Sunset.png',
   solVirentia: 'Modelli/Soldatini/Virentia.png',
-  // Laboratorio: schizzo a matita del rotore
-  rotorSketch: 'Modelli/ROTORE/MNC_Dw_Rotor 2 (2).png',
 };
 
-// Laboratorio: i fogli sul banco. I PDF stanno fuori dal progetto (sul Desktop, mai modificati): si
-// rasterizzano con pdftoppm di Poppler (in Git Bash è in /mingw64/bin) alla risoluzione `dpi`, poi si
-// ritagliano ([left, top, width, height] in pixel della pagina rasterizzata) e si comprimono in WebP.
-// Dopo una modifica qui: `npm run assets -- --force`.
-export const PDFS = [
-  // MNC_T_Draw_Print, pagina 1: orologio e bracciale aperto in scala 1:1 su A4. È il foglio
-  // calpestabile: 4096 px per tenere nitidi i tratti anche visti da vicino.
-  { out: 'tex/lab/drawing.webp', src: '../Monichs Asset vari locale/MNC_T_Draw_Print.pdf', page: 1, dpi: 400, size: 4096, quality: 90 },
-  // 4029, pagina 1 (cassa in tre viste, 1:1): solo l'area dei disegni, senza l'intestazione e il
-  // cartiglio del fornitore. Il ritaglio misura 272 × 164,5 mm.
-  { out: 'tex/lab/case-4029.webp', src: '../4029-MOS-SW200-VR13-EXPLOSION.pdf', page: 1, dpi: 300, crop: [150, 276, 3210, 1943], size: 2048, quality: 90 },
-];
+// Fogli ricavati da pagine di PDF (oggi nessuno). I PDF stanno fuori dal progetto (sul Desktop, mai
+// modificati): si rasterizzano con pdftoppm di Poppler (in Git Bash è in /mingw64/bin) alla risoluzione
+// `dpi`, poi si ritagliano ([left, top, width, height] in pixel della pagina rasterizzata) e si
+// comprimono in WebP. Voce: { out, src, page, dpi, crop, size, quality }; dopo una modifica qui:
+// `npm run assets -- --force`.
+export const PDFS = [];
 
 // Video (richiede ffmpeg nel PATH). Il film "CELESTE INTRO_ORIZ" (4K, 8,7 s) diventa lo sfondo
 // della schermata iniziale: si usa solo la parte prima del logo finale (il menu mostra già il logo:
@@ -77,11 +69,6 @@ export const MODELS = [
     out: `models/natura/${n}.glb`,
     src: `Modelli/3D/natura/${n}.glb`,
   })),
-  // fondatori in stile animato (ASSETS.md §9): la v3.1 (volti meno inquietanti, mani nuove con le ossa
-  // delle dita, polsini), nel gioco su indicazione di Giovanni del 20 ottobre 2026; la v2.2b resta nella
-  // cartella sopra
-  { out: 'models/founder-giovanni.glb', src: 'Modelli/3D/fondatori/v3/founder-giovanni.glb' },
-  { out: 'models/founder-filippo.glb', src: 'Modelli/3D/fondatori/v3/founder-filippo.glb' },
 ];
 export const MODEL_TEXTURE_RESIZE = { pattern: /normal|caseback|movement/, size: 1024, quality: 88 };
 
@@ -110,10 +97,6 @@ export const OUTPUTS = [
 
   // Texture: bande reali dell'agata (Sunset)
   { out: 'tex/agate-bands.webp', src: 'su7', crop: [3600, 2960, 1280, 560], quality: 90 },
-
-  // Laboratorio: lo schizzo a matita del rotore (foglio sul banco, capitolo "Come è nata")
-  // (il PNG ha lo sfondo trasparente: lo si appoggia sulla carta)
-  { out: 'tex/lab/rotor-sketch.webp', src: 'rotorSketch', size: 2048, quality: 88, flatten: '#f7f4ee' },
 
   // Card degli hotspot ("lente": ritagli quadrati 512 px)
   { out: 'img/cards/ce-case.webp', src: 'ce1', crop: [3887, 2871, 4300, 4300], size: 512 },

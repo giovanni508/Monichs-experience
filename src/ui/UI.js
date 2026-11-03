@@ -138,19 +138,6 @@ export class UI {
     });
     r.appendChild(this.epilogue);
 
-    // Laboratorio: "tieni premuto per saltare", con un anello che si riempie mentre si tiene premuto
-    this.skip = el('div', 'hidden');
-    this.skip.id = 'skip';
-    this.skip.innerHTML = `<svg viewBox="-12 -12 24 24" aria-hidden="true"><circle class="track" r="10"/><circle class="fill" r="10" pathLength="1"/></svg><span class="lbl"></span>`;
-    r.appendChild(this.skip);
-    this.skipOn = false;
-
-    // Laboratorio: dissolvenza nel bianco caldo e cartello finale, senza logo (l'epilogo ha già il suo)
-    this.labEndEl = el('div', 'hidden');
-    this.labEndEl.id = 'lab-end';
-    this.labEndEl.innerHTML = `<div class="sign"><p class="title"></p><p class="names"></p></div>`;
-    r.appendChild(this.labEndEl);
-
     this.stats = el('div', 'hidden');
     this.stats.id = 'stats';
     r.appendChild(this.stats);
@@ -196,7 +183,6 @@ export class UI {
       { id: 'celeste', color: 'var(--celeste)', ref: 'M-001' },
       { id: 'sunset', color: 'var(--sunset)', ref: 'M-002' },
       { id: 'virentia', color: 'var(--virentia)', ref: 'M-003' },
-      { id: 'lab', color: 'var(--rose-2)', ref: '' },
     ];
     chapters.forEach((c, i) => {
       const b = el('button', 'chapter interactive');
@@ -294,9 +280,6 @@ export class UI {
     this.pause.querySelector('.small').textContent = this.t(pad ? 'ui.pause.hintPad' : 'ui.pause.hint', { A: this.padLabel('a'), B: this.padLabel('b') });
     this.pause.querySelector('.resume .lbl').textContent = this.t('ui.pause.resume');
     this.pause.querySelector('.home').textContent = this.t('ui.pause.home');
-    this.skip.querySelector('.lbl').textContent = this.t('lab.skip');
-    this.labEndEl.querySelector('.title').textContent = this.t('lab.card.title');
-    this.labEndEl.querySelector('.names').textContent = this.t('lab.card.names');
     this.refreshEpilogue();
     if (this.loadingKey) this.setLoading(this.loadingValue, this.loadingKey);
     if (this.cardHotspot) this.fillCard(this.cardHotspot);
@@ -418,22 +401,14 @@ export class UI {
 
   // ------------------------------------------------------------------ sottotitoli
 
-  setSubtitle(text, speaker = '') {
+  setSubtitle(text) {
     // due paragrafi alternati per una dissolvenza incrociata morbida
     const show = this.subFlip ? this.subB : this.subA;
     const hide = this.subFlip ? this.subA : this.subB;
     hide.classList.remove('on');
     this.subtitles.classList.toggle('has-text', !!text);
     if (text) {
-      // nel laboratorio, sopra la battuta, il nome di chi parla
-      show.textContent = '';
-      if (speaker) {
-        const who = document.createElement('span');
-        who.className = 'who';
-        who.textContent = speaker;
-        show.appendChild(who);
-      }
-      show.appendChild(document.createTextNode(text));
+      show.textContent = text;
       void show.offsetWidth;
       show.classList.add('on');
       this.subFlip = !this.subFlip;
@@ -586,38 +561,6 @@ export class UI {
     } catch (err) {
       box.classList.add('none');
     }
-  }
-
-  // ------------------------------------------------------------------ laboratorio
-
-  showSkip(on) {
-    if (on === this.skipOn) return;
-    this.skipOn = on;
-    this.skip.classList.toggle('hidden', !on);
-  }
-
-  setSkipProgress(p) {
-    const v = Math.max(0, Math.min(1, p));
-    if (Math.abs(v - (this.skipP ?? -1)) < 0.004) return;
-    this.skipP = v;
-    this.skip.style.setProperty('--p', v.toFixed(3));
-    this.skip.classList.toggle('holding', v > 0);
-  }
-
-  /** mode: false (nascosto), 'white' (dissolvenza nel bianco caldo in `seconds`), 'card' (il cartello). */
-  labEnd(mode, seconds = 2.4) {
-    const e = this.labEndEl;
-    if (!mode) {
-      e.classList.add('hidden');
-      e.classList.remove('is-white', 'is-card');
-      return;
-    }
-    e.classList.remove('hidden');
-    if (mode === 'white') {
-      e.style.setProperty('--white-ms', `${Math.round(seconds * 1000)}ms`);
-      void e.offsetWidth;
-      e.classList.add('is-white');
-    } else if (mode === 'card') e.classList.add('is-white', 'is-card');
   }
 
   showEpilogue(show) {

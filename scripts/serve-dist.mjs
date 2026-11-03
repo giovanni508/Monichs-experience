@@ -36,8 +36,8 @@ if (!fs.existsSync(path.join(ROOT, 'index.html'))) {
   process.exit(1);
 }
 
-// Indice dei file in dist/assets, riletto a ogni richiesta: le voci registrate del laboratorio
-// (assets/audio/lab/*.mp3) e i modelli dei fondatori si aggiungono copiando i file, senza rifare la build
+// Indice dei file in dist/assets, riletto a ogni richiesta: i file facoltativi (vedi App.hasAsset) si
+// aggiungono copiando i file, senza rifare la build
 function listAssets(dir) {
   const out = [];
   const walk = (d, rel) => {

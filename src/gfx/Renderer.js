@@ -164,7 +164,7 @@ export class Renderer {
     this.dofParams = { ...DEFAULT_DOF };
     this.dofEnabledByWorld = true;
     this.focus = 30;
-    this.focusOverride = null; // distanza di fuoco fissata da un mondo (null = autofocus)
+    this.focusOverride = null; // distanza di fuoco fissata da fuori, come nelle riprese del trailer (null = autofocus)
     this.focusRangeOverride = null;
     this.composer.addPass(this.renderPass);
     this.composer.addPass(this.aoPass);
@@ -317,7 +317,7 @@ export class Renderer {
     // autofocus: la distanza al centro dello schermo (sonda nel passo dei riflessi), inseguita con
     // dolcezza come una lente che mette a fuoco
     if (this.dofPass.enabled) {
-      // un mondo può fissare il fuoco (il laboratorio, quando la camera torna grande)
+      // il fuoco si può fissare da fuori (le riprese del trailer, scripts/trailer/browser.mjs)
       const target = this.focusOverride ?? Math.min(this.ssrPass.focusDistance, 400);
       this.focus += (target - this.focus) * (1 - Math.exp(-Math.min(dt, 0.1) * 3.5));
       const coc = this.dof.cocMaterial;

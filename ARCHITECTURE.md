@@ -3,7 +3,7 @@
 ## Stack
 - **Vite** (dev server + build statica, nessun backend) · **Three.js r186** · **postprocessing** (pmndrs: bloom mipmap, profondità di campo, SMAA, vignettatura, grana, tone mapping Khronos PBR Neutral) · **n8ao** (occlusione ambientale) · **qrcode** (QR generato a runtime dall'URL in `config.json`).
 - Font: Foslin (font del logo, dal pacchetto brand, solo testi senza accenti) + Montserrat (corporate, `@fontsource`) + Cormorant Garamond corsivo per le frasi poetiche (`@fontsource`). Tutto impacchettato nella build → funziona offline.
-- Audio: Web Audio API, procedurale. Unica eccezione: le voci del laboratorio, una clip mp3 per battuta (`assets/audio/lab/it/<chiave>.mp3`, doppiaggio in `en/`; oggi le voci di Giovanni e Filippo clonate dalle loro registrazioni e recitate con una regia, `scripts/lab-voices-regia.json`, preparate con `npm run voci`), che prendono il posto del borbottio sintetizzato; il borbottio resta come riserva per le clip che mancano.
+- Audio: Web Audio API, interamente procedurale (nessun file audio).
 - Asset: `npm run assets` (Node + `sharp`) ritaglia/ridimensiona/comprime le foto originali in WebP dentro `public/assets/`. Le cartelle `Branding/` e `Modelli/` non vengono mai toccate.
 
 ## Struttura
@@ -11,12 +11,9 @@
 content/                 ← modificabili senza toccare il codice (anche dopo la build: dist/content/)
   texts.json             tutti i testi IT/EN (ogni foglia è { "it": "...", "en": "..." })
   config.json            CTA + QR, tempi modalità fiera, mappa immagini, volume, qualità
-  lab.json               regia del laboratorio: battute, chi parla, accensioni, eventi, gesti, pause, tempi
 public/assets/           immagini derivate (WebP), font Foslin, logo SVG
 scripts/
   build-assets.mjs       pipeline immagini (sharp)  ·  assets-manifest.mjs = cosa si ritaglia e da dove
-  lab-voices.mjs         voci del laboratorio (ffmpeg): silenzi tolti, -16 LUFS, mp3 mono, "both1" a due voci
-  lab-voices-regia.json  la regia delle voci: il testo dato alla sintesi per ogni battuta (tag d'emozione, pause)
   serve-dist.mjs         server statico senza dipendenze per la fiera (offline); risponde anche a
                          assets/index.json rileggendo la cartella a ogni richiesta
 src/
@@ -27,27 +24,21 @@ src/
   gfx/                   Renderer + post (ssr.js riflessi in ray tracing, shadows.js ombre del sole),
                          env map, watchModel.js (modelli GLB degli orologi e del rotore), nature.js (alberi e piante in instancing), materiali (acciaio satinato/
                          lucido, oro rosa, rubino, laccatura), texture procedurali (perlage, Côtes de
-                         Genève, guilloché), ingranaggi procedurali, particelle, raggi di luce, cielo;
-                         braceletFlat.js (bracciale aperto e disteso, maglia per maglia)
+                         Genève, guilloché), ingranaggi procedurali, particelle, raggi di luce, cielo
   mech/                  cinematica del calibro (bilanciere 4 Hz, ancora, scappamento, rodaggio)
   worlds/                IntroWorld · MovementWorld (Parte 1 + hub dei portali) · CelesteWorld ·
-                         SunsetWorld · VirentiaWorld · LabWorld · EpilogueWorld   (stessa interfaccia World)
-    lab/                 props.js (banco, tappetino, fogli, attrezzi, lampada, scatola) · room.js (la stanza
-                         intorno: atelier, finestre con la vista, arredi, luci) ·
-                         Founder.js (fondatori: modello 3D o segnaposto) · LabStory.js (regia dei cue)
-  ui/                    overlay DOM: schermata iniziale, sottotitoli (con il nome di chi parla), card
-                         hotspot, indicatore percorso, pausa, "tieni premuto per saltare", bianco caldo e
-                         cartello del laboratorio, epilogo
+                         SunsetWorld · VirentiaWorld · EpilogueWorld   (stessa interfaccia World)
+  ui/                    overlay DOM: schermata iniziale, sottotitoli, card hotspot, indicatore percorso,
+                         pausa, epilogo
 ```
 
 ## Mondi e flusso
-`START (menu) ⇄ ATTRACT (loop) → MOVEMENT (le tre Delta come monoliti, corona da caricare + 7 tappe) → HUB (piattaforma sopra il bilanciere, 3 portali, ordine libero) → CELESTE / SUNSET / VIRENTIA → HUB → luce al centro del bilanciere → LABORATORIO (circa 3 minuti) → cartello "Grazie" → EPILOGO → START`
+`START (menu) ⇄ ATTRACT (loop) → MOVEMENT (le tre Delta come monoliti, corona da caricare + 7 tappe) → HUB (piattaforma sopra il bilanciere, 3 portali, ordine libero) → CELESTE / SUNSET / VIRENTIA → HUB → luce al centro del bilanciere → EPILOGO → START`
 - Ogni mondo implementa `load() · enter() · update(dt) · exit()`, espone `hotspots`, `walk` (spazio calpestabile, vedi sotto), `eyeHeight`, `spawn`, `audioPalette`, `post` (bloom/esposizione), `attractShots` (inquadrature per il loop di attrazione).
 - **Hotspot comune**: avvicinamento → il componente si illumina (rim-light nel materiale) → card con titolo, 2–3 frasi tecniche, frase poetica, foto reale facoltativa → Spazio/click per l'azione della tappa (es. rallentare il tempo).
 - **Tempo meccanico**: un unico `mechTime` guida bilanciere, ancora, scappamento e rodaggio con rapporti coerenti; il tick audio è schedulato sugli eventi dello scappamento (8 alternanze/s a velocità reale). Rallentatore e "time-lapse" cambiano solo la scala del tempo. Il tick si sente solo nei livelli (`tickEnabled` del mondo): tace nel menu, nell'attrazione e nell'epilogo.
   - **Tic morbido (`core/Audio.js`).** Il suono è sintetizzato con poco rumore d'urto, parziali acute deboli e più corpo. Livelli e taglio dei bassi per mondo sono in `TICK_TIMBRES`: sta sotto la musica, scuro, e un po' nel riverbero.
   - **Abitudine (`tickAttention`).** Entrando in un mondo, o quando l'orologio riparte, vale 1; poi scende a `TICK_REST` (0,45) in circa 13 s e risale quando la presenza cresce (ci si avvicina alla sorgente).
-  - **Sotto le voci.** Mentre suona una clip delle voci (`clipsPlaying`) il tic scende ancora alla metà.
   - **Misura.** Vicino al bilanciere i picchi erano a −5 dBFS, 12 dB sopra la musica: ora sono a −13 dBFS entrando e a −19 dBFS a regime, alla pari della musica.
 - **Musica (`core/Audio.js` → `buildPalette`)**: ogni mondo ha un ambiente procedurale (drone, pad con un filtro che respira, letti di rumore, eventi sparsi) e, sopra, un pianoforte.
   - **Il suono.** `feltPiano()` sintetizza una nota di pianoforte con i martelletti di feltro.
@@ -61,10 +52,10 @@ src/
     - La prima è sempre il motivo 6-3-2-1, una discesa che si posa.
     - Ogni frase si sposta di ottava tutta insieme per stare nel registro `low–high`, così il profilo resta quello.
     - Sotto l'inizio della frase c'è a volte una nota grave; dopo la fine, a volte, un'eco all'ottava.
-    - Fra una frase e l'altra passano 5–18 s di silenzio.
-  - **Quando aspetta.** La frase non parte finché le voci (clip o borbottio, `voiceRecent(1.5)`) non tacciono da 1,5 s, né durante il "respiro di silenzio" di Celeste (`musicBus` sotto 0,4).
+    - Fra una frase e l'altra passano 5–12 s di silenzio.
+  - **Quando aspetta.** La frase non parte durante il "respiro di silenzio" di Celeste (`musicBus` sotto 0,4).
   - **Taratura.** Misurata con un rendering offline di ogni mondo (OfflineAudioContext, 2–3 semi da 75 s, pesatura A, finestre da 400 ms).
-    - Nel 90° percentile la frase sta 6–7 dB sotto l'ambiente (nel laboratorio 9 dB) e solo negli attacchi lo raggiunge; poi la coda ci si perde dentro.
+    - Nel 90° percentile la frase sta 6–7 dB sotto l'ambiente e solo negli attacchi lo raggiunge; poi la coda ci si perde dentro.
     - Per fargli posto, i pad sono più morbidi (−1,4 dB, filtro −12%).
     - In Celeste e nell'epilogo i pad del registro medio-alto sono scesi di 2,5–3,5 dB.
     - Scintille, campane, glissandi e pizzicati sono più radi e più bassi.
@@ -87,33 +78,7 @@ src/
   - **Mondi.** Gli inviti a caricare corona e rotore hanno la versione col pulsante (`windPromptPad`, con `{A}`), e il rotore di Virentia si carica con l'una o l'altra levetta.
 - **A piedi (`core/WalkArea.js` + `core/Player.js`)**: ogni mondo ha uno spazio calpestabile nel piano XZ: *regioni* (corridoi lungo polilinee con pavimento e semilarghezza per punto, dischi con fori, pavimenti a funzione come le onde di Virentia) e *ostacoli* (cerchi, capsule, rettangoli con un intervallo di altezze). A ogni passo il corpo (raggio, altezza) viene spinto fuori dagli ostacoli e riportato dentro la regione più vicina *al proprio livello* (pavimento entro 1,6 unità dai piedi): così una passerella che passa sotto una piattaforma non si confonde con essa e l'ascensore (un disco con altezza variabile) porta da un livello all'altro. Il giocatore ha occhi a 2,2 (movimento) – 3,6 (Virentia) unità dal pavimento; la velocità perde la componente contro i bordi, quindi si scivola lungo pareti e ringhiere. Regioni e ostacoli si possono accendere e spegnere (il tubo della corona si apre solo dopo la carica).
 - **Passerelle (`worlds/movement/walkway.js`)**: costruite dalla stessa polilinea della regione calpestabile: vetro zaffiro con riflesso di Fresnel, longheroni lucidi, corrimano in oro rosa, filetti di luce con un uniform di "rivelazione" lungo il percorso.
-
-## Il laboratorio (`worlds/LabWorld.js`)
-Specifica, copione e criteri: `docs/specs/2026-10-07-laboratorio.md`. Catture di verifica: `docs/specs/laboratorio-catture/`.
-- **Scala**: 0,25 unità per millimetro (`S` in `worlds/lab/props.js`): tutto il banco è modellato in millimetri dentro gruppi scalati di `S`; i fondatori, in metri, sono scalati di 250. Il visitatore ha gli occhi a 3,2 unità come negli altri mondi (circa 13 mm sul banco).
-- **Oggetti**: i tre orologi GLB (`createWatch`, materiali propri) con il bracciale aperto da `layBraceletFlat`: le maglie del GLB sono pezzi separati, ognuna viene ruotata e spostata in modo rigido lungo l'anello "srotolato" (le prime scendono dall'ansa al banco), la chiusura resta in fondo al lato delle ore 12. Celeste e Sunset a quadrante in su, con le lancette sull'ora reale; la Virentia coricata sul vetro, fondello in alto. I fogli sono piani appena imbarcati con il contenuto reale come texture e un uniform `uLit` che accende i tratti scuri di oro rosa; attrezzi, lampada e scatola sono procedurali (la scatola dalla foto `MNC_Ph_Pack.png`).
-- **Stanza (`worlds/lab/room.js`)**: l'atelier intorno al banco, a misura d'uomo (6,8 × 6,4 m, soffitto a 3,2 m), tutto in millimetri e procedurale come il banco: pavimento di rovere (texture su canvas con le tavole e le fughe, mappa normale dalle fughe), intonaco avorio, zoccolo blu notte con le cornici, travi, due finestre a griglia d'acciaio sulla parete di fondo con la vista dipinta del lago al tramonto (un piano senza luce né nebbia dietro la parete: l'unico "cielo" della scena), libreria in noce dietro i fondatori, cassettiera da orologiaio, banco laterale con microscopio e attrezzi, porta, vetrina, mensole, orologio da parete, tre macro dei Monichs incorniciate, una felce in vaso (modello della natura di Virentia); sotto il banco gambe, pannello frontale e cassettiere, e gli sgabelli dei fondatori. Luci: una `RectAreaLight` per finestra (la luce del pomeriggio), due lampade a sospensione (`PointLight`), un sole basso senza ombra; l'ombra resta della lampada da banco (tutte le parti della stanza hanno `noCastShadow`, il soffitto la spegnerebbe). I materiali della stanza riflettono meno l'ambiente "studio" (`envMapIntensity` 0,55), che resta pieno sull'acciaio. I pezzi fermi sono uniti per materiale (`mergeStatic`): circa 40 oggetti invece di 350.
-- **Cammino**: un rettangolo per il tappetino (`WalkArea.rect`, regione nuova con fori) e, per ogni orologio, un corridoio lungo l'asse del bracciale con il pavimento a funzione: il profilo d'altezza è il punto più alto delle superfici del modello in fette di 1,5 mm (`watchProfile`). Nel tappetino il foro sotto il bracciale è un po' più stretto del corridoio, così si sale e si scende dalle maglie; il foro della cassa è largo quanto la cassa, quindi i fianchi sono muri. Si arriva sul fondello della Virentia e da lì si scende lungo il bracciale; sui bracciali di Celeste e Sunset si sale fino al vetro. Attrezzi e mani dei fondatori (col modello vero) sono capsule.
-- **Regia (`worlds/lab/LabStory.js`)**: legge `content/lab.json` e scorre le fasi `arrive → (pre) → line → gap … → grow → line → white → card → done`. Le voci sono in italiano, in inglese doppiate: ogni battuta fissa la lingua quando comincia (`voiceLang`) e `voiceOf(i, lingua)` sceglie la voce: la clip di quella lingua (`assets/audio/lab/it|en/<chiave>.mp3`; per l'italiano vale anche `assets/audio/lab/<chiave>.mp3`), in inglese senza doppiaggio la clip italiana, altrimenti il borbottio sul testo di quella lingua. Durata: la clip (+ 0,12 s) o `lineDuration` sul testo (caratteri al secondo per voce, più respiro su virgole e punti: totale circa 3:00 in italiano, 2:59 in inglese). Con le clip di oggi il totale è 2:36 in italiano e in inglese. Il silenzio dopo una battuta (`gapAfter`) è il suo `gap` se c'è (più corto nei botta e risposta) o `timing.gap`, più l'eventuale `pause`. Cambiando lingua a metà battuta cambiano solo i sottotitoli. Gli eventi chiamano il mondo: `onHighlight` (oggetto acceso per circa 8 s, chi parla fa `pointDown` e lo guarda), `onTickStop` (il tic si spegne, poi 1,8 s di silenzio), `onLookUp` (alla fine della prima frase della battuta: entrambi passano a `lookUp` e guardano l'altezza d'occhi umana), `onGrowStart/Progress/End` (la camera si stacca dal corpo piccolo e sale in 4,2 s, con il campo visivo che passa da 60° a 50°, il fuoco fissato sui volti e il bagliore abbassato), `onThanks`/`onCard` (bianco caldo e cartello DOM senza logo), `onFinish` → `goTo('epilogue', { fromLab: true })`, che non ripete `epilogue.name`. `skip()` porta alla quarta parete o, da lì in poi, all'epilogo. In pausa voce, cue e animazioni si fermano insieme (`setPaused`), e alla ripresa il borbottio riparte dalla sillaba giusta. `world.holdsIdle` sospende il reset per inattività del `Kiosk` finché si racconta, ma non in pausa: chi lascia il racconto sospeso ritrova il menu dopo 60 s, come negli altri livelli.
-- **Voci (`core/Audio.js`)**: `babblePlan(testo, voce, durata)` trasforma la battuta italiana in una partitura di sillabe (gruppi di vocali della parola vera, accento sulla penultima, declinazione della frase, cadenza finale, risalita sulle domande, pause sulla punteggiatura), distribuita sulla durata della battuta; `scheduleBabble` la suona con un piccolo anticipo, una sillaba = un oscillatore con forma d'onda "vocalica" (armoniche pesate dalle formanti della vocale) e un inviluppo morbido, attraverso un filtro per timbro e il bus delle voci (che passa dal master: M spegne anche le voci). Giovanni 87–120 Hz, scuro e legato; Filippo 110–170 Hz, chiaro e staccato; mai più di una sillaba ogni 0,18 s. `babbleLevel` dà apertura della bocca e vocale per i fondatori; con una clip, il livello viene da un `AnalyserNode` (`clipLevel`, RMS su 23 ms × 3,5: tarato sulle clip a -16 LUFS, le sillabe medie aprono a metà e solo gli accenti del tutto). Durante le battute l'ambiente si abbassa (`duckMusic`).
-- **Fondatori (`worlds/lab/Founder.js`)**: se c'è il GLB (`config.json` → `assets["model.founder.*"]`, controllato nell'indice degli asset) `FounderRig` trova ossa, shape key e clip con i nomi esatti del contratto (GLTFLoader toglie i punti dai nomi delle ossa: si confronta `userData.name`); `idle` diventa uno strato additivo, `leanDown`/`lookUp` sono le pose di base in dissolvenza incrociata, `explain`/`pointDown`/`nod` gesti sopra. Ogni fotogramma: le ossa dello sguardo tornano alla posa del modello, poi le clip, poi il look-at procedurale: collo (40%) e testa (75%) seguono il punto con dolcezza, mentre gli occhi hanno un punto loro e ci saltano (`moveEyes`: saccadi di 20–80 ms secondo l'ampiezza, microsaccadi in fissazione, inseguimento morbido di un bersaglio che si muove piano), con angoli limitati; un occhio che scivola lento sembra di una bambola. Le palpebre restano appena abbassate (`lid` del mondo, 0,1 con la v2.2b), scendono ancora un poco quando gli occhi guardano in basso (`eyesDown`, fino a 0,08: senza, sopra l'iride resta il bianco dello sguardo spiritato) e battono ogni 3–6 s e sui salti grandi dello sguardo. Poi la bocca (`jawOpen`, `mouthA/E/O`, `mouthMBP`, `smile`: l'apertura segue il volume, la forma passa da una vocale all'altra in circa 70 ms, perché le vocali ruotano la mandibola in modo diverso e di colpo scatterebbe). Il punto più basso delle mani nella posa del racconto (i vertici deformati legati a `hand.*` o alle ossa delle dita, se ci sono: `handsLowest`) mette il modello alla quota del banco; mani e avambracci diventano ostacoli. `?debug&founders=<cartella>/` carica i modelli da un'altra cartella, per provarli prima di copiarli in `public/`. Senza il file, `FounderPresence`: una sagoma di luce calda senza volto che si china, si raddrizza e "respira" con la voce.
-  - **Cosa sa fare il modello (`caps`).** `FounderRig` guarda le shape key del modello. Con la v2.2b tutto resta com'era; con la v3 cambia così:
-    - **Palpebre:** `setLids` passa per la forma intermedia `blinkHalf` (chiusure parziali pulite) e a riposo non serve abbassarle.
-    - **Sorriso:** `smile` è a labbra chiuse e `smileTeeth` arriva solo nel "Grazie". I valori sono in `EXPRESSION` in `LabWorld.js`: v2 e v3, a riposo, mentre ascoltano nell'inquadratura finale, nel "Grazie".
-    - **Sopracciglia:** `browUp` sale con `emphasize()` a inizio battuta (`onLine`) e nella sorpresa (`onLookUp`), e segue appena la voce.
-    - **Occhi:** i bulbi opachi (`eye_L`/`eye_R`, roughness ≥ 0,6) ricevono un clearcoat sottile per il riflesso.
-  - **Dita (`moveFingers`).** Si muovono solo le `.01` di indice, medio, anulare e mignolo, e solo verso l'alto: verso il palmo i polpastrelli entrerebbero nel banco.
-    - Ogni dito si solleva lento di 0–3°. Ogni tanto uno batte (+10° in 0,32 s), più spesso mentre si parla.
-    - Durante i gesti le dita restano come nella clip.
-    - Il mixer di three.js riscrive un osso solo se il valore della clip cambia. Per questo prima di `mixer.update` le dita tornano alla posa della clip (`clean`), come collo, testa e occhi: altrimenti i ritocchi si sommerebbero fotogramma dopo fotogramma.
-  - **Gesti (`updateGestures`).** `explain`, `pointDown` e `nod` stanno sopra la posa del racconto.
-    - `leanDown` resta a peso 1. Il gesto entra in 0,35 s, esce in 0,5 s e ha peso m/(1−m): il mixer fa la media pesata delle clip, quindi il gesto vale esattamente m, fino a sostituire la posa.
-    - Prima, con i pesi pari, valeva la metà: una mano che indica, con il polso a metà strada, entrava di 5 cm nel banco.
-    - Il peso totale non scende mai sotto 1. Sotto, il mixer mescola la posa di riposo (a braccia giù), anche solo per un fotogramma di ritardo nel calcolo dei pesi.
-    - Cambiando posa (`lookUp`) i gesti in corso escono subito.
-  - **Mani come ostacoli (`handReach`).** Oltre alla capsula dall'avambraccio al polso, `fitRig` aggiunge una capsula dal polso al centro dei polpastrelli (raggio 4,5 cm): la mano arriva 17 cm oltre il polso, e prima il visitatore ci entrava dentro.
-- **Sguardo**: chi parla guarda la camera del visitatore piccolo (ovunque cammini), ogni tanto l'altro o l'oggetto nominato; chi ascolta guarda chi parla e ogni tanto il visitatore; dopo `lookUp` entrambi guardano il punto in cui arriverà la camera, così alla fine della salita il contatto visivo è già lì.
-- **Indice degli asset** (`assets/index.json`): servito al volo da Vite e da `serve-dist.mjs`, scritto nella build. `app.hasAsset(url)` lo consulta prima di chiedere un file facoltativo (voci, modelli dei fondatori): un file che manca non produce errori in console.
+- **Indice degli asset** (`assets/index.json`): servito al volo da Vite e da `serve-dist.mjs`, scritto nella build. `app.hasAsset(url)` lo consulta prima di chiedere un file facoltativo: un file che manca non produce errori in console.
 
 ## Grafica (`gfx/Renderer.js`)
 Ordine dei passaggi: scena → occlusione ambientale (N8AO, raggi nel buffer di profondità; le trasparenze non occludono) → riflessi SSR → rete di sicurezza contro NaN → profondità di campo → bloom, correzione colore, tone mapping → SMAA, vignettatura, grana.
@@ -121,7 +86,7 @@ Ordine dei passaggi: scena → occlusione ambientale (N8AO, raggi nel buffer di 
 - **Ombre (`gfx/shadows.js`)**: una luce direzionale per mondo (`SunShadow`); la scatola della mappa d'ombra segue la camera, spostata in avanti, e si muove a passi di un texel (niente tremolio). `enableShadows(scena)` accende proiezione e ricezione sugli oggetti illuminati e opachi; `userData.noCastShadow` per le grandi strutture che devono solo ricevere (pareti del canyon e cattedrale di Sunset, cassa del movimento, rotore-sole di Virentia), `userData.noShadow` per escludere. L'epilogo usa una scatola fissa attorno ai tre orologi.
 - **Parametri per mondo** in `world.post`: `ao { radius, intensity }`, `ssr { intensity, maxDistance, thickness }` (o `false`), `dof { scale, range }` (o `false`).
 - **Luce d'ambiente degli orologi**: preset `studio` di `gfx/env.js` (la stanza neutra con pannelli di three.js): sull'acciaio le sfumature bianche delle foto ufficiali. Mappe d'ambiente a 512 px.
-- **Fuoco e post fissati da un mondo**: `renderer.focusOverride` / `focusRangeOverride` sostituiscono l'autofocus (il laboratorio, quando la camera torna grande); `renderer.postOverride` sovrascrive bloom, esposizione e simili con una transizione morbida.
+- **Fuoco e post fissati**: `renderer.focusOverride` / `focusRangeOverride` sostituiscono l'autofocus (le riprese del trailer, `scripts/trailer/browser.mjs`); `renderer.postOverride`, fissato da un mondo, sovrascrive bloom, esposizione e simili con una transizione morbida.
 - **Livelli di qualità**: `LEVELS` in `Renderer.js` (risoluzione, occlusione, riflessi, ombre, profondità di campo, preset SMAA); in automatico il livello sale fino a ultra e scende se i fotogrammi superano ~18,5 ms.
 
 ## Mappa degli asset
@@ -133,7 +98,6 @@ Ordine dei passaggi: scena → occlusione ambientale (N8AO, raggi nel buffer di 
 | Celeste | Procedurale (cielo-quadrante, maglie) + monolite = modello 3D Celeste; card: Ce 1, Ce 2, Ce 3, Ce 4, Ce 6, Ce 7 |
 | Sunset | Texture delle bande da Su 7; monolite = modello 3D Sunset nell'abside della cattedrale; attorno, quattro Sunset (uno con il quadrante reale, tre con la stessa pietra in un altro taglio); card: Su 2, Su 4, Su 7, Su 10 |
 | Virentia | Bosco = modelli Blender di Modelli/3D/natura (alberi a viale, felci, fiori, erba, rocce, funghi); prato di muschio pettinato a Côtes de Genève e nebbia bassa; il sole è il modello 3D del rotore; porta = lunetta del modello 3D Virentia con il rotore 3D dentro (ci si passa sotto il mozzo); monolite = modello 3D Virentia in fondo alla radura; card: Vi 2, Vi 4, Vi 6, Vi 7 |
-| Laboratorio | I tre modelli 3D sul banco con il bracciale aperto (Virentia coricata, fondello aperto con la foto Vi 4); fogli: disegno tecnico `MNC_T_Draw_Print` p. 1 (calpestabile), tavola della cassa 4029 p. 1 (solo i disegni), schizzo del rotore `MNC_Dw_Rotor 2 (2)`; scatola e pack procedurali dalla foto `MNC_Ph_Pack`; fondatori: `founder-*.glb` quando arrivano, altrimenti presenze di luce |
 | Epilogo | I tre modelli 3D su fondo scuro, luce da studio |
 
 Dettagli: `ASSETS.md`. Istruzioni operative: `README.md`.

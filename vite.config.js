@@ -38,9 +38,9 @@ function contentPlugin() {
 }
 
 // Indice dei file in assets/ (assets/index.json): il gioco controlla lì se un file facoltativo c'è
-// (le voci registrate del laboratorio, i modelli 3D dei fondatori) prima di chiederlo, così un file
-// mancante non produce errori. In sviluppo l'indice si legge al volo; nella build viene scritto alla
-// fine (e il server della fiera lo rilegge a ogni richiesta: basta copiare i file nuovi in dist/assets).
+// prima di chiederlo (App.hasAsset), così un file mancante non produce errori. In sviluppo l'indice
+// si legge al volo; nella build viene scritto alla fine (e il server della fiera lo rilegge a ogni
+// richiesta: basta copiare i file nuovi in dist/assets).
 function listAssets(dir) {
   const out = [];
   const walk = (d, rel) => {
