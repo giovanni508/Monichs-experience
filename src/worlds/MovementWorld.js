@@ -5,6 +5,7 @@ import { createEnvironment } from '../gfx/env.js';
 import { Mat, highlightTargets } from '../gfx/materials.js';
 import { DustField } from '../gfx/particles.js';
 import { lightShaft, glowSprite, loadTexture } from '../gfx/effects.js';
+import { DreamSky } from '../gfx/sky.js';
 import { caliberState, CALIBER } from '../mech/Caliber.js';
 import { pinionShape, wheelShape, extrudeXZ, crownGeometry } from '../gfx/gears.js';
 import { GuideWisp } from './common/GuideWisp.js';
@@ -157,8 +158,12 @@ export class MovementWorld extends World {
     const app = this.app;
     const s = this.scene;
     s.background = new THREE.Color(0x07060a);
+    // fuori dalla cassa non c'è più il vuoto buio: un crepuscolo onirico con le Alpi in lontananza e
+    // un lago che le riflette (DreamSky). Dentro il cielo si spegne quasi del tutto (uDim)
+    this.sky = new DreamSky({ glowDir: V(0, 0.05, 1) });
+    s.add(this.sky.mesh);
     this.fogInside = new THREE.Color(0x0d0a08);
-    this.fogOutside = new THREE.Color(0x05060c);
+    this.fogOutside = new THREE.Color(0x1a1a3c);
     s.fog = new THREE.FogExp2(this.fogInside.clone(), 0.0105);
     s.environment = createEnvironment(app.renderer.renderer, 'workshop');
     s.environmentIntensity = 1;
@@ -215,6 +220,10 @@ export class MovementWorld extends World {
     this.fill = new THREE.DirectionalLight(0x8ea6ff, 0.28);
     this.fill.position.set(40, 10, -60);
     s.add(this.fill);
+    // fuori, il bagliore del crepuscolo dietro le tre Delta disegna i loro contorni (controluce)
+    this.glowRim = new THREE.DirectionalLight(0xf3c3a3, 0);
+    this.glowRim.position.set(0, 40, 400);
+    s.add(this.glowRim);
     this.crownLight = new THREE.PointLight(0xc4d4ff, 600, 0, 2);
     this.crownLight.position.set(-20, 15, 102);
     s.add(this.crownLight);
@@ -615,9 +624,10 @@ export class MovementWorld extends World {
     this.epiReveal = 0;
   }
 
-  // le tre Delta come monoliti nel vuoto dietro la partenza, con un faro proprio (il vuoto è buio);
-  // non fanno ombra: attorno non c'è niente che la riceva. Il quadrante guarda sempre chi le osserva
-  // (faceViewer): dal basso e di lato, con il quadrante verticale, sembravano storte
+  // le tre Delta come monoliti nel cielo dietro la partenza; non fanno ombra: attorno non c'è niente che
+  // la riceva. Il quadrante guarda sempre chi le osserva (faceViewer): dal basso e di lato, con il
+  // quadrante verticale, sembravano storte. Niente faro: sul logo applicato lucido lasciava un punto
+  // bianco abbagliante; bastano lo studio fotografico (più intenso) e il controluce del crepuscolo
   async buildMonoliths() {
     const cfg = this.app.config.assets || {};
     const envMap = createEnvironment(this.app.renderer.renderer, 'studio');
@@ -625,7 +635,7 @@ export class MovementWorld extends World {
     this.monolithGroups = [];
     this.monoliths = await Promise.all(
       MONOLITHS.list.map(async (d) => {
-        const { group, watch } = await createMonolith(d.id, cfg[`model.${d.id}`] || `assets/models/${d.id}.glb`, { scale: S, envMap, envIntensity: 0.55 });
+        const { group, watch } = await createMonolith(d.id, cfg[`model.${d.id}`] || `assets/models/${d.id}.glb`, { scale: S, envMap, envIntensity: 0.7 });
         group.position.set(d.x, MONOLITHS.y, d.z);
         faceViewer(group, START, 1);
         group.traverse((o) => (o.userData.noCastShadow = true));
@@ -634,10 +644,6 @@ export class MovementWorld extends World {
         return watch;
       }),
     );
-    const spot = new THREE.SpotLight(0xfff0e0, 16000, 0, 0.8, 0.5, 2);
-    spot.position.set(0, 88, START.z + 2); // alto: il riflesso sul vetro finisce fuori dal quadrante
-    spot.target.position.set(0, MONOLITHS.y, 208);
-    this.scene.add(spot, spot.target);
   }
 
   // dove si cammina: le misure delle regioni sono quelle utili per il centro del corpo
@@ -1130,7 +1136,10 @@ export class MovementWorld extends World {
     // dentro / fuori dalla cassa
     const outside = THREE.MathUtils.smoothstep(player.z, this.tubeZ[0] - 2, this.tubeZ[1] + 6);
     this.scene.fog.color.copy(this.fogInside).lerp(this.fogOutside, outside);
-    this.scene.fog.density = THREE.MathUtils.lerp(0.0105, 0.0075, outside);
+    this.scene.fog.density = THREE.MathUtils.lerp(0.0105, 0.003, outside);
+    this.sky.update(dt, cam);
+    this.sky.uniforms.uDim.value = THREE.MathUtils.lerp(0.1, 1, outside);
+    this.glowRim.intensity = THREE.MathUtils.lerp(0, 1.1, outside);
     this.scene.environmentIntensity = THREE.MathUtils.lerp(1.0, 0.55, outside);
     this.key.intensity = THREE.MathUtils.lerp(1.6, 0.35, outside);
     this.crownLight.intensity = THREE.MathUtils.lerp(80, 600, outside);
