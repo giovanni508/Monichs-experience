@@ -18,7 +18,11 @@ const templates = new Map();
 // il modello è alle 10:09:36: angoli delle lancette in gradi, in senso orario dalle 12
 const MODEL_TIME = { hour: 304.8, minute: 57.6, second: 216 };
 
-/** Vetro zaffiro antiriflesso: quasi invisibile di fronte, riflesso blu tenue di taglio. */
+/**
+ * Vetro zaffiro antiriflesso: quasi invisibile di fronte, riflesso blu tenue di taglio. Il trattamento
+ * antiriflesso spegne quasi del tutto i riflessi puntiformi delle luci: senza, il faro dei monoliti
+ * lasciava una macchia bianca sul quadrante (restano i riflessi dell'ambiente).
+ */
 export function watchGlassMaterial() {
   const mat = new THREE.MeshStandardMaterial({
     color: 0xdfe8ff,
@@ -31,6 +35,10 @@ export function watchGlassMaterial() {
   });
   mat.onBeforeCompile = (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <lights_fragment_end>',
+      `#include <lights_fragment_end>
+  reflectedLight.directSpecular *= 0.004;`,
+    ).replace(
       '#include <opaque_fragment>',
       `#include <opaque_fragment>
   {
@@ -275,6 +283,26 @@ export function ownMaterialsOf(root, { envMap = null, envIntensity = 1 } = {}) {
     o.material = m;
   });
   return [...copies.values()];
+}
+
+// Il quadrante di un monolite guarda sempre chi lo osserva, con le ore 12 in alto: visto dal basso o
+// di lato con il quadrante fisso sembrava storto. k = 1 lo volta di colpo, altrimenti di una frazione k
+// del cammino che manca (rotazione morbida, a ogni fotogramma). L'inclinazione verso chi guarda ha un
+// limite (maxPitch, radianti): da sotto un monolite gigante non si piega sul visitatore.
+const _faceM = new THREE.Matrix4();
+const _faceQ = new THREE.Quaternion();
+const _faceT = new THREE.Vector3();
+const _faceUp = new THREE.Vector3(0, 1, 0);
+export function faceViewer(group, eye, k = 1, maxPitch = 0.6) {
+  _faceT.subVectors(eye, group.position);
+  const flat = Math.hypot(_faceT.x, _faceT.z);
+  if (flat < 1e-4) return;
+  const pitch = Math.max(-maxPitch, Math.min(maxPitch, Math.atan2(_faceT.y, flat)));
+  _faceT.y = Math.tan(pitch) * flat;
+  _faceT.add(group.position);
+  _faceM.lookAt(_faceT, group.position, _faceUp);
+  _faceQ.setFromRotationMatrix(_faceM);
+  group.quaternion.slerp(_faceQ, k);
 }
 
 /** Crea un'istanza (geometrie e materiali condivisi con le altre istanze dello stesso modello). */

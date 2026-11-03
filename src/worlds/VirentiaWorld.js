@@ -11,7 +11,7 @@ import { buildBracelet } from '../gfx/bracelet.js';
 import { curvedText, roundedHull, S } from './movement/parts.js';
 import { GuideWisp } from './common/GuideWisp.js';
 import { Portal } from './common/Portal.js';
-import { createWatch, createMonolith, createRotor, ROTOR_RADIUS } from '../gfx/watchModel.js';
+import { createWatch, createMonolith, createRotor, faceViewer, ROTOR_RADIUS } from '../gfx/watchModel.js';
 import { loadNature, scatter } from '../gfx/nature.js';
 import { SunShadow, enableShadows } from '../gfx/shadows.js';
 
@@ -819,6 +819,7 @@ export class VirentiaWorld extends World {
   enter(opts = {}) {
     super.enter(opts);
     this.attract = !!opts.attract;
+    if (this.spawn?.position) faceViewer(this.monolith, this.spawn.position, 1);
     this.energy = 0;
     this.winding = null;
     this.app.player.frozen = false;
@@ -941,6 +942,7 @@ export class VirentiaWorld extends World {
     this.sky.update(dt, cam);
     this.fireflies.update(dt, cam);
     this.monolithWatch.setTime();
+    faceViewer(this.monolith, cam.position, 1 - Math.exp(-dt * 1.2)); // il quadrante guarda chi osserva
     this.updateFallingLeaves(dt, t, player);
     this.mistUniforms.uTime.value = t;
     this.mistUniforms.uCam.value.copy(cam.position);

@@ -7,7 +7,7 @@ import { DustField } from '../gfx/particles.js';
 import { glowSprite, lightShaft, loadTexture, mulberry32 } from '../gfx/effects.js';
 import { GradientSky } from '../gfx/sky.js';
 import { agateMaterial } from '../gfx/agate.js';
-import { createWatch, createMonolith, agateDialMaterial, setAgateCut } from '../gfx/watchModel.js';
+import { createWatch, createMonolith, agateDialMaterial, setAgateCut, faceViewer } from '../gfx/watchModel.js';
 import { SunShadow, enableShadows } from '../gfx/shadows.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GuideWisp } from './common/GuideWisp.js';
@@ -480,6 +480,7 @@ export class SunsetWorld extends World {
   enter(opts = {}) {
     super.enter(opts);
     this.attract = !!opts.attract;
+    if (this.spawn?.position) faceViewer(this.monolith, this.spawn.position, 1);
     this.reseed();
     this.slices.forEach((sl) => this.slicer.remove(sl.mesh));
     this.slices = [];
@@ -571,6 +572,7 @@ export class SunsetWorld extends World {
     });
     this.thin.rotation.z += dt * 0.05;
     this.monolithWatch.setTime();
+    faceViewer(this.monolith, cam.position, 1 - Math.exp(-dt * 1.2)); // il quadrante guarda chi osserva
 
     // taglio: la lama scende, la fetta esce e si mette in fila
     if (this.sliceAnim) {

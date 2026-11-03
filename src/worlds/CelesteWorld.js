@@ -7,7 +7,7 @@ import { SunShadow, enableShadows } from '../gfx/shadows.js';
 import { DustField } from '../gfx/particles.js';
 import { glowSprite, noiseTexture, textPlane, mulberry32 } from '../gfx/effects.js';
 import { DialSky, CloudSea } from '../gfx/sky.js';
-import { createWatch } from '../gfx/watchModel.js';
+import { createWatch, faceViewer } from '../gfx/watchModel.js';
 import { buildBracelet } from '../gfx/bracelet.js';
 import { curvedText, pictogramMesh } from './movement/parts.js';
 import { GuideWisp } from './common/GuideWisp.js';
@@ -236,8 +236,7 @@ export class CelesteWorld extends World {
     const g = new THREE.Group();
     g.add(this.watch.object);
     g.position.set(0, 75, -292);
-    g.rotation.x = 0.3; // chinato verso il ponte: il quadrante si legge salendo (da sotto)
-    this.monolith = g;
+    this.monolith = g; // il quadrante guarda chi sale sul ponte (faceViewer in update)
     this.scene.add(g);
     // alone di luce dietro il monolite
     const halo = glowSprite(0xffffff, 420, 0.06);
@@ -353,6 +352,7 @@ export class CelesteWorld extends World {
   enter(opts = {}) {
     super.enter(opts);
     this.attract = !!opts.attract;
+    if (this.spawn?.position) faceViewer(this.monolith, this.spawn.position, 1);
     this.setNight(0);
     this.nightAnim = null;
     this.scratch = null;
@@ -536,6 +536,7 @@ export class CelesteWorld extends World {
       p.position.x += p.userData.drift * dt;
       if (p.position.x > 400) p.position.x = -400;
     });
+    faceViewer(this.monolith, cam.position, 1 - Math.exp(-dt * 1.2)); // il quadrante guarda chi osserva
     // gocce: scivolano lungo il fianco destro della cassa (20,55 mm dal centro) e ricominciano
     const m = this.monolith;
     const mm = this.mm;

@@ -11,7 +11,7 @@ import { GuideWisp } from './common/GuideWisp.js';
 import { Portal } from './common/Portal.js';
 import * as P from './movement/parts.js';
 import { SunShadow, enableShadows } from '../gfx/shadows.js';
-import { createMonolith, createRotor, ROTOR_RADIUS } from '../gfx/watchModel.js';
+import { createMonolith, createRotor, faceViewer, ROTOR_RADIUS } from '../gfx/watchModel.js';
 import { buildWalkway, buildHubPlatform, buildLift, stripMaterial } from './movement/walkway.js';
 
 // TODO(brand): la riserva di carica NON è indicata da nessuna parte: nei documenti compaiono
@@ -615,19 +615,22 @@ export class MovementWorld extends World {
     this.epiReveal = 0;
   }
 
-  // le tre Delta come monoliti nel vuoto dietro la partenza, girate verso chi arriva, con un faro
-  // proprio (il vuoto è buio); non fanno ombra: attorno non c'è niente che la riceva
+  // le tre Delta come monoliti nel vuoto dietro la partenza, con un faro proprio (il vuoto è buio);
+  // non fanno ombra: attorno non c'è niente che la riceva. Il quadrante guarda sempre chi le osserva
+  // (faceViewer): dal basso e di lato, con il quadrante verticale, sembravano storte
   async buildMonoliths() {
     const cfg = this.app.config.assets || {};
     const envMap = createEnvironment(this.app.renderer.renderer, 'studio');
     const S = MONOLITHS.scale;
+    this.monolithGroups = [];
     this.monoliths = await Promise.all(
       MONOLITHS.list.map(async (d) => {
         const { group, watch } = await createMonolith(d.id, cfg[`model.${d.id}`] || `assets/models/${d.id}.glb`, { scale: S, envMap, envIntensity: 0.55 });
         group.position.set(d.x, MONOLITHS.y, d.z);
-        group.lookAt(START.x, MONOLITHS.y, START.z);
+        faceViewer(group, START, 1);
         group.traverse((o) => (o.userData.noCastShadow = true));
         this.scene.add(group);
+        this.monolithGroups.push(group);
         return watch;
       }),
     );
@@ -1066,8 +1069,11 @@ export class MovementWorld extends World {
     const player = app.player.position;
     const clock = app.clock;
 
-    // monoliti sull'ora vera; alla partenza, dopo la prima frase, lo sguardo si volge alla corona
+    // monoliti sull'ora vera, con il quadrante voltato piano verso chi guarda; alla partenza, dopo la
+    // prima frase, lo sguardo si volge alla corona
     this.monoliths.forEach((m) => m.setTime());
+    const turn = 1 - Math.exp(-dt * 1.2);
+    this.monolithGroups.forEach((g) => faceViewer(g, cam.position, turn));
     if (this.introTurn > 0 && app.director.state === 'play') {
       this.introTurn -= dt;
       if (this.introTurn <= 0) app.player.guideLook(V(0, L.stemY + 0.5, this.crownFaceZ), 3, 1.6);
