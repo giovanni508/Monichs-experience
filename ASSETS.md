@@ -130,6 +130,7 @@ Ricostruiti da `scripts/blender/build_watches.py` (Blender 5.2) sulle **quote de
 
 **Texture** (`Modelli/3D/textures/`, sorgenti in `scripts/blender/textures_src/`, script di estrazione una tantum con percorsi locali)
 - `*_dial.png` + `*_dial_normal.png`: quadranti estratti dagli scontornati, raddrizzati e centrati sugli indici; indici, logo e lancette rimossi e ricostruiti (Celeste: cella media del reticolo a triangoli, lato 1,245 mm; anello dei minuti sintetizzato con periodo di 6°); stampe originali (MONICHS, nome, AUTOMATIC, SWISS MADE, minuteria) mantenute.
+  - **Rehaut della Celeste:** nella foto di partenza le tacche dei minuti alle ore 10–12 avevano un riflesso giallo-arancio (e alle 3 e alle 8 uno azzurro); nella foto di prodotto sono bianche. `node scripts/fix-celeste-rehaut.mjs` (3 novembre 2026) le rende bianco freddo e neutralizza i toni caldi dell'anello, nella texture sorgente e nei due GLB della Celeste; il fondo blu resta.
 - `caseback_solid.png` / `caseback_open.png`: incisioni dei fondelli.
   - **Montagne e cerchi:** dalle tavole 2:1. Il cerchio sottile a 14,8 mm è ridisegnato continuo come nella foto.
   - **Testi dell'anello:** rifatti l'8 ottobre 2026 con `scripts/blender/textures_src/caseback_text.py`. La maschera ricavata dalla tavola rendeva le S come 8 e girava le lettere verso il centro. Ora usano Montserrat Light, maiuscole di 0,88 mm, con la parte alta verso il bordo e lettura in senso orario guardando il fondello, come nella foto `Vi (4)`.
