@@ -92,8 +92,25 @@ export function windMaterial(material, uniforms, { strength = 1, glow = 0 } = {}
         .replace('#include <common>', '#include <common>\nuniform float uNatureGlow;')
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance *= uNatureGlow;');
     }
+    // traslucenza: guardando verso il sole attraverso le foglie, la luce le attraversa e le accende
+    if (uniforms.uSunDir) {
+      shader.uniforms.uSunDir = uniforms.uSunDir;
+      shader.uniforms.uTransl = uniforms.uTransl;
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nuniform vec3 uSunDir;\nuniform float uTransl;')
+        .replace(
+          '#include <emissivemap_fragment>',
+          `#include <emissivemap_fragment>
+  {
+    vec3 tV = normalize(vViewPosition);
+    vec3 tL = normalize((viewMatrix * vec4(uSunDir, 0.0)).xyz);
+    float back = pow(max(0.0, dot(-tV, tL)), 3.0);
+    totalEmissiveRadiance += diffuseColor.rgb * vec3(1.05, 1.0, 0.75) * uTransl * back;
+  }`,
+        );
+    }
   };
-  m.customProgramCacheKey = () => `wind-${glow > 0 ? 'glow' : 'plain'}`;
+  m.customProgramCacheKey = () => `wind-${glow > 0 ? 'glow' : 'plain'}${uniforms.uSunDir ? '-transl' : ''}`;
   return m;
 }
 

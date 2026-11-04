@@ -266,6 +266,35 @@ export class VirentiaWorld extends World {
       sheenRoughness: 0.42,
     });
     patchCotes(this.groundMat, { width: 9, strength: 0.32, angle: -0.18 });
+    // muschio vivo: macchie più chiare e più scure, verde giallo dove batte il sole e verde azzurro
+    // nelle conche, a tre scale (il prato era di un verde uniforme, come plastica)
+    patchCustom(this.groundMat, {
+      key: 'moss',
+      fragDecl: `
+float mossH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float mossN(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mossH(i), mossH(i + vec2(1.0, 0.0)), f.x), mix(mossH(i + vec2(0.0, 1.0)), mossH(i + vec2(1.0)), f.x), f.y);
+}`,
+      fragRough: `
+  vec2 mossSlope = vec2(0.0);
+  {
+    vec2 mp = vObjPos.xz;
+    float m1 = mossN(mp * 0.03);
+    float m2 = mossN(mp * 0.12 + 7.3);
+    float m3 = mossN(mp * 0.7 + 2.1);
+    vec3 tint = mix(vec3(0.7, 0.94, 0.86), vec3(1.3, 1.16, 0.7), smoothstep(0.3, 0.75, m1));
+    tint *= 0.74 + 0.42 * m2 + 0.2 * (m3 - 0.5);
+    diffuseColor.rgb *= tint;
+    roughnessFactor = clamp(roughnessFactor * (0.92 + 0.16 * m3), 0.0, 1.0);
+    // grana fine del muschio, che si spegne quando diventa più fine di un pixel
+    float fineFade = 1.0 - smoothstep(0.25, 0.8, fwidth(mp.x * 3.1) + fwidth(mp.y * 3.1));
+    mossSlope = vec2(mossN(mp * 3.1) - 0.5, mossN(mp * 3.1 + 17.0) - 0.5) * 0.45 * fineFade;
+  }`,
+      fragNormal: 'normal = normalize(normal + vTX * mossSlope.x + vTZ * mossSlope.y);',
+    });
     // macchie di muschio di toni diversi (più azzurre all'ombra, più calde dove batte la luce)
     patchCustom(this.groundMat, {
       key: 'moss',
@@ -396,7 +425,8 @@ export class VirentiaWorld extends World {
     const TAU = Math.PI * 2;
     const total = this.pathLength();
     const F = this.screwFeature.position;
-    this.natureUniforms = { uTime: { value: 0 }, uGlow: { value: 0.55 } };
+    // uSunDir/uTransl: le foglie in controluce verso il rotore-sole si accendono (traslucenza)
+    this.natureUniforms = { uTime: { value: 0 }, uGlow: { value: 0.55 }, uSunDir: { value: V(0, 0.55, -0.83).normalize() }, uTransl: { value: 0.9 } };
     this.trunks = [];
     this.obstacles = [];
     const items = Object.fromEntries(names.map((n) => [n, []]));
