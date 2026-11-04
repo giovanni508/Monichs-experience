@@ -5,6 +5,7 @@ import { glowSprite, textPlane } from '../gfx/effects.js';
 import { createEnvironment } from '../gfx/env.js';
 import { createWatch } from '../gfx/watchModel.js';
 import { SunShadow, enableShadows } from '../gfx/shadows.js';
+import { DreamSky } from '../gfx/sky.js';
 
 const reflVert = /* glsl */ `
 varying vec2 vUv;
@@ -65,7 +66,27 @@ export class EpilogueWorld extends World {
       }),
     );
     bg.position.set(0, 4, -18);
+    bg.visible = false; // al suo posto il crepuscolo con le Alpi dell'apertura, più tenue
     s.add(bg);
+    // si chiude come si era aperto: lo stesso crepuscolo con le Alpi del movimento, quasi notte e in
+    // tono con il blu del brand, così i tre orologi e i testi restano protagonisti
+    this.sky = new DreamSky({
+      glowDir: new THREE.Vector3(0, 0.05, -1),
+      moonDir: new THREE.Vector3(-0.62, 0.44, -0.65),
+      colors: {
+        zenith: 0x00001c, high: 0x030530, low: 0x10123a, horizon: 0x4a3452, horizonCool: 0x1c1e4a,
+        glow: 0x9a6a6a, rim: 0xd8a28a, snow: 0x6a6a96, mist: 0x3a3058, lake: 0x03031a, moon: 0xd8d0c0,
+      },
+      layers: [
+        { kind: 'mountains', base: 0.0, amp: 0.16, cells: 18, seed: 3, color: 0x2a2450, haze: 0.55, snow: 0.4 },
+        { kind: 'mountains', base: -0.01, amp: 0.22, cells: 12, seed: 41, color: 0x0c0c2c, haze: 0.25, snow: 0.6 },
+      ],
+      lake: false,
+      moon: 0.6,
+      stars: 0.6,
+      mist: 0.45,
+    });
+    s.add(this.sky.mesh);
 
     this.watches = [];
     const defs = [
@@ -141,6 +162,7 @@ export class EpilogueWorld extends World {
 
   update(dt) {
     super.update(dt);
+    this.sky.update(dt, this.app.camera);
     const t = this.time;
     const now = new Date();
     this.watches.forEach((w, i) => {
