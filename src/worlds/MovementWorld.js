@@ -220,10 +220,6 @@ export class MovementWorld extends World {
     this.fill = new THREE.DirectionalLight(0x8ea6ff, 0.28);
     this.fill.position.set(40, 10, -60);
     s.add(this.fill);
-    // fuori, il bagliore del crepuscolo dietro le tre Delta disegna i loro contorni (controluce)
-    this.glowRim = new THREE.DirectionalLight(0xf3c3a3, 0);
-    this.glowRim.position.set(0, 40, 400);
-    s.add(this.glowRim);
     this.crownLight = new THREE.PointLight(0xc4d4ff, 600, 0, 2);
     this.crownLight.position.set(-20, 15, 102);
     s.add(this.crownLight);
@@ -627,7 +623,8 @@ export class MovementWorld extends World {
   // le tre Delta come monoliti nel cielo dietro la partenza; non fanno ombra: attorno non c'è niente che
   // la riceva. Il quadrante guarda sempre chi le osserva (faceViewer): dal basso e di lato, con il
   // quadrante verticale, sembravano storte. Niente faro: sul logo applicato lucido lasciava un punto
-  // bianco abbagliante; bastano lo studio fotografico (più intenso) e il controluce del crepuscolo
+  // bianco abbagliante; basta lo studio fotografico (più intenso), che ha già il suo controluce. Niente
+  // luce direzionale dal bagliore: girandosi verso la corona si specchiava sulla carrure piatta
   async buildMonoliths() {
     const cfg = this.app.config.assets || {};
     const envMap = createEnvironment(this.app.renderer.renderer, 'studio');
@@ -1139,7 +1136,6 @@ export class MovementWorld extends World {
     this.scene.fog.density = THREE.MathUtils.lerp(0.0105, 0.003, outside);
     this.sky.update(dt, cam);
     this.sky.uniforms.uDim.value = THREE.MathUtils.lerp(0.1, 1, outside);
-    this.glowRim.intensity = THREE.MathUtils.lerp(0, 1.1, outside);
     this.scene.environmentIntensity = THREE.MathUtils.lerp(1.0, 0.55, outside);
     this.key.intensity = THREE.MathUtils.lerp(1.6, 0.35, outside);
     this.crownLight.intensity = THREE.MathUtils.lerp(80, 600, outside);

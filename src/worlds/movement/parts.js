@@ -166,7 +166,8 @@ export function buildJewels(list) {
 // ------------------------------------------------------------------------------- esterno: cassa, corona, asta
 
 export function buildCase({ center, rInner, rOuter, yMin, yMax, gapAngle, gapWidthAngle }) {
-  const mat = Mat.steelBrushed({ color: 0xbfc3c8, roughness: 0.32, side: THREE.DoubleSide });
+  // satinata più fine: le luci e i pannelli dell'ambiente non vi lasciano macchie tonde abbaglianti
+  const mat = Mat.steelBrushed({ color: 0xbfc3c8, roughness: 0.46, side: THREE.DoubleSide });
   const g = new THREE.Group();
   const prof = [
     new THREE.Vector2(rInner, yMin),
