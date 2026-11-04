@@ -201,32 +201,48 @@ uniform vec3 uNightLight;
 uniform vec3 uHorizon;
 uniform vec3 uNightHorizon;
 uniform sampler2D uNoise;
+uniform vec3 uSunDir;
 varying vec3 vWorld;
+float cloudN(vec2 p) {
+  return texture2D(uNoise, p).r * 0.55 + texture2D(uNoise, p * 2.7 + 0.31).r * 0.3 + texture2D(uNoise, p * 7.1 - uTime * 0.002).r * 0.15;
+}
 void main() {
   vec2 p = vWorld.xz * 0.0016 + vec2(uTime * 0.004, uTime * 0.0013);
-  float n = texture2D(uNoise, p).r * 0.55 + texture2D(uNoise, p * 2.7 + 0.31).r * 0.3 + texture2D(uNoise, p * 7.1 - uTime * 0.002).r * 0.15;
+  float n = cloudN(p);
   float c = smoothstep(0.32, 0.72, n);
+  // cumuli in rilievo: una normale finta dalla pendenza del rumore, illuminata dal sole (lato in luce
+  // chiaro e caldo, lato in ombra azzurro), e un orlo d'argento verso il sole
+  float e = 0.0035;
+  float gx = cloudN(p + vec2(e, 0.0)) - cloudN(p - vec2(e, 0.0));
+  float gz = cloudN(p + vec2(0.0, e)) - cloudN(p - vec2(0.0, e));
+  vec3 cn = normalize(vec3(-gx * 9.0, 1.0, -gz * 9.0));
+  vec3 sd = normalize(uSunDir);
+  float diff = clamp(dot(cn, sd) * 0.7 + 0.3, 0.0, 1.0);
   vec3 lit = mix(uLight, uNightLight, uNight);
-  vec3 col = mix(uShadow * mix(1.0, 0.25, uNight), lit, smoothstep(0.3, 0.9, n));
+  vec3 col = mix(uShadow * mix(1.0, 0.25, uNight), lit, clamp(smoothstep(0.3, 0.9, n) * 0.45 + diff * 0.65, 0.0, 1.0));
+  vec3 toCam = normalize(uCamPos - vWorld);
+  float silver = pow(max(0.0, dot(-toCam, sd)), 6.0) * smoothstep(0.35, 0.6, n) * (1.0 - uNight);
+  col += vec3(1.0, 0.95, 0.86) * silver * 0.35;
   float dist = length(vWorld.xz - uCamPos.xz);
-  float fade = smoothstep(2200.0, 600.0, dist);
+  float fade = smoothstep(2800.0, 900.0, dist);
   col = mix(mix(uHorizon, uNightHorizon, uNight), col, fade);
   float alpha = mix(0.0, 1.0, c) * 0.92 + (1.0 - fade) * 0.9;
   gl_FragColor = vec4(col, clamp(alpha, 0.0, 1.0));
 }`;
 
 export class CloudSea {
-  constructor(noiseTex, { y = -40, size = 6000 } = {}) {
+  constructor(noiseTex, { y = -40, size = 6000, sunDir = new THREE.Vector3(0.45, 0.42, -0.78) } = {}) {
     this.uniforms = {
       uTime: { value: 0 },
       uNight: { value: 0 },
       uCamPos: { value: new THREE.Vector3() },
       uLight: { value: new THREE.Color(0xffffff) },
-      uShadow: { value: new THREE.Color(0xa8b9cf) },
+      uShadow: { value: new THREE.Color(0x8ea4c6) },
       uNightLight: { value: new THREE.Color(0x5d6f9c) },
       uHorizon: { value: new THREE.Color(0xd3e0ec) },
       uNightHorizon: { value: new THREE.Color(0x0d1640) },
       uNoise: { value: noiseTex },
+      uSunDir: { value: sunDir.clone().normalize() },
     };
     const mat = new THREE.ShaderMaterial({
       uniforms: this.uniforms,

@@ -141,17 +141,25 @@ export class CelesteWorld extends World {
       g.arc(x, y, r, 0, Math.PI * 2);
       g.fill();
     }
+    // chiaroscuro: sopra la luce del sole, sotto l'ombra azzurra (bianco su bianco non si leggevano)
+    g.globalCompositeOperation = 'source-atop';
+    const shade = g.createLinearGradient(0, 70, 0, 230);
+    shade.addColorStop(0, 'rgba(255,255,255,1)');
+    shade.addColorStop(0.55, 'rgba(226,234,246,1)');
+    shade.addColorStop(1, 'rgba(146,166,204,1)');
+    g.fillStyle = shade;
+    g.fillRect(0, 0, 256, 256);
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
     this.puffs = [];
     const rand2 = mulberry32(5);
-    for (let i = 0; i < 22; i++) {
-      const mat = new THREE.SpriteMaterial({ map: tex, color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, fog: true });
+    for (let i = 0; i < 40; i++) {
+      const mat = new THREE.SpriteMaterial({ map: tex, color: 0xffffff, transparent: true, opacity: 0.62, depthWrite: false, fog: true });
       const sp = new THREE.Sprite(mat);
       const a = rand2() * Math.PI * 2;
-      const r = 120 + rand2() * 300;
-      sp.position.set(Math.cos(a) * r, -48 + rand2() * 30, -100 + Math.sin(a) * r);
-      const sc = 60 + rand2() * 120;
+      const r = 140 + rand2() * 760;
+      sp.position.set(Math.cos(a) * r, -58 + rand2() * 44, -100 + Math.sin(a) * r);
+      const sc = 70 + rand2() * 150;
       sp.scale.set(sc * 1.7, sc, 1);
       sp.userData.drift = 0.5 + rand2() * 1.2;
       this.scene.add(sp);
