@@ -167,6 +167,20 @@ export class MovementWorld extends World {
     s.fog = new THREE.FogExp2(this.fogInside.clone(), 0.0105);
     s.environment = createEnvironment(app.renderer.renderer, 'workshop');
     s.environmentIntensity = 1;
+    // fuori dalla cassa i metalli (passerella, corona, carrure) riflettono il crepuscolo vero: una mappa
+    // d'ambiente generata una volta dal cielo stesso; dentro resta la luce calda dell'officina
+    this.envInside = s.environment;
+    {
+      const envScene = new THREE.Scene();
+      envScene.add(new DreamSky({ glowDir: V(0, 0.05, 1) }).mesh);
+      const pmrem = new THREE.PMREMGenerator(app.renderer.renderer);
+      this.envOutside = pmrem.fromScene(envScene, 0.02, 0.1, 3000, { size: 256 }).texture;
+      pmrem.dispose();
+      envScene.traverse((o) => {
+        if (o.geometry) o.geometry.dispose();
+        if (o.material) o.material.dispose();
+      });
+    }
 
     this.buildLights();
     this.buildStructure();
@@ -1136,7 +1150,9 @@ export class MovementWorld extends World {
     this.scene.fog.density = THREE.MathUtils.lerp(0.0105, 0.003, outside);
     this.sky.update(dt, cam);
     this.sky.uniforms.uDim.value = THREE.MathUtils.lerp(0.1, 1, outside);
-    this.scene.environmentIntensity = THREE.MathUtils.lerp(1.0, 0.55, outside);
+    const env = outside > 0.5 ? this.envOutside : this.envInside;
+    if (this.scene.environment !== env) this.scene.environment = env;
+    this.scene.environmentIntensity = outside > 0.5 ? 1.0 : THREE.MathUtils.lerp(1.0, 0.55, outside);
     this.key.intensity = THREE.MathUtils.lerp(1.6, 0.35, outside);
     this.crownLight.intensity = THREE.MathUtils.lerp(80, 600, outside);
     if (!this.attract && !this.hubMode && this.wound) {
