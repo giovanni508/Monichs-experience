@@ -251,11 +251,12 @@ export class CloudSea {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Cielo onirico del movimento: un crepuscolo nei colori del brand (blu notte allo zenit, bagliore
-// oro rosa all'orizzonte dietro le tre Delta), tre catene di montagne alpine sempre più velate con
-// la distanza, un filo di luce sulle creste e la neve sulle cime, la nebbia luminosa ai loro piedi,
-// la luna e le stelle che brillano piano. Sotto l'orizzonte un lago immobile riflette tutto.
-// Un solo shader all'infinito, senza geometria: costa poco anche su un portatile.
+// Cielo onirico (DreamSky): un solo shader all'infinito, senza geometria, che costa poco anche su un
+// portatile. Gradiente del crepuscolo più caldo verso il bagliore (glowDir), fino a quattro file di
+// sagome all'orizzonte (montagne alpine con la neve e il filo di luce sulle creste, oppure cime di
+// abeti), sempre più velate con la distanza, la nebbia luminosa ai loro piedi, luna e stelle. Sotto
+// l'orizzonte un lago che riflette tutto, oppure la foschia della valle.
+// Il movimento usa i valori predefiniti; gli altri mondi passano i loro colori e le loro sagome.
 // ---------------------------------------------------------------------------------------------
 
 const dreamFrag = /* glsl */ `
@@ -269,14 +270,20 @@ uniform vec3 uLow;
 uniform vec3 uHorizon;
 uniform vec3 uHorizonCool;
 uniform vec3 uGlow;
-uniform vec3 uFar;
-uniform vec3 uMid;
-uniform vec3 uNear;
 uniform vec3 uRim;
 uniform vec3 uSnow;
 uniform vec3 uMist;
 uniform vec3 uLake;
 uniform vec3 uMoon;
+uniform vec4 uShape[4];   // base, ampiezza, celle per giro, seme
+uniform vec4 uLook[4];    // velo d'aria, neve, tipo (0 montagne, 1 abeti), accesa
+uniform vec3 uRock[4];
+uniform float uLakeOn;
+uniform float uMoonAmt;
+uniform float uStarAmt;
+uniform float uGlowAmt;
+uniform float uMistAmt;
+uniform float uRimAmt;
 varying vec3 vDir;
 
 float h1(float x) { return fract(sin(x * 127.1 + 31.7) * 43758.5453); }
@@ -300,27 +307,45 @@ float ridge(float t, float P, float seed) {
   }
   return pow(a, 1.6); // cime più appuntite, valli più distese
 }
+// cime di abeti: tre file sfasate di punte, ognuna con la sua altezza, larghezza e posizione nella
+// cella (niente motivo regolare), sopra la massa ondulata del bosco
+float trees(float t, float P, float seed) {
+  float x = t * P;
+  float best = 0.0;
+  for (int j = 0; j < 3; j++) {
+    float xx = x + float(j) * 0.37;
+    float i = mod(floor(xx), P);
+    float s0 = seed + float(j) * 13.0;
+    float c = 0.3 + 0.4 * h1(i + s0 + 6.0);
+    float hgt = (0.3 + 0.7 * pow(h1(i + s0), 2.0)) * (1.0 - float(j) * 0.18);
+    float w = 1.6 + 2.2 * h1(i + s0 + 3.0);
+    best = max(best, hgt * max(0.0, 1.0 - abs(fract(xx) - c) * w * 2.0));
+  }
+  float canopy = 0.2 + 0.12 * np(t, floor(P * 0.2), seed + 11.0) + 0.06 * np(t, floor(P * 0.7), seed + 19.0);
+  return max(best, canopy);
+}
+float shapeH(float t, vec4 sh, float kind) {
+  if (kind > 0.5) return sh.x + sh.y * trees(t, sh.z, sh.w);
+  float amp = sh.y * (0.4 + 0.6 * smoothstep(0.2, 0.85, np(t, floor(sh.z / 5.0), sh.w + 5.0)));
+  return sh.x + amp * ridge(t, sh.z, sh.w);
+}
 
-// una catena: sagoma, filo di luce sulla cresta verso il bagliore, neve sulle cime (due falde, una
-// in luce e una in ombra) e velo d'aria che la confonde con l'orizzonte
-void range(inout vec3 col, inout float open, float t, float el, float base, float amp, float P, float seed,
-           vec3 rock, float haze, float snow, vec3 hor, float glowF) {
-  // massicci alti e passi bassi: l'ampiezza cambia lungo l'orizzonte
-  amp *= 0.4 + 0.6 * smoothstep(0.2, 0.85, np(t, floor(P / 5.0), seed + 5.0));
-  float h = base + amp * ridge(t, P, seed);
+// una fila di sagome: colore, neve sulle cime (due falde, una in luce e una in ombra), filo di luce
+// sulla cresta verso il bagliore, velo d'aria che la confonde con l'orizzonte
+void silhouette(inout vec3 col, float t, float el, vec4 sh, vec4 lk, vec3 rock, vec3 hor, float glowF) {
+  float h = shapeH(t, sh, lk.z);
   if (el >= h) return;
   vec3 c = rock;
-  if (snow > 0.0) {
+  if (lk.y > 0.0) {
     float e = 0.0012;
-    float slope = amp * (ridge(t + e, P, seed) - ridge(t - e, P, seed));
-    float cap = smoothstep(base + amp * 0.42, base + amp * 0.62, h) * smoothstep(h - amp * 0.3, h - amp * 0.08, el);
-    vec3 s = uSnow * mix(0.55, 1.0, smoothstep(-0.004, 0.004, slope));
-    c = mix(c, s, cap * snow);
+    float slope = shapeH(t + e, sh, lk.z) - shapeH(t - e, sh, lk.z);
+    float cap = smoothstep(sh.x + sh.y * 0.42, sh.x + sh.y * 0.62, h) * smoothstep(h - sh.y * 0.3, h - sh.y * 0.08, el);
+    vec3 snow = uSnow * mix(0.55, 1.0, smoothstep(-0.004, 0.004, slope));
+    c = mix(c, snow, cap * lk.y);
   }
-  c += uRim * smoothstep(h - 0.0016, h, el) * (0.08 + 0.42 * glowF * glowF * glowF);
-  c = mix(c, hor, haze * (1.0 - smoothstep(0.0, h, el) * 0.5));
+  c += uRim * uRimAmt * smoothstep(h - 0.0016, h, el) * (0.08 + 0.42 * glowF * glowF * glowF);
+  c = mix(c, hor, lk.x * (1.0 - smoothstep(0.0, h, el) * 0.5));
   col = c;
-  open = 0.0;
 }
 
 vec3 scene(float t, float el, float glowF, vec3 d) {
@@ -328,30 +353,29 @@ vec3 scene(float t, float el, float glowF, vec3 d) {
   vec3 col = mix(hor, uLow, smoothstep(0.0, 0.12, el));
   col = mix(col, uHigh, smoothstep(0.1, 0.45, el));
   col = mix(col, uZenith, smoothstep(0.4, 0.95, el));
-  col += uGlow * pow(glowF, 6.0) * exp(-el * 9.0) * 0.9;
-  float open = 1.0;
-  // luna (prima delle montagne: può tramontare dietro le creste)
+  col += uGlow * uGlowAmt * pow(glowF, 6.0) * exp(-el * 9.0) * 0.9;
+  // luna (prima delle sagome: può tramontare dietro le creste)
   float md = dot(normalize(vec3(d.x, el, d.z)), normalize(uMoonDir));
   float disc = smoothstep(0.99935, 0.99945, md);
-  col += uMoon * (disc * (1.25 + 0.08 * h2(floor(d.xz * 420.0))) + pow(max(md, 0.0), 900.0) * 0.5 + pow(max(md, 0.0), 40.0) * 0.07);
+  col += uMoon * uMoonAmt * (disc * (1.25 + 0.08 * h2(floor(d.xz * 420.0))) + pow(max(md, 0.0), 900.0) * 0.5 + pow(max(md, 0.0), 40.0) * 0.07);
   // stelle: più fitte allo zenit, spente vicino all'orizzonte; ognuna brilla al suo ritmo
   vec2 sp = vec2(t * 1100.0, el * 520.0);
   vec2 ci = floor(sp);
   float r = h2(ci);
-  if (r > 0.982) {
+  if (r > 0.982 && uStarAmt > 0.0) {
     vec2 o = vec2(h2(ci + 7.1), h2(ci + 3.7)) - 0.5;
     float dd = length(fract(sp) - 0.5 - o * 0.5);
     float b = (r - 0.982) / 0.018;
     float tw = 0.65 + 0.35 * sin(uTime * (0.8 + 2.5 * h2(ci + 1.3)) + r * 40.0);
-    col += vec3(1.0, 0.95, 0.9) * smoothstep(0.2, 0.0, dd) * b * tw * 1.6 * smoothstep(0.06, 0.3, el) * (1.0 - disc);
+    col += vec3(1.0, 0.95, 0.9) * uStarAmt * smoothstep(0.2, 0.0, dd) * b * tw * 1.6 * smoothstep(0.06, 0.3, el) * (1.0 - disc * uMoonAmt);
   }
-  // tre catene, dalla più lontana (chiara, velata) alla più vicina (scura, con la neve)
-  range(col, open, t, el, 0.02, 0.2, 18.0, 3.0, uFar, 0.62, 0.45, hor, glowF);
-  range(col, open, t + 0.13, el, 0.008, 0.26, 14.0, 41.0, uMid, 0.32, 0.8, hor, glowF);
-  range(col, open, t + 0.37, el, -0.01, 0.3, 10.0, 87.0, uNear, 0.12, 1.0, hor, glowF);
-  // nebbia luminosa ai piedi delle montagne, che scorre piano
+  // le file di sagome, dalla più lontana alla più vicina
+  for (int k = 0; k < 4; k++) {
+    if (uLook[k].w > 0.5) silhouette(col, t + float(k) * 0.13 + float(k * (k - 1)) * 0.055, el, uShape[k], uLook[k], uRock[k], hor, glowF);
+  }
+  // nebbia luminosa ai piedi delle sagome, che scorre piano
   float mist = (1.0 - smoothstep(0.0, 0.04, el)) * (0.55 + 0.45 * np(t + uTime * 0.0006, 40.0, 5.0));
-  col = mix(col, uMist * mix(0.7, 1.2, glowF), mist * 0.7);
+  col = mix(col, uMist * mix(0.7, 1.2, glowF), mist * uMistAmt);
   return col;
 }
 
@@ -363,44 +387,86 @@ void main() {
   vec3 col;
   if (d.y >= 0.0) {
     col = scene(t, d.y, glowF, d);
-  } else {
-    // il lago: il cielo e le montagne capovolti, più scuri guardando in basso; le increspature spostano
+  } else if (uLakeOn > 0.5) {
+    // il lago: il cielo e le sagome capovolti, più scuri guardando in basso; le increspature spostano
     // il riflesso di lato (come nei laghi veri, si allunga in verticale), nulla vicino all'orizzonte
     float ae = -d.y;
     float rip = (np(t + uTime * 0.0015, 700.0, 9.0) - 0.5) * 0.006 * smoothstep(0.0, 0.25, ae);
     vec3 refl = scene(t + rip, ae, glowF, vec3(d.x, ae, d.z)) * vec3(0.7, 0.72, 0.8);
     float f = 0.12 + 0.88 * pow(1.0 - clamp(ae * 5.0, 0.0, 1.0), 3.0);
     col = mix(uLake, refl, f);
+  } else {
+    // la valle: foschia che scende verso il basso
+    vec3 hor = mix(uHorizonCool, uHorizon, smoothstep(0.15, 1.0, glowF));
+    col = mix(uLake, mix(hor, uMist, 0.5), exp(d.y * 10.0));
   }
   gl_FragColor = vec4(col * uDim, 1.0);
 }`;
+
+// valori del movimento: crepuscolo blu notte e oro rosa, tre catene di Alpi, lago, luna e stelle
+const DREAM_DEFAULTS = {
+  colors: {
+    zenith: 0x04082a, high: 0x161b52, low: 0x4b3b72, horizon: 0xe6b49c, horizonCool: 0x6a6aa0,
+    glow: 0xffc8a2, rim: 0xffc59e, snow: 0xd9d2ec, mist: 0xe0b4b4, lake: 0x050822, moon: 0xf4ead8,
+  },
+  layers: [
+    { kind: 'mountains', base: 0.02, amp: 0.2, cells: 18, seed: 3, color: 0x8a76a6, haze: 0.62, snow: 0.45 },
+    { kind: 'mountains', base: 0.008, amp: 0.26, cells: 14, seed: 41, color: 0x40386c, haze: 0.32, snow: 0.8 },
+    { kind: 'mountains', base: -0.01, amp: 0.3, cells: 10, seed: 87, color: 0x171a3c, haze: 0.12, snow: 1 },
+  ],
+  lake: true,
+  moon: 1,
+  stars: 1,
+  glow: 1,
+  mist: 0.7,
+  rim: 1,
+};
 
 export class DreamSky {
   constructor({
     glowDir = new THREE.Vector3(0, 0.05, 1),
     moonDir = new THREE.Vector3(0.46, 0.5, 0.74),
     radius = 2500,
+    ...opts
   } = {}) {
+    const o = { ...DREAM_DEFAULTS, ...opts, colors: { ...DREAM_DEFAULTS.colors, ...(opts.colors || {}) } };
     const c = (hex) => new THREE.Color(hex);
+    const layers = (o.layers || []).slice(0, 4);
+    const shape = [];
+    const look = [];
+    const rock = [];
+    for (let i = 0; i < 4; i++) {
+      const l = layers[i];
+      shape.push(l ? new THREE.Vector4(l.base, l.amp, l.cells, l.seed) : new THREE.Vector4());
+      look.push(l ? new THREE.Vector4(l.haze ?? 0.3, l.snow ?? 0, l.kind === 'trees' ? 1 : 0, 1) : new THREE.Vector4());
+      rock.push(c(l ? l.color : 0));
+    }
+    const k = o.colors;
     this.uniforms = {
       uTime: { value: 0 },
       uDim: { value: 1 },
       uGlowDir: { value: glowDir.clone().normalize() },
       uMoonDir: { value: moonDir.clone().normalize() },
-      uZenith: { value: c(0x04082a) },
-      uHigh: { value: c(0x161b52) },
-      uLow: { value: c(0x4b3b72) },
-      uHorizon: { value: c(0xe6b49c) },
-      uHorizonCool: { value: c(0x6a6aa0) },
-      uGlow: { value: c(0xffc8a2) },
-      uFar: { value: c(0x8a76a6) },
-      uMid: { value: c(0x40386c) },
-      uNear: { value: c(0x171a3c) },
-      uRim: { value: c(0xffc59e) },
-      uSnow: { value: c(0xd9d2ec) },
-      uMist: { value: c(0xe0b4b4) },
-      uLake: { value: c(0x050822) },
-      uMoon: { value: c(0xf4ead8) },
+      uZenith: { value: c(k.zenith) },
+      uHigh: { value: c(k.high) },
+      uLow: { value: c(k.low) },
+      uHorizon: { value: c(k.horizon) },
+      uHorizonCool: { value: c(k.horizonCool) },
+      uGlow: { value: c(k.glow) },
+      uRim: { value: c(k.rim) },
+      uSnow: { value: c(k.snow) },
+      uMist: { value: c(k.mist) },
+      uLake: { value: c(k.lake) },
+      uMoon: { value: c(k.moon) },
+      uShape: { value: shape },
+      uLook: { value: look },
+      uRock: { value: rock },
+      uLakeOn: { value: o.lake ? 1 : 0 },
+      uMoonAmt: { value: o.moon },
+      uStarAmt: { value: o.stars },
+      uGlowAmt: { value: o.glow },
+      uMistAmt: { value: o.mist },
+      uRimAmt: { value: o.rim },
     };
     const mat = new THREE.ShaderMaterial({ uniforms: this.uniforms, vertexShader: skyVert, fragmentShader: dreamFrag, side: THREE.BackSide, depthWrite: false, fog: false });
     this.mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 64, 32), mat);

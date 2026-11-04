@@ -5,7 +5,7 @@ import { createEnvironment } from '../gfx/env.js';
 import { Mat, patchCotes, patchCustom, highlightTargets } from '../gfx/materials.js';
 import { DustField } from '../gfx/particles.js';
 import { glowSprite, lightShaft, mulberry32 } from '../gfx/effects.js';
-import { GradientSky } from '../gfx/sky.js';
+import { DreamSky } from '../gfx/sky.js';
 import { SpiralRibbon } from '../gfx/gears.js';
 import { buildBracelet } from '../gfx/bracelet.js';
 import { curvedText, roundedHull, S } from './movement/parts.js';
@@ -174,16 +174,35 @@ export class VirentiaWorld extends World {
     const s = this.scene;
 
     s.background = new THREE.Color(0x0a1f16);
-    s.fog = new THREE.FogExp2(0x153526, 0.0078);
+    // un bosco incantato all'alba: il cielo dorato verso il rotore-sole, dietro gli alberi altre file di
+    // abeti e montagne lontane velate dalla foschia; la nebbia è luminosa (non più verde scuro), così il
+    // bosco si perde nella luce invece di spegnersi
+    s.fog = new THREE.FogExp2(0xa6c7a8, 0.0055);
     s.environment = createEnvironment(app.renderer.renderer, 'forest');
     s.environmentIntensity = 0.9;
-    this.sky = new GradientSky({ top: 0x061a12, mid: 0x13402b, horizon: 0x3a7552, bottom: 0x06110b, sunDir: V(0, 1, -0.2), sunColor: 0xffc8a8 });
+    this.sky = new DreamSky({
+      glowDir: V(0, 0.25, -1),
+      colors: {
+        zenith: 0x1d3c4c, high: 0x2f6b6c, low: 0x8fbf9a, horizon: 0xf4d6a2, horizonCool: 0x9cc7b0,
+        glow: 0xffe0b0, rim: 0xffe2b8, snow: 0xe8f0ec, mist: 0xe4efd6, lake: 0x2a4a3a,
+      },
+      layers: [
+        { kind: 'mountains', base: 0.03, amp: 0.2, cells: 16, seed: 13, color: 0x86aeb0, haze: 0.6, snow: 0.7 },
+        { kind: 'mountains', base: 0.015, amp: 0.15, cells: 12, seed: 29, color: 0x5d8a80, haze: 0.38, snow: 0.45 },
+        { kind: 'trees', base: 0.0, amp: 0.065, cells: 170, seed: 51, color: 0x5f8a7a, haze: 0.6 },
+        { kind: 'trees', base: -0.008, amp: 0.085, cells: 110, seed: 77, color: 0x335f50, haze: 0.4 },
+      ],
+      lake: false,
+      moon: 0,
+      stars: 0,
+      mist: 0.8,
+    });
     s.add(this.sky.mesh);
 
     this.sun = new THREE.DirectionalLight(0xffd6b8, 1.6);
     this.sun.position.set(10, 100, -40);
     s.add(this.sun);
-    this.hemi = new THREE.HemisphereLight(0x5f9a70, 0x10180f, 0.6);
+    this.hemi = new THREE.HemisphereLight(0xb8dcc4, 0x1a2a1c, 0.7);
     s.add(this.hemi);
     this.glade = new THREE.PointLight(0xffd6b8, 500, 0, 2);
     this.glade.position.set(0, 26, -160);
@@ -634,9 +653,17 @@ export class VirentiaWorld extends World {
     this.corona = corona;
     this.shafts = [];
     for (const [x, z, rz] of [[-30, -150, 0.2], [24, -168, -0.18], [0, -130, 0.05]]) {
-      const sh = lightShaft({ length: 120, radiusTop: 6, radiusBottom: 22, color: 0xffd2b0, intensity: 0.045 });
+      const sh = lightShaft({ length: 120, radiusTop: 6, radiusBottom: 22, color: 0xffd2b0, intensity: 0.07 });
       sh.position.set(x, 118, z);
       sh.rotation.z = rz;
+      this.scene.add(sh);
+      this.shafts.push(sh);
+    }
+    // raggi tra le chiome lungo il viale, inclinati come la luce che arriva dal rotore-sole
+    for (const [x, z, rz, rx] of [[-17, -62, 0.24, -0.32], [15, -24, -0.2, -0.3], [-12, 12, 0.16, -0.28], [20, -92, -0.12, -0.34]]) {
+      const sh = lightShaft({ length: 80, radiusTop: 2.5, radiusBottom: 11, color: 0xffe2bc, intensity: 0.06 });
+      sh.position.set(x, 64, z);
+      sh.rotation.set(rx, 0, rz);
       this.scene.add(sh);
       this.shafts.push(sh);
     }
