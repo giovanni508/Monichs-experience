@@ -5,7 +5,7 @@ import { createEnvironment } from '../gfx/env.js';
 import { Mat, highlightTargets } from '../gfx/materials.js';
 import { DustField } from '../gfx/particles.js';
 import { glowSprite, lightShaft, loadTexture, mulberry32 } from '../gfx/effects.js';
-import { GradientSky } from '../gfx/sky.js';
+import { DreamSky } from '../gfx/sky.js';
 import { agateMaterial } from '../gfx/agate.js';
 import { createWatch, createMonolith, agateDialMaterial, setAgateCut, faceViewer } from '../gfx/watchModel.js';
 import { SunShadow, enableShadows } from '../gfx/shadows.js';
@@ -44,8 +44,8 @@ export class SunsetWorld extends World {
     this.tickTimbre = 'warm';
     this.tickPresence = 0.5;
     this.post = {
-      bloom: 0.85,
-      bloomThreshold: 0.72,
+      bloom: 0.7,
+      bloomThreshold: 0.85,
       exposure: 1.0,
       saturation: 1.06,
       tint: [1.03, 1.0, 0.96],
@@ -69,16 +69,32 @@ export class SunsetWorld extends World {
     this.dialTex = dialTex;
 
     s.background = new THREE.Color(0x2a120e);
-    s.fog = new THREE.FogExp2(0x3a1a16, 0.0052);
+    // foschia calda e luminosa: il canyon si perde nella luce del tramonto, non nel buio
+    s.fog = new THREE.FogExp2(0x6a3326, 0.0042);
     s.environment = createEnvironment(app.renderer.renderer, 'amber');
     s.environmentIntensity = 0.9;
 
-    this.sky = new GradientSky({ top: 0x24103c, mid: 0x7c3355, horizon: 0xf08a4a, bottom: 0x2a0e08, texture: agTex.clone(), texMix: 0.32, sunDir: V(0, 0.1, -1), sunColor: 0xffa860 });
-    this.sky.uniforms.uTex.value.needsUpdate = true;
+    // sopra le pareti, un tramonto onirico: il sole è appena sceso dietro l'abside, il cielo va dal viola
+    // allo zenit all'oro sull'orizzonte; le prime stelle, lontano i profili dei rilievi
+    this.sky = new DreamSky({
+      glowDir: V(0, 0.1, -1),
+      colors: {
+        zenith: 0x1c1440, high: 0x4a2458, low: 0xb4545a, horizon: 0xffb25e, horizonCool: 0x8a4a6a,
+        glow: 0xffc070, rim: 0xffd29a, snow: 0xf4d2c0, mist: 0xf0a878, lake: 0x2a0e08,
+      },
+      layers: [
+        { kind: 'mountains', base: 0.02, amp: 0.12, cells: 14, seed: 23, color: 0x8a4a5e, haze: 0.55, snow: 0 },
+        { kind: 'mountains', base: 0.0, amp: 0.16, cells: 9, seed: 61, color: 0x4a2234, haze: 0.25, snow: 0 },
+      ],
+      lake: false,
+      moon: 0,
+      stars: 0.5,
+      mist: 0.6,
+    });
     s.add(this.sky.mesh);
 
     // luci: il "sole" è in fondo al canyon, la luce attraversa la pietra verso il giocatore
-    this.sun = new THREE.DirectionalLight(0xffa864, 2.4);
+    this.sun = new THREE.DirectionalLight(0xffa864, 1.8);
     this.sun.position.copy(LIGHT_DIR).multiplyScalar(100);
     s.add(this.sun);
     this.hemi = new THREE.HemisphereLight(0xffb38a, 0x2a1020, 0.55);
@@ -88,11 +104,16 @@ export class SunsetWorld extends World {
     s.add(this.warm);
 
     // materiali d'agata (il seme cambia a ogni visita)
-    this.wallMat = agateMaterial({ texture: agTex, scale: 0.045, glow: 0.42, lightDir: LIGHT_DIR, side: THREE.DoubleSide });
-    this.floorMat = agateMaterial({ texture: agTex, scale: 0.03, glow: 0.08, dark: 0.55, roughness: 0.1, clearcoat: 1, lightDir: LIGHT_DIR });
+    // pietra lucidata ma non bagnata: con la vernice a specchio di prima, le pareti erano striate di
+    // riflessi bianchi e il colore delle bande si perdeva
+    this.wallMat = agateMaterial({ texture: agTex, scale: 0.045, glow: 0.34, roughness: 0.42, clearcoat: 0.15, lightDir: LIGHT_DIR, side: THREE.DoubleSide });
+    this.wallMat.clearcoatRoughness = 0.25;
+    this.wallMat.specularIntensity = 0.45; // il sole in controluce faceva strisce abbaglianti sulle pieghe
+    this.floorMat = agateMaterial({ texture: agTex, scale: 0.03, glow: 0.08, dark: 0.55, roughness: 0.2, clearcoat: 0.6, lightDir: LIGHT_DIR });
+    this.floorMat.clearcoatRoughness = 0.12;
     // riflessi del pavimento: pietra lucidata, non uno specchio
-    this.floorMat.userData.ssr = 0.9;
-    this.floorMat.userData.ssrRough = 0.07;
+    this.floorMat.userData.ssr = 0.6;
+    this.floorMat.userData.ssrRough = 0.12;
     this.stoneMats = [this.wallMat, this.floorMat];
 
     this.buildCanyon();
@@ -263,6 +284,14 @@ export class SunsetWorld extends World {
       const sh = lightShaft({ length: 70, radiusTop: 4, radiusBottom: 16, color: 0xffb47a, intensity: 0.05 });
       sh.position.set(x, 30, -280);
       sh.rotation.set(-1.05, 0, rz);
+      s.add(sh);
+      this.shafts.push(sh);
+    }
+    // fasci di luce che cadono dalle fessure in alto lungo il canyon, come nei canyon di arenaria
+    for (const [x, z, rz] of [[0, 20, 0.07], [2.5, -35, -0.06], [2, -90, 0.05], [-1, -140, -0.08], [3, -185, 0.06]]) {
+      const sh = lightShaft({ length: 58, radiusTop: 1.2, radiusBottom: 5.5, color: 0xffcf98, intensity: 0.07 });
+      sh.position.set(x, 52, z);
+      sh.rotation.set(-0.12, 0, rz);
       s.add(sh);
       this.shafts.push(sh);
     }

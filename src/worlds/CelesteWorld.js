@@ -6,7 +6,7 @@ import { Mat, highlightTargets } from '../gfx/materials.js';
 import { SunShadow, enableShadows } from '../gfx/shadows.js';
 import { DustField } from '../gfx/particles.js';
 import { glowSprite, noiseTexture, textPlane, mulberry32 } from '../gfx/effects.js';
-import { DialSky, CloudSea } from '../gfx/sky.js';
+import { DialSky, CloudSea, DreamSky } from '../gfx/sky.js';
 import { createWatch, faceViewer } from '../gfx/watchModel.js';
 import { buildBracelet } from '../gfx/bracelet.js';
 import { curvedText, pictogramMesh } from './movement/parts.js';
@@ -60,6 +60,26 @@ export class CelesteWorld extends World {
     // cielo-quadrante e nuvole
     this.sky = new DialSky();
     s.add(this.sky.mesh);
+    // cime innevate che emergono dal mare di nuvole all'orizzonte, sopra il cielo-quadrante (di notte
+    // restano appena visibili al chiaro della luminescenza)
+    this.peaks = new DreamSky({
+      only: true,
+      glowDir: this.sky.uniforms.uSunDir.value,
+      colors: { horizon: 0xd3e0ec, horizonCool: 0xc6d6ea, rim: 0xfff4e0, snow: 0xf4f8ff, mist: 0xeef4fb },
+      layers: [
+        { kind: 'mountains', base: -0.01, amp: 0.4, cells: 12, seed: 7, color: 0xb8cce6, haze: 0.35, snow: 0.9 },
+        { kind: 'mountains', base: -0.02, amp: 0.5, cells: 9, seed: 33, color: 0x7e98c4, haze: 0.2, snow: 1 },
+      ],
+      lake: false,
+      moon: 0,
+      stars: 0,
+      mist: 0.55,
+    });
+    s.add(this.peaks.mesh);
+    // colori delle cime di giorno e di notte (setNight li mescola): la foschia segue il cielo
+    const col = (h) => new THREE.Color(h);
+    this.peakDay = { uHorizon: col(0xd3e0ec), uHorizonCool: col(0xc6d6ea), uMist: col(0xeef4fb), uSnow: col(0xf4f8ff), uRim: col(0xfff4e0), rock: [col(0xb8cce6), col(0x7e98c4)] };
+    this.peakNight = { uHorizon: col(0x0d1640), uHorizonCool: col(0x0b1236), uMist: col(0x16245a), uSnow: col(0x5a6aa8), uRim: col(0x2a3a70), rock: [col(0x16224c), col(0x0e1838)] };
     this.noise = noiseTexture(256, 5, 7);
     this.clouds = new CloudSea(this.noise, { y: -70 });
     s.add(this.clouds.mesh);
@@ -461,6 +481,9 @@ export class CelesteWorld extends World {
   setNight(f) {
     this.night = f;
     this.sky.uniforms.uNight.value = f;
+    const pu = this.peaks.uniforms;
+    for (const k of ['uHorizon', 'uHorizonCool', 'uMist', 'uSnow', 'uRim']) pu[k].value.copy(this.peakDay[k]).lerp(this.peakNight[k], f);
+    pu.uRock.value.forEach((c, i) => i < 2 && c.copy(this.peakDay.rock[i]).lerp(this.peakNight.rock[i], f));
     this.clouds.uniforms.uNight.value = f;
     this.watch.setNight(THREE.MathUtils.smoothstep(f, 0.45, 0.9));
     this.sun.intensity = 2.3 * (1 - f);
@@ -527,6 +550,7 @@ export class CelesteWorld extends World {
     const cam = app.camera;
     const player = app.player.position;
     this.sky.update(dt, cam);
+    this.peaks.update(dt, cam);
     this.clouds.update(dt, cam);
     this.dust.update(dt, cam);
     this.watch.setTime();

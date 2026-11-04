@@ -284,6 +284,7 @@ uniform float uStarAmt;
 uniform float uGlowAmt;
 uniform float uMistAmt;
 uniform float uRimAmt;
+uniform float uOnly;      // 1: solo le sagome, sopra un altro cielo (il resto è scartato)
 varying vec3 vDir;
 
 float h1(float x) { return fract(sin(x * 127.1 + 31.7) * 43758.5453); }
@@ -332,9 +333,10 @@ float shapeH(float t, vec4 sh, float kind) {
 
 // una fila di sagome: colore, neve sulle cime (due falde, una in luce e una in ombra), filo di luce
 // sulla cresta verso il bagliore, velo d'aria che la confonde con l'orizzonte
-void silhouette(inout vec3 col, float t, float el, vec4 sh, vec4 lk, vec3 rock, vec3 hor, float glowF) {
+void silhouette(inout vec3 col, inout float hit, float t, float el, vec4 sh, vec4 lk, vec3 rock, vec3 hor, float glowF) {
   float h = shapeH(t, sh, lk.z);
   if (el >= h) return;
+  hit = 1.0;
   vec3 c = rock;
   if (lk.y > 0.0) {
     float e = 0.0012;
@@ -348,7 +350,7 @@ void silhouette(inout vec3 col, float t, float el, vec4 sh, vec4 lk, vec3 rock, 
   col = c;
 }
 
-vec3 scene(float t, float el, float glowF, vec3 d) {
+vec3 scene(float t, float el, float glowF, vec3 d, inout float hit) {
   vec3 hor = mix(uHorizonCool, uHorizon, smoothstep(0.15, 1.0, glowF));
   vec3 col = mix(hor, uLow, smoothstep(0.0, 0.12, el));
   col = mix(col, uHigh, smoothstep(0.1, 0.45, el));
@@ -371,7 +373,7 @@ vec3 scene(float t, float el, float glowF, vec3 d) {
   }
   // le file di sagome, dalla più lontana alla più vicina
   for (int k = 0; k < 4; k++) {
-    if (uLook[k].w > 0.5) silhouette(col, t + float(k) * 0.13 + float(k * (k - 1)) * 0.055, el, uShape[k], uLook[k], uRock[k], hor, glowF);
+    if (uLook[k].w > 0.5) silhouette(col, hit, t + float(k) * 0.13 + float(k * (k - 1)) * 0.055, el, uShape[k], uLook[k], uRock[k], hor, glowF);
   }
   // nebbia luminosa ai piedi delle sagome, che scorre piano
   float mist = (1.0 - smoothstep(0.0, 0.04, el)) * (0.55 + 0.45 * np(t + uTime * 0.0006, 40.0, 5.0));
@@ -385,14 +387,18 @@ void main() {
   vec2 gd = normalize(uGlowDir.xz);
   float glowF = dot(normalize(d.xz + vec2(1e-5)), gd) * 0.5 + 0.5;
   vec3 col;
+  float hit = 0.0;
   if (d.y >= 0.0) {
-    col = scene(t, d.y, glowF, d);
+    col = scene(t, d.y, glowF, d, hit);
+    if (uOnly > 0.5 && hit < 0.5) discard;
+  } else if (uOnly > 0.5) {
+    discard;
   } else if (uLakeOn > 0.5) {
     // il lago: il cielo e le sagome capovolti, più scuri guardando in basso; le increspature spostano
     // il riflesso di lato (come nei laghi veri, si allunga in verticale), nulla vicino all'orizzonte
     float ae = -d.y;
     float rip = (np(t + uTime * 0.0015, 700.0, 9.0) - 0.5) * 0.006 * smoothstep(0.0, 0.25, ae);
-    vec3 refl = scene(t + rip, ae, glowF, vec3(d.x, ae, d.z)) * vec3(0.7, 0.72, 0.8);
+    vec3 refl = scene(t + rip, ae, glowF, vec3(d.x, ae, d.z), hit) * vec3(0.7, 0.72, 0.8);
     float f = 0.12 + 0.88 * pow(1.0 - clamp(ae * 5.0, 0.0, 1.0), 3.0);
     col = mix(uLake, refl, f);
   } else {
@@ -415,6 +421,7 @@ const DREAM_DEFAULTS = {
     { kind: 'mountains', base: -0.01, amp: 0.3, cells: 10, seed: 87, color: 0x171a3c, haze: 0.12, snow: 1 },
   ],
   lake: true,
+  only: false,
   moon: 1,
   stars: 1,
   glow: 1,
@@ -467,11 +474,12 @@ export class DreamSky {
       uGlowAmt: { value: o.glow },
       uMistAmt: { value: o.mist },
       uRimAmt: { value: o.rim },
+      uOnly: { value: o.only ? 1 : 0 },
     };
     const mat = new THREE.ShaderMaterial({ uniforms: this.uniforms, vertexShader: skyVert, fragmentShader: dreamFrag, side: THREE.BackSide, depthWrite: false, fog: false });
     this.mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 64, 32), mat);
     this.mesh.frustumCulled = false;
-    this.mesh.renderOrder = -10;
+    this.mesh.renderOrder = o.only ? -9 : -10; // le sole sagome si disegnano sopra il cielo del mondo
   }
 
   update(dt, camera) {
