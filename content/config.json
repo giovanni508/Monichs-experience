@@ -32,7 +32,7 @@
   },
 
   "cta": {
-    "_todo": "PLACEHOLDER: sostituire testo e URL del QR prima della fiera. Non inserire prezzi o date senza conferma.",
+    "_info": "Epilogo: invito e QR. Il QR porta al sito Monichs (monichs.com rimanda a www.monichs.com: si punta direttamente lì). Non inserire prezzi o date senza conferma.",
     "enabled": true,
     "text": {
       "it": "Scopri la Collezione Delta",
@@ -40,7 +40,7 @@
     },
     "qr": {
       "enabled": true,
-      "url": "https://example.com/monichs-sostituire-url"
+      "url": "https://www.monichs.com"
     }
   },
 

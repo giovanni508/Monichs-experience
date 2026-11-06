@@ -12,11 +12,14 @@ export class Kiosk {
   update() {
     const { director, input } = this.app;
     const now = performance.now();
-    // un mondo può sospendere il reset per inattività (holdsIdle), per esempio mentre racconta qualcosa
-    // da guardare senza toccare nulla; quando smette l'attesa riparte da zero
-    if (director.world?.holdsIdle) this.heldAt = now;
-    const idle = Math.min(input.idleSeconds(), (now - (this.heldAt ?? -Infinity)) / 1000);
     const s = director.state;
+    // un mondo può sospendere il reset per inattività (holdsIdle), per esempio mentre racconta qualcosa
+    // da guardare senza toccare nulla; quando smette l'attesa riparte da zero. Anche a ogni ritorno al
+    // menu l'attesa riparte: dopo un reset per inattività nessuno tocca nulla da oltre un minuto, e senza
+    // questo l'attrazione coprirebbe il menu appena comparso (due dissolvenze di fila, nessun menu)
+    if (director.world?.holdsIdle || (s === 'start' && this.lastState !== 'start')) this.heldAt = now;
+    this.lastState = s;
+    const idle = Math.min(input.idleSeconds(), (now - (this.heldAt ?? -Infinity)) / 1000);
     if ((s === 'play' || s === 'epilogue') && idle > this.idleReset && !director.busy) {
       director.restart();
     } else if (s === 'start' && idle > this.attractAfter && !director.busy) {

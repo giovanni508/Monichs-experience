@@ -10,6 +10,7 @@
     "preview": "vite preview --port 4173 --strictPort",
     "assets": "node scripts/build-assets.mjs",
     "fiera": "node scripts/serve-dist.mjs",
+    "test:fiera": "node scripts/test-fiera.mjs",
     "trailer": "node scripts/trailer.mjs"
   },
   "dependencies": {

@@ -108,9 +108,10 @@ export class EpilogueWorld extends World {
       const label = textPlane(
         [
           { text: d.name, font: '400 84px Foslin, Montserrat', letterSpacing: 22, color: '#ede2cd', y: 64 },
-          { text: d.ref, font: '500 30px Montserrat', letterSpacing: 9, color: '#d8a28a', y: 136 },
+          // il riferimento si legge anche dal televisore (prima era alto pochi pixel)
+          { text: d.ref, font: '500 44px Montserrat', letterSpacing: 12, color: '#d8a28a', y: 150 },
         ],
-        { width: 1024, height: 190, size: 4.2 },
+        { width: 1024, height: 200, size: 4.2 },
       );
       label.position.set(0, -5.4, 0.1);
       g.add(label);
@@ -156,8 +157,10 @@ export class EpilogueWorld extends World {
   updateCamera(camera) {
     const t = this.time;
     const k = 1 - Math.exp(-t * 0.18);
-    camera.position.set(Math.sin(t * 0.05) * 0.6, 1.6 + Math.sin(t * 0.07) * 0.15, 19 - k * 3);
-    camera.lookAt(0, 0.9, 0);
+    // la camera sta poco sotto gli orologi e guarda appena in basso: la fila e le etichette restano
+    // sopra il pannello con il QR, l'orizzonte del cielo resta dov'era
+    camera.position.set(Math.sin(t * 0.05) * 0.6, 0.1 + Math.sin(t * 0.07) * 0.15, 19 - k * 3);
+    camera.lookAt(0, -0.6, 0);
   }
 
   update(dt) {

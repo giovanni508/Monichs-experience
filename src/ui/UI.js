@@ -131,7 +131,7 @@ export class UI {
     // Epilogo
     this.epilogue = el('div', 'hidden');
     this.epilogue.id = 'epilogue';
-    this.epilogue.innerHTML = `<div class="quote"></div><div class="panel interactive"><div class="claim"><div class="it"></div><div class="en"></div></div><div class="cta"><div class="txt"></div><div class="qr"></div></div><button class="crown-btn restart"><span class="lbl"></span><span class="crown">${pictogramSVG()}</span></button></div>`;
+    this.epilogue.innerHTML = `<div class="quote"></div><div class="panel interactive"><div class="claim"><div class="it"></div><div class="en"></div></div><div class="cta"><div class="words"><div class="txt"></div><div class="url"></div></div><div class="qr"></div></div><button class="crown-btn restart"><span class="lbl"></span><span class="crown">${pictogramSVG()}</span></button></div>`;
     this.epilogue.querySelector('.restart').addEventListener('click', (e) => {
       e.stopPropagation();
       this.emit('restart');
@@ -544,6 +544,13 @@ export class UI {
 
   async setQR(url) {
     const box = this.epilogue.querySelector('.qr');
+    // l'indirizzo scritto accanto al codice, per chi preferisce digitarlo (senza protocollo né www)
+    const shown = this.epilogue.querySelector('.cta .url');
+    try {
+      shown.textContent = url ? new URL(url).hostname.replace(/^www./, '') : '';
+    } catch (e) {
+      shown.textContent = '';
+    }
     if (!url) {
       box.classList.add('none');
       return;
@@ -551,7 +558,7 @@ export class UI {
     try {
       const QR = await import('qrcode');
       const canvas = document.createElement('canvas');
-      await QR.toCanvas(canvas, url, { margin: 0, width: 256, color: { dark: '#000035', light: '#ede2cd' }, errorCorrectionLevel: 'M' });
+      await QR.toCanvas(canvas, url, { margin: 0, width: 640, color: { dark: '#000035', light: '#ede2cd' }, errorCorrectionLevel: 'M' });
       // la libreria imposta dimensioni in pixel inline: il riquadro CSS decide la misura
       canvas.style.width = '100%';
       canvas.style.height = '100%';

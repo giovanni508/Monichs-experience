@@ -116,12 +116,33 @@ Esc libera il mouse e mette in pausa ("Il tempo è sospeso"). Lo stesso accade s
   - **Timbro.** Il tic è morbido e scuro (niente brillantezza oltre 5–6 kHz) e sta sotto la musica.
   - **Abitudine.** Entrando in un mondo si sente bene, poi in circa 13 s scende a fare da sfondo, come un orologio vero che dopo un po' non si nota più. Risale avvicinandosi alla sorgente.
   - **Pianoforte.** Sopra l'ambiente di ogni mondo, menu ed epilogo compresi, suona una melodia di pianoforte molto leggera. È un pianoforte "felt", con i martelletti coperti di feltro, sintetizzato nel browser. Suona poche note lente, in frasi brevi separate da lunghi silenzi, nella tonalità del mondo. La prima frase è sempre il motivo di Monichs, una discesa che si posa. Per far posto al pianoforte, l'ambiente è stato riequilibrato: pad più morbidi e meno note sparse. Il volume si regola in `config.json` → `audio.piano`.
-- **Reset automatico**: dopo 60 s senza input durante il viaggio o nell'epilogo si torna alla schermata iniziale.
+- **Reset automatico**: dopo 60 s senza input durante il viaggio o nell'epilogo si torna alla schermata iniziale. Il menu resta lì per il visitatore successivo; se non arriva nessuno, dopo altri 25 s riparte l'attrazione.
+- **QR dell'epilogo**: porta a https://www.monichs.com. È grande abbastanza per un telefono a un paio di passi dal televisore (circa 8,5 cm di codice su un 55 pollici), con il margine chiaro che serve ai lettori. Accanto c'è l'indirizzo scritto, "monichs.com", per chi preferisce digitarlo.
+- **Reset del personale**: View e Menu del controller tenuti insieme per 2 s riportano alla schermata iniziale da qualunque punto.
 - **Browser senza pointer lock**: alcuni browser non lasciano mai agganciare il mouse (per esempio il browser integrato dell'app Claude). Lì il gioco non resta in pausa: passa al mouse libero, si guarda trascinando sulla scena e un clic interagisce. Tenere premuto senza muovere il mouse resta "tieni premuto". Al ritorno al menu riprova ad agganciare il mouse. In fiera si usa Chrome, che il mouse lo aggancia.
 - **Durata**: circa 7–9 minuti per il percorso completo. Dal menu si può saltare a un capitolo (Il movimento, Celeste, Sunset, Virentia).
 - Nessun testo di debug a schermo. Le statistiche compaiono solo con Shift+D.
 
 Tutti i tempi si regolano in `content/config.json` → `kiosk`.
+
+### Test simulato della fiera
+
+```bash
+npm run test:fiera
+```
+
+Va lanciato con `npm run dev` acceso (porta 5173, oppure `npm run test:fiera -- 5174`). Un visitatore finto, con un controller Xbox simulato, fa tutto il percorso in Chrome senza finestra, in 1920×1080. L'orologio della pagina si può far avanzare, così i timer lunghi della fiera si provano senza aspettarli. I controlli sono 30:
+- schermata iniziale, attrazione dopo l'attesa e ritorno al menu;
+- lingua con Y, pausa con Menu e ripresa con B;
+- la corona caricata tenendo premuto A;
+- i tre mondi dall'hub: portale d'ingresso, una tappa con A e portale d'uscita;
+- la luce verso l'epilogo;
+- il QR, letto dal canvas con un lettore indipendente (`scripts/lib/read-qr.mjs`) e misurato;
+- A sull'epilogo, il menu dei capitoli con croce e A;
+- il reset per inattività e quello del personale;
+- nessun errore nella pagina.
+
+Le catture finiscono nella cartella temporanea di sistema, in `monichs-test-fiera`. Non sostituisce la prova sul MacBook e sul televisore veri (vedi §9).
 
 ## 6. Modificare testi, configurazione e immagini
 
@@ -141,7 +162,7 @@ Tutto è in **`content/texts.json`**. Ogni voce ha la versione italiana e ingles
 
 | Chiave | Cosa regola |
 |---|---|
-| `cta.text`, `cta.qr.url` | **Testo e QR dell'epilogo (ora segnaposto: da sostituire)**. `cta.enabled: false` li nasconde |
+| `cta.text`, `cta.qr.url` | Testo e QR dell'epilogo: il QR porta a https://www.monichs.com (monichs.com rimanda lì). `cta.enabled: false` li nasconde |
 | `kiosk.idleResetSeconds`, `kiosk.attractAfterSeconds`, `kiosk.hintSeconds` | Tempi della modalità fiera |
 | `kiosk.controller` | `true`: i suggerimenti mostrano i pulsanti del controller già dal menu (in fiera si gioca con quello) |
 | `intro.video`, `intro.videoBrightness` | Film di sfondo della schermata iniziale: percorso e luminosità (1 = il film così com'è, 0,9 = appena attenuato). Se il video manca o non parte, compare l'orologio "che respira" |
@@ -217,11 +238,11 @@ Architettura: `ARCHITECTURE.md`.
 ## 9. TODO aperti (da chiarire con il brand)
 
 1. **Riserva di carica**: non indicata (nei documenti compaiono 38 h e 65 h). Segnaposto nel codice: `src/worlds/MovementWorld.js` (TODO in testa al file).
-2. **CTA e QR dell'epilogo**: segnaposto in `content/config.json` (`https://example.com/...`). Da sostituire prima della fiera. Non sono stati inseriti prezzi né date.
+2. **CTA e QR dell'epilogo**: fatto. Il QR porta a https://www.monichs.com (`content/config.json` → `cta.qr.url`). Non sono stati inseriti prezzi né date.
 3. **Calibro**: nella foto del fondello aperto (Virentia, `Vi (4)`) si legge inciso "SW200-1", mentre i testi dicono SW200-2 Élaboré, come da brief.
 4. **Oro rosa (Virentia)**: confermare se lunetta e maglie centrali sono in oro massiccio o trattate. Il testo dice "in oro rosa", come nel brief.
 5. **Finitura del rotore**: le foto mostrano una lavorazione circolare. Il testo parla di Côtes de Genève, come nel brief: confermare la dicitura.
 6. **Colore Celeste**: il brief dice "azzurro polvere"; nelle foto il blu è intenso. I testi seguono il brief.
 7. **Super-LumiNova**: usata la grafia ufficiale del marchio, il brief scrive "SuperLuminova".
 8. **Confronto 1.200 HV**: il valore di circa 200 HV per il 316L non trattato è un riferimento generale di letteratura. Verificarlo con il fornitore se si vuole citarlo.
-9. **Prove finali**: provare sul PC e sul proiettore della fiera (prestazioni, volume) e su Safari.
+9. **Prove finali**: il test simulato (`npm run test:fiera`) passa tutti i 30 controlli. Resta la prova sul MacBook Pro e sul televisore Full HD della fiera: prestazioni, volume, controller vero e lettura del QR con un telefono a 1,5–2 m. Poi una prova su Safari.
