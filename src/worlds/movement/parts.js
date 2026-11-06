@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { Mat, patchCotes, patchCotesCircular, patchPerlage, patchDissolve, addCircularTangents } from '../../gfx/materials.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { Mat, patchCotes, patchCotesCircular, patchPerlage, patchDissolve, patchBrushLines, patchCustom, addCircularTangents } from '../../gfx/materials.js';
 import {
   wheelShape,
   pinionShape,
@@ -165,24 +166,298 @@ export function buildJewels(list) {
 
 // ------------------------------------------------------------------------------- esterno: cassa, corona, asta
 
-export function buildCase({ center, rInner, rOuter, yMin, yMax, gapAngle, gapWidthAngle }) {
+// La carrure: satinata a righe orizzontali come quella vera, con uno smusso lucido sugli spigoli
+// esterni in alto e in basso. Il varco per il tubo della corona c'è solo nella fascia gapY: sopra e
+// sotto la parete gira intera; il varco lo chiude buildCaseFlank.
+export function buildCase({ center, rInner, rOuter, yMin, yMax, gapAngle, gapWidthAngle, gapY = [yMin, yMax] }) {
   // satinata più fine: le luci e i pannelli dell'ambiente non vi lasciano macchie tonde abbaglianti
   const mat = Mat.steelBrushed({ color: 0xbfc3c8, roughness: 0.46, side: THREE.DoubleSide });
-  const g = new THREE.Group();
-  const prof = [
-    new THREE.Vector2(rInner, yMin),
-    new THREE.Vector2(rOuter, yMin),
-    new THREE.Vector2(rOuter, yMax),
-    new THREE.Vector2(rInner, yMax),
-    new THREE.Vector2(rInner, yMin),
-  ];
+  patchBrushLines(mat, { axis: 'y', freq: 9, tone: 0.03, rough: 0.14, strength: 0.03 });
+  const polish = Mat.steelPolished({ color: 0xdfe1e4, roughness: 0.12, side: THREE.DoubleSide });
+  // gli smussi guardano in alto e specchierebbero il cielo notturno sopra la cassa (fessure scure):
+  // come sotto la softbox di uno studio, le superfici lucide rivolte in su prendono un riflesso chiaro
+  patchCustom(polish, {
+    key: 'studio-top',
+    fragEmissive: `{
+    vec3 stN = inverseTransformDirection(normal, viewMatrix);
+    totalEmissiveRadiance += diffuseColor.rgb * 0.42 * smoothstep(0.2, 0.85, stN.y);
+  }`,
+  });
+  const c = 1.4;
+  const [g0, g1] = gapY;
+  const full = [0, TAU];
   // LatheGeometry: phi parte dall'asse +Z e ruota verso +X
-  const start = gapAngle + gapWidthAngle / 2;
-  const geo = new THREE.LatheGeometry(prof, 180, start, TAU - gapWidthAngle);
-  const wall = new THREE.Mesh(geo, mat);
-  wall.position.set(center.x, 0, center.y);
-  g.add(wall);
+  const open = [gapAngle + gapWidthAngle / 2, TAU - gapWidthAngle];
+  // una faccia per tratto di profilo: normali piatte, spigoli netti
+  const band = (a, b, [start, len]) => new THREE.LatheGeometry([new THREE.Vector2(...a), new THREE.Vector2(...b)], 180, start, len);
+  const brushed = [
+    band([rInner, yMin], [rOuter - c, yMin], full),
+    band([rOuter, yMin + c], [rOuter, g0], full),
+    band([rInner, g0], [rInner, yMin], full),
+    band([rOuter, g0], [rOuter, g1], open),
+    band([rInner, g1], [rInner, g0], open),
+    band([rOuter, g1], [rOuter, yMax - c], full),
+    band([rOuter - c, yMax], [rInner, yMax], full),
+    band([rInner, yMax], [rInner, g1], full),
+  ];
+  const polished = [band([rOuter - c, yMin], [rOuter, yMin + c], full), band([rOuter, yMax - c], [rOuter - c, yMax], full)];
+  const g = new THREE.Group();
+  for (const [geos, m] of [[brushed, mat], [polished, polish]]) {
+    const mesh = new THREE.Mesh(mergeGeometries(geos), m);
+    mesh.position.set(center.x, 0, center.y);
+    g.add(mesh);
+  }
   g.userData.material = mat;
+  g.userData.polish = polish;
+  return g;
+}
+
+// ------------------------------------------------------------------------- il fianco dal lato corona
+
+// spezza i triangoli con un lato più lungo di maxLen: avvolti sul cilindro, seguono la curva
+function subdivide(geo, maxLen) {
+  const src = geo.index ? geo.toNonIndexed() : geo;
+  const names = Object.keys(src.attributes);
+  const attrs = names.map((n) => src.attributes[n]);
+  const pi = names.indexOf('position');
+  const total = src.attributes.position.count;
+  const groups = src.groups.length ? src.groups : [{ start: 0, count: total, materialIndex: 0 }];
+  const out = names.map(() => []);
+  const outGroups = [];
+  let count = 0;
+  const vert = (i) => attrs.map((a) => Array.from({ length: a.itemSize }, (_, k) => a.array[i * a.itemSize + k]));
+  const mid = (a, b) => a.map((v, j) => v.map((x, k) => (x + b[j][k]) / 2));
+  const dist = (a, b) => Math.hypot(a[pi][0] - b[pi][0], a[pi][1] - b[pi][1], a[pi][2] - b[pi][2]);
+  const push = (v) => {
+    v.forEach((arr, j) => out[j].push(...arr));
+    count++;
+  };
+  const tri = (a, b, c, depth = 0) => {
+    const ab = dist(a, b);
+    const bc = dist(b, c);
+    const ca = dist(c, a);
+    const m = Math.max(ab, bc, ca);
+    if (m <= maxLen || depth > 14) {
+      push(a);
+      push(b);
+      push(c);
+    } else if (m === ab) {
+      const d = mid(a, b);
+      tri(a, d, c, depth + 1);
+      tri(d, b, c, depth + 1);
+    } else if (m === bc) {
+      const d = mid(b, c);
+      tri(a, b, d, depth + 1);
+      tri(a, d, c, depth + 1);
+    } else {
+      const d = mid(c, a);
+      tri(a, b, d, depth + 1);
+      tri(d, b, c, depth + 1);
+    }
+  };
+  for (const gr of groups) {
+    const start = count;
+    const end = Math.min(gr.start + gr.count, total);
+    for (let i = gr.start; i + 2 < end; i += 3) tri(vert(i), vert(i + 1), vert(i + 2));
+    outGroups.push({ start, count: count - start, materialIndex: gr.materialIndex ?? 0 });
+  }
+  const res = new THREE.BufferGeometry();
+  names.forEach((n, j) => res.setAttribute(n, new THREE.Float32BufferAttribute(out[j], attrs[j].itemSize)));
+  outGroups.forEach((gr) => res.addGroup(gr.start, gr.count, gr.materialIndex));
+  return res;
+}
+
+// una geometria non indicizzata per ogni gruppo di materiali (per ExtrudeGeometry: 0 facce, 1 fianchi e smussi)
+function splitGroups(geo) {
+  const src = geo.index ? geo.toNonIndexed() : geo;
+  if (!src.groups.length) return [src];
+  const parts = [];
+  for (const gr of src.groups) {
+    const part = new THREE.BufferGeometry();
+    for (const [n, a] of Object.entries(src.attributes)) {
+      part.setAttribute(n, new THREE.Float32BufferAttribute(a.array.slice(gr.start * a.itemSize, (gr.start + gr.count) * a.itemSize), a.itemSize));
+    }
+    parts[gr.materialIndex ?? 0] = part;
+  }
+  return parts;
+}
+
+/**
+ * Il fianco della cassa dal lato della corona, come nella foto di profilo della Delta (Modelli/Celeste,
+ * "MNC_I25_Ed_Ce (12)"): un inserto orizzontale satinato con le punte tagliate a V e gli smussi lucidi,
+ * due finestre sabbiate, quattro viti a taglio e, al centro, la tasca in cui sta la corona (fondo
+ * spazzolato in verticale). Misure dalla foto, in diametri della corona. Le forme si disegnano
+ * srotolate (x = arco sulla parete a partire dal varco, y = altezza, z = sporgenza dalla parete) e poi
+ * si avvolgono sul cilindro. Il tassello curvo con il foro del tubo chiude il varco della parete.
+ */
+export function buildCaseFlank({ center, rOuter, rInner, gapWidthAngle, gapY, crownY, tubeR, caseMaterial, polishMaterial }) {
+  const R = rOuter;
+  const cx = center.x;
+  const cz = center.y;
+  // la corona sta su x = 0: il suo arco sulla parete
+  const sc = R * Math.atan2(-cx, Math.sqrt(R * R - cx * cx));
+  const V2 = (x, y) => new THREE.Vector2(x, y);
+  const wrapGeo = (geo, maxLen = 1.4) => {
+    const out = subdivide(geo, maxLen);
+    const p = out.attributes.position;
+    const n = out.attributes.normal;
+    for (let i = 0; i < p.count; i++) {
+      const th = p.getX(i) / R;
+      const sn = Math.sin(th);
+      const cs = Math.cos(th);
+      const r = R + p.getZ(i);
+      const y = p.getY(i);
+      p.setXYZ(i, cx + r * sn, y, cz + r * cs);
+      // asse x → tangente (cos, 0, −sin), asse z → radiale (sin, 0, cos)
+      const nx = n.getX(i);
+      const nz = n.getZ(i);
+      n.setXYZ(i, nx * cs + nz * sn, n.getY(i), -nx * sn + nz * cs);
+    }
+    return out;
+  };
+  // un punto sulla parete e la rotazione che porta +Z sulla normale della parete
+  const place = (obj, s, y, d) => {
+    const th = s / R;
+    obj.position.set(cx + (R + d) * Math.sin(th), y, cz + (R + d) * Math.cos(th));
+    obj.rotation.y = th;
+    obj.updateMatrix();
+    return obj;
+  };
+
+  const face = Mat.steelBrushed({ color: 0xc8cbd0, roughness: 0.3, side: THREE.DoubleSide });
+  patchBrushLines(face, { axis: 'y', freq: 11, tone: 0.04, rough: 0.18, strength: 0.035 });
+  const pocket = Mat.steelBrushed({ color: 0xb4b8be, roughness: 0.36, side: THREE.DoubleSide });
+  patchBrushLines(pocket, { axis: 'x', freq: 11, tone: 0.04, rough: 0.18, strength: 0.035 });
+  const sand = new THREE.MeshStandardMaterial({ color: 0xd2d5d9, metalness: 1, roughness: 0.6, side: THREE.DoubleSide });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x141518, metalness: 0.7, roughness: 0.55 });
+  const polish = polishMaterial;
+  const bins = new Map([[caseMaterial, []], [face, []], [pocket, []], [sand, []], [dark, []], [polish, []]]);
+  const add = (geo, mat) => bins.get(mat).push(geo.index ? geo.toNonIndexed() : geo);
+  const addExtrude = (geo, capMat, sideMat) => {
+    const [caps, sides] = splitGroups(geo);
+    if (caps) add(caps, capMat);
+    if (sides) add(sides, sideMat);
+  };
+
+  // tassello curvo con il foro del tubo (appena più largo del tubo, così le superfici non si sovrappongono)
+  const [g0, g1] = gapY;
+  const S0 = (R * gapWidthAngle) / 2;
+  const plug = new THREE.Shape([V2(-S0, g0), V2(S0, g0), V2(S0, g1), V2(-S0, g1)]);
+  const plugHole = new THREE.Path();
+  plugHole.absarc(sc, crownY, tubeR + 0.15, 0, TAU, true);
+  plug.holes.push(plugHole);
+  const plugGeo = new THREE.ExtrudeGeometry(plug, { depth: R - rInner, bevelEnabled: false, curveSegments: 40 });
+  plugGeo.translate(0, 0, -(R - rInner));
+  addExtrude(wrapGeo(plugGeo), caseMaterial, polish);
+
+  // fondo della tasca della corona: spazzolato in verticale, tra le due metà dell'inserto
+  const PK = 11.5; // metà larghezza della tasca sulla faccia dell'inserto (alla base 9,3: la corona, r 9, ci sta)
+  const BEV = 1.6;
+  const yb = -0.5;
+  const yt = 9.0;
+  // alta quanto il varco (contiene il foro del tubo): sopra e sotto la fascia interrompe gli smussi, come sulla Delta
+  const pk = new THREE.Shape([V2(sc - PK + 0.4, g0), V2(sc + PK - 0.4, g0), V2(sc + PK - 0.4, g1), V2(sc - PK + 0.4, g1)]);
+  const pkHole = new THREE.Path();
+  pkHole.absarc(sc, crownY, tubeR + 0.15, 0, TAU, true);
+  pk.holes.push(pkHole);
+  const pkGeo = new THREE.ShapeGeometry(pk, 40);
+  pkGeo.translate(0, 0, 0.03);
+  add(wrapGeo(pkGeo), pocket);
+
+  // le due metà dell'inserto: faccia satinata, smussi lucidi tutto attorno, punta a V verso l'esterno
+  const half = (k) => {
+    const P = (s, y) => V2(sc + k * s, y);
+    const pts = [P(PK, yb), P(52, yb), P(55, 3.6), P(49, yt), P(PK, yt)];
+    return new THREE.Shape(k > 0 ? pts : pts.reverse());
+  };
+  const D_FACE = 2.0;
+  for (const k of [1, -1]) {
+    const geo = new THREE.ExtrudeGeometry(half(k), { depth: 1.0, bevelEnabled: true, bevelThickness: 1.2, bevelSize: BEV, bevelSegments: 1, curveSegments: 8 });
+    geo.translate(0, 0, D_FACE - 2.2);
+    addExtrude(wrapGeo(geo), face, polish);
+  }
+
+  // finestre sabbiate tra le viti, con le estremità ad arco attorno alle teste e un filo lucido
+  const SCREW_S = [16.2, 47];
+  const yc = (yb + yt) / 2;
+  const wy0 = yb + 1.2;
+  const wy1 = yt - 1.2;
+  const ra = 4.0;
+  const phi = Math.asin((wy1 - yc) / ra);
+  for (const k of [1, -1]) {
+    const w = new THREE.Shape();
+    const a = SCREW_S[0];
+    const b = SCREW_S[1];
+    const dx = ra * Math.cos(phi);
+    w.moveTo(a + dx, wy1);
+    w.lineTo(b - dx, wy1);
+    w.absarc(b, yc, ra, Math.PI - phi, Math.PI + phi, false);
+    w.lineTo(a + dx, wy0);
+    w.absarc(a, yc, ra, -phi, phi, false);
+    const geo = new THREE.ExtrudeGeometry(w, { depth: 0.04, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.22, bevelSegments: 1, curveSegments: 14 });
+    // sul lato sinistro la forma si specchia (scala −1 su x rovescia le facce: si rigirano)
+    if (k < 0) {
+      geo.scale(-1, 1, 1);
+      const idx = geo.attributes.position;
+      for (let i = 0; i < idx.count; i += 3) {
+        for (const attr of Object.values(geo.attributes)) {
+          for (let c = 0; c < attr.itemSize; c++) {
+            const t = attr.array[(i + 1) * attr.itemSize + c];
+            attr.array[(i + 1) * attr.itemSize + c] = attr.array[(i + 2) * attr.itemSize + c];
+            attr.array[(i + 2) * attr.itemSize + c] = t;
+          }
+        }
+      }
+    }
+    geo.translate(sc, 0, D_FACE + 0.05);
+    addExtrude(wrapGeo(geo, 1.2), sand, polish);
+  }
+
+  // viti a taglio: testa bassa lucida con smusso e cupola appena accennata, taglio scuro appena
+  // storto (più corto del diametro), l'incavo scuro attorno
+  const SR = 2.15;
+  const SH = 0.75;
+  // fianco e smusso con normali proprie (spigoli netti), cupola morbida: una testa di vite, non una sfera
+  const domePts = [];
+  for (let j = 0; j <= 8; j++) {
+    const a = (j / 8) * (Math.PI / 2);
+    domePts.push(V2(Math.max(0.001, SR * 0.88 * Math.cos(a)), SH * 0.72 + SH * 0.28 * Math.sin(a)));
+  }
+  const head = mergeGeometries([
+    new THREE.LatheGeometry([V2(SR, -0.2), V2(SR, SH * 0.5)], 48),
+    new THREE.LatheGeometry([V2(SR, SH * 0.5), V2(SR * 0.88, SH * 0.72)], 48),
+    new THREE.LatheGeometry(domePts.reverse(), 48),
+  ]).rotateX(Math.PI / 2);
+  const slot = new THREE.BoxGeometry(SR * 1.8, 0.5, 0.34).translate(0, 0, SH - 0.15);
+  const sink = new THREE.RingGeometry(2.25, 2.75, 40);
+  const tilt = [0.12, -0.08, 0.2, -0.15];
+  let i = 0;
+  for (const k of [1, -1]) {
+    for (const s of SCREW_S) {
+      const o = place(new THREE.Object3D(), sc + k * s, yc, D_FACE);
+      const spin = new THREE.Matrix4().makeRotationZ(tilt[i++]);
+      const m = o.matrix.clone().multiply(spin);
+      add(head.clone().applyMatrix4(m), polish);
+      add(slot.clone().applyMatrix4(m), dark);
+      const ms = place(new THREE.Object3D(), sc + k * s, yc, D_FACE + 0.02).matrix;
+      add(sink.clone().applyMatrix4(ms), dark);
+    }
+  }
+
+  const g = new THREE.Group();
+  for (const [mat, geos] of bins) {
+    if (!geos.length) continue;
+    const merged = mergeGeometries(geos.map((q) => {
+      // stessi attributi per tutti (le viti e gli anelli non hanno altro)
+      const out = new THREE.BufferGeometry();
+      for (const n of ['position', 'normal', 'uv']) if (q.attributes[n]) out.setAttribute(n, q.attributes[n]);
+      if (!out.attributes.uv) out.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(out.attributes.position.count * 2), 2));
+      return out;
+    }));
+    const mesh = new THREE.Mesh(merged, mat);
+    mesh.userData.noCastShadow = true;
+    g.add(mesh);
+  }
   return g;
 }
 

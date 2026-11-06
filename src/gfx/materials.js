@@ -94,6 +94,34 @@ export function patchCustom(material, { key, uniforms = {}, fragDecl = '', fragR
 }
 
 /**
+ * Satinatura a righe dritte (carrure, inserti della cassa): righe sottili che cambiano lungo l'asse
+ * scelto dell'oggetto ('y' = righe orizzontali su una parete verticale, 'x' = righe verticali). Ogni
+ * riga ha riflettanza, ruvidità e inclinazione appena diverse; da lontano svaniscono nella satinatura
+ * media invece di sfarfallare. Non tocca le facce perpendicolari all'asse (lì le righe non ci sono).
+ */
+export function patchBrushLines(material, { axis = 'y', freq = 6, tone = 0.05, rough = 0.22, strength = 0.08 } = {}) {
+  const a = axis === 'x' ? 'x' : 'y';
+  const T = a === 'x' ? 'vTX' : 'vTY';
+  const f = (v) => v.toFixed(4);
+  return patchCustom(material, {
+    key: `brush-${a}-${freq}-${tone}-${rough}-${strength}`,
+    fragDecl: `float brH(float x) { return fract(sin(x * 127.1) * 43758.5453); }
+float brLines(float f) {
+  float a = mix(brH(floor(f)), brH(floor(f) + 1.0), smoothstep(0.0, 1.0, fract(f)));
+  float g = f * 3.7;
+  float b = mix(brH(floor(g) + 31.0), brH(floor(g) + 32.0), smoothstep(0.0, 1.0, fract(g)));
+  return a * 0.65 + b * 0.35;
+}`,
+    fragRough: `float brF = vObjPos.${a} * ${f(freq)};
+  float brV = (brLines(brF) * 2.0 - 1.0) * (1.0 - smoothstep(0.2, 0.55, fwidth(brF)));
+  brV *= 1.0 - step(0.6, abs(vObjNormal.${a}));
+  diffuseColor.rgb *= 1.0 + brV * ${f(tone)};
+  roughnessFactor = clamp(roughnessFactor * (1.0 + brV * ${f(rough)}), 0.04, 1.0);`,
+    fragNormal: `normal = normalize(normal + ${T} * brV * ${f(strength)});`,
+  });
+}
+
+/**
  * Côtes de Genève rettilinee: bande parallele all'asse Z dell'oggetto, larghe `width`.
  * Ogni banda riflette la luce come un'onda morbida; finissime striature ad arco.
  */

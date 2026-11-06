@@ -272,11 +272,14 @@ export class MovementWorld extends World {
     const s = this.scene;
     // piastra (perlage)
     s.add(P.buildPlate({ center: L.C, radius: 66, y: L.plateY }));
-    // cassa con il tubo della corona
-    const caseGroup = P.buildCase({ center: L.C, rInner: 70, rOuter: 78, yMin: -12, yMax: 32, gapAngle: 0, gapWidthAngle: 0.2 });
+    // cassa con il tubo della corona: il varco nella parete c'è solo all'altezza dell'inserto del fianco
+    const CASE = { center: L.C, rInner: 70, rOuter: 78, yMin: -12, yMax: 32, gapAngle: 0, gapWidthAngle: 0.2, gapY: [-2.7, 11.2] };
+    const caseGroup = P.buildCase(CASE);
     caseGroup.traverse((o) => (o.userData.noCastShadow = true));
     s.add(caseGroup);
-    const caseMat = caseGroup.userData.material;
+    // il fianco dal lato della corona, come sulla Delta vera: inserto con smussi lucidi, finestre
+    // sabbiate, quattro viti, la tasca della corona; il tassello curvo con il foro chiude il varco
+    s.add(P.buildCaseFlank({ ...CASE, crownY: L.stemY, tubeR: TUBE_R, caseMaterial: caseGroup.userData.material, polishMaterial: caseGroup.userData.polish }));
     const zIn = L.C.y + 70;
     const zOut = L.C.y + 78;
     this.tubeZ = [zIn, zOut];
@@ -287,22 +290,6 @@ export class MovementWorld extends World {
     const gasket = new THREE.Mesh(new THREE.TorusGeometry(TUBE_R - 0.4, 0.45, 12, 72), new THREE.MeshStandardMaterial({ color: 0x0c0c0e, roughness: 0.75 }));
     gasket.position.set(0, L.stemY, (zIn + zOut) / 2 + 1.5);
     s.add(gasket);
-    // tassello della carrure con il foro del tubo (chiude il varco lasciato nella parete)
-    const hw = TUBE_R + 2.2;
-    const slab = new THREE.Shape([
-      new THREE.Vector2(-hw, -12),
-      new THREE.Vector2(hw, -12),
-      new THREE.Vector2(hw, 32),
-      new THREE.Vector2(-hw, 32),
-    ]);
-    const holePath = new THREE.Path();
-    holePath.absarc(0, L.stemY, TUBE_R, 0, Math.PI * 2, true);
-    slab.holes.push(holePath);
-    const slabGeo = new THREE.ExtrudeGeometry(slab, { depth: zOut - zIn, bevelEnabled: false, curveSegments: 32 });
-    const slabMesh = new THREE.Mesh(slabGeo, caseMat);
-    slabMesh.position.z = zIn;
-    slabMesh.userData.noCastShadow = true;
-    s.add(slabMesh);
 
     // ponti (Côtes de Genève, smussi lucidati)
     this.bridgeMat = P.bridgeMaterial();

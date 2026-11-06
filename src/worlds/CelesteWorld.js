@@ -81,7 +81,9 @@ export class CelesteWorld extends World {
     this.peakDay = { uHorizon: col(0xd3e0ec), uHorizonCool: col(0xc6d6ea), uMist: col(0xeef4fb), uSnow: col(0xf4f8ff), uRim: col(0xfff4e0), rock: [col(0xb8cce6), col(0x7e98c4)] };
     this.peakNight = { uHorizon: col(0x0d1640), uHorizonCool: col(0x0b1236), uMist: col(0x16245a), uSnow: col(0x5a6aa8), uRim: col(0x2a3a70), rock: [col(0x16224c), col(0x0e1838)] };
     this.noise = noiseTexture(256, 5, 7);
-    this.clouds = new CloudSea(this.noise, { y: -70 });
+    // il mare di nuvole sta poco sotto la terrazza: oltre il bordo si vedono i cumuli in rilievo (più in
+    // basso la terrazza lo nascondeva fino a 900 unità, dove sfumava già nella foschia: una fascia bianca)
+    this.clouds = new CloudSea(this.noise, { y: -24 });
     s.add(this.clouds.mesh);
     this.buildCloudPuffs();
 
@@ -153,15 +155,20 @@ export class CelesteWorld extends World {
     tex.colorSpace = THREE.SRGBColorSpace;
     this.puffs = [];
     const rand2 = mulberry32(5);
-    for (let i = 0; i < 40; i++) {
-      const mat = new THREE.SpriteMaterial({ map: tex, color: 0xffffff, transparent: true, opacity: 0.62, depthWrite: false, fog: true });
+    // cime di cumuli lungo l'orizzonte, sopra il mare di nuvole: dalla terrazza si vede solo una fascia
+    // sottile sotto l'orizzonte, ed è lì che il mare deve avere volume. Lontani (380–1580 unità), più
+    // grandi quanto più sono lontani, con la sommità appena sotto gli occhi: mai una macchia vicina
+    for (let i = 0; i < 46; i++) {
+      const mat = new THREE.SpriteMaterial({ map: tex, color: 0xffffff, transparent: true, opacity: 0.7, depthWrite: false, fog: true });
       const sp = new THREE.Sprite(mat);
       const a = rand2() * Math.PI * 2;
-      const r = 140 + rand2() * 760;
-      sp.position.set(Math.cos(a) * r, -58 + rand2() * 44, -100 + Math.sin(a) * r);
-      const sc = 70 + rand2() * 150;
+      const r = 380 + rand2() * 1200;
+      const sc = 110 + r * 0.16 + rand2() * 90;
+      const top = -18 + rand2() * 14; // la parte visibile arriva a circa un terzo della sprite sopra il centro
+      sp.position.set(Math.cos(a) * r, top - sc * 0.33, -100 + Math.sin(a) * r);
       sp.scale.set(sc * 1.7, sc, 1);
-      sp.userData.drift = 0.5 + rand2() * 1.2;
+      // deriva lenta in cerchio attorno alla terrazza, a distanza costante
+      sp.userData.orbit = { a, r, w: (0.5 + rand2() * 1.2) / r };
       this.scene.add(sp);
       this.puffs.push(sp);
     }
@@ -565,8 +572,10 @@ export class CelesteWorld extends World {
     this.updateScratch(dt);
     this.updateNight(dt);
     this.puffs.forEach((p) => {
-      p.position.x += p.userData.drift * dt;
-      if (p.position.x > 400) p.position.x = -400;
+      const o = p.userData.orbit;
+      o.a += o.w * dt;
+      p.position.x = Math.cos(o.a) * o.r;
+      p.position.z = -100 + Math.sin(o.a) * o.r;
     });
     faceViewer(this.monolith, cam.position, 1 - Math.exp(-dt * 1.2)); // il quadrante guarda chi osserva
     // gocce: scivolano lungo il fianco destro della cassa (20,55 mm dal centro) e ricominciano

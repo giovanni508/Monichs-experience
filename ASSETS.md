@@ -36,7 +36,7 @@ Palette dalle guidelines: Navy/Midnight Blue `#000035` (tinte `#282b54`, `#4f557
 | `MNC_I25_Ed_Ce (7).png` | Chiusura del bracciale, sketch tecnico sullo sfondo ("MOLLA") | Chiusura | 8640×7896 | Card "Hard coating" |
 | `MNC_I25_Ed_Ce (8).png` | Orologio tra le dita | Insieme | 8640×5760 | Non usato |
 | `MNC_I25_Ed_Ce (9).png` | Al polso, luce di tramonto | Insieme | 8640×5760 | Non usato |
-| `MNC_I25_Ed_Ce (12).png` | Profilo laterale B/N tra le dita: carrure, viti, corona | Profilo cassa (spessore) | 8640×6965 | Card "La corona e l'asta di carica" (Parte 1) |
+| `MNC_I25_Ed_Ce (12).png` | Profilo laterale B/N tra le dita: carrure, viti, corona | Profilo cassa (spessore); disegno del fianco della cassa nel movimento (inserto, finestre sabbiate, viti, tasca della corona) | 8640×6965 | Card "La corona e l'asta di carica" (Parte 1) |
 | `MNC_I25_Ed_Ce (19).png` | Quadrante su supporto da banco, lente, campana di vetro | Quadrante (atelier) | 8640×5760 | Non usato |
 
 ## 3. Sunset (Ref. M-002) — `Modelli/Sunset/`
