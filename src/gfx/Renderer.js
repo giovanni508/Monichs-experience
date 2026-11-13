@@ -60,17 +60,34 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   }
 }
 
-// Livelli di qualità: il QualityManager scende/sale in base al tempo di frame medio.
+// Livelli di qualità (la qualità adattiva è in updateQuality / tryUpgrade).
+// pixelRatio: risoluzione rispetto ai pixel CSS; maxPixels: tetto dei pixel disegnati, in milioni (uno
+// schermo Retina o un televisore 4K non moltiplicano il lavoro: 2,1 milioni = Full HD)
 // ao: occlusione ambientale (0 spenta, 1 a mezza risoluzione, 2 piena)
 // ssr: riflessi con ray tracing nello spazio dello schermo (0 spenti, 1 a mezza risoluzione, 2 piena);
 // ssrSteps: passi massimi di ogni raggio
 // shadow: lato della mappa d'ombra del sole. Antialiasing: SMAA (l'MSAA non va d'accordo con l'AO).
+// Bloom e SMAA sono uguali a tutti i livelli: cambiarli ricompila i loro shader, cioè uno scatto.
 const LEVELS = [
-  { name: 'low', pixelRatio: 0.75, bloomLevels: 5, ao: 0, ssr: 0, ssrSteps: 0, shadow: 1024, dof: false, smaa: SMAAPreset.LOW },
-  { name: 'medium', pixelRatio: 1.0, bloomLevels: 6, ao: 1, ssr: 1, ssrSteps: 40, shadow: 2048, dof: false, smaa: SMAAPreset.MEDIUM },
-  { name: 'high', pixelRatio: 1.0, bloomLevels: 7, ao: 1, ssr: 2, ssrSteps: 80, shadow: 2048, dof: true, smaa: SMAAPreset.HIGH },
-  { name: 'ultra', pixelRatio: 1.5, bloomLevels: 8, ao: 2, ssr: 2, ssrSteps: 96, shadow: 4096, dof: true, smaa: SMAAPreset.ULTRA },
+  { name: 'low', pixelRatio: 0.75, maxPixels: 1.2, ao: 0, ssr: 0, ssrSteps: 0, shadow: 1024, dof: false },
+  { name: 'medium', pixelRatio: 1.0, maxPixels: 2.1, ao: 1, ssr: 1, ssrSteps: 40, shadow: 2048, dof: false },
+  { name: 'high', pixelRatio: 1.0, maxPixels: 2.1, ao: 1, ssr: 2, ssrSteps: 80, shadow: 2048, dof: true },
+  { name: 'ultra', pixelRatio: 1.5, maxPixels: 4.7, ao: 2, ssr: 2, ssrSteps: 96, shadow: 4096, dof: true },
 ];
+const BLOOM_LEVELS = 7;
+const SMAA_PRESET = SMAAPreset.HIGH;
+
+// Qualità adattiva: un fotogramma è "in ritardo" se arriva dopo più di 22 ms (ha perso almeno un giro
+// dello schermo a 60 Hz). Si scende se in ritardo è più di un fotogramma su quattro negli ultimi ~1,5 s
+// (gli scatti isolati, come la raccolta della memoria, non bastano); si sale solo se nel mondo appena
+// lasciato quasi nessun fotogramma era in ritardo, dopo almeno 8 s di gioco.
+const LATE_FRAME = 0.022;
+const DOWN_LATE_SHARE = 0.25;
+const UP_LATE_SHARE = 0.02;
+const UP_MIN_SECONDS = 8;
+
+// Sul Mac (scheda video integrata, anche nei MacBook Pro) la qualità automatica non va oltre "high"
+const IS_MAC = typeof navigator !== 'undefined' && /Macintosh|Mac OS X/.test(navigator.userAgent);
 
 // Occlusione ambientale e riflessi: valori di base, ogni mondo li adatta alla sua scala (world.post)
 const DEFAULT_AO = { radius: 2.5, falloff: 1.0, intensity: 2.2, color: 0x000000 };
@@ -95,7 +112,7 @@ const DEFAULT_POST = {
 };
 
 export class Renderer {
-  constructor(canvas, { quality = 'auto', preserve = false } = {}) {
+  constructor(canvas, { quality = 'auto', maxAuto = null, preserve = false } = {}) {
     this.canvas = canvas;
     const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -121,10 +138,13 @@ export class Renderer {
     const maxDpr = Math.min(window.devicePixelRatio || 1, 2);
     this.maxPixelRatio = maxDpr;
     this.autoQuality = quality === 'auto';
-    // in automatico si parte da "medium" (senza MSAA): primo impatto fluido anche su GPU integrate,
-    // poi la qualità sale da sola in pochi secondi se c'è margine
+    // in automatico si parte da "medium": primo impatto fluido anche su GPU integrate; la qualità sale
+    // poi da sola, a schermo nero tra un mondo e l'altro, se c'è margine (mai oltre maxAutoLevel)
     const startLevel = quality === 'auto' ? 1 : Math.max(0, LEVELS.findIndex((l) => l.name === quality));
     this.levelIndex = startLevel;
+    const maxAutoIndex = LEVELS.findIndex((l) => l.name === (maxAuto || (IS_MAC ? 'high' : 'ultra')));
+    this.maxAutoLevel = maxAutoIndex < 0 ? LEVELS.length - 1 : maxAutoIndex;
+    this.qualityLog = []; // cambi di livello della qualità automatica (per la verifica: monichs.renderer.qualityLog)
 
     const level = LEVELS[this.levelIndex];
     this.composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
@@ -146,7 +166,7 @@ export class Renderer {
       luminanceSmoothing: DEFAULT_POST.bloomSmoothing,
       intensity: DEFAULT_POST.bloom,
       radius: DEFAULT_POST.bloomRadius,
-      levels: level.bloomLevels,
+      levels: BLOOM_LEVELS,
     });
     this.grade = new GradeEffect();
     this.tone = new ToneMappingEffect({ mode: DEFAULT_POST.toneMapping });
@@ -154,7 +174,7 @@ export class Renderer {
     this.noise = new NoiseEffect({ premultiply: false, blendFunction: BlendFunction.OVERLAY });
     this.noise.blendMode.opacity.value = DEFAULT_POST.grain;
     // antialiasing sull'immagine già tonemappata, prima di vignettatura e grana
-    this.smaa = new SMAAEffect({ preset: level.smaa, edgeDetectionMode: EdgeDetectionMode.COLOR });
+    this.smaa = new SMAAEffect({ preset: SMAA_PRESET, edgeDetectionMode: EdgeDetectionMode.COLOR });
     this.effectPass = new EffectPass(this.camera, this.bloom, this.grade, this.tone);
     this.finalPass = new EffectPass(this.camera, this.smaa, this.vignette, this.noise);
     this.sanitizePass = new EffectPass(this.camera, new SanitizeEffect());
@@ -184,6 +204,8 @@ export class Renderer {
 
     this.frameTimes = [];
     this.qualityCooldown = 3;
+    this.levelBlocked = []; // livelli abbandonati perché lenti: non si riprovano più (niente altalena)
+    this.worldStats = { time: 0, frames: 0, late: 0 }; // fotogrammi del mondo in corso, per tryUpgrade
     this.width = 1;
     this.height = 1;
     this.resize();
@@ -199,7 +221,11 @@ export class Renderer {
     const h = Math.max(1, window.innerHeight);
     this.width = w;
     this.height = h;
-    const pr = Math.min(this.level.pixelRatio, this.maxPixelRatio);
+    // risoluzione del livello, ma entro il suo tetto di pixel (su un televisore 4K o su un Retina il
+    // "medium" disegna comunque circa un Full HD, poi il browser lo ingrandisce)
+    const budget = Math.sqrt((this.level.maxPixels * 1e6) / (w * h));
+    const pr = Math.max(0.5, Math.min(this.level.pixelRatio, this.maxPixelRatio, budget));
+    this.pixelRatio = pr;
     this.renderer.setPixelRatio(pr);
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h, false);
@@ -217,8 +243,6 @@ export class Renderer {
 
   applyLevel() {
     const level = this.level;
-    this.bloom.mipmapBlurPass.levels = level.bloomLevels;
-    this.smaa.applyPreset(level.smaa);
     this.aoPass.enabled = level.ao > 0;
     if (level.ao > 0 && this.aoPass.configuration.halfRes !== (level.ao === 1)) this.aoPass.configuration.halfRes = level.ao === 1;
     this.ssrPass.enabled = level.ssr > 0 && this.ssrEnabledByWorld;
@@ -234,28 +258,50 @@ export class Renderer {
     this.ssrPass.focusProbe = on;
   }
 
-  // Abbassa la qualità se il frame medio supera ~18,5 ms (sotto i 54 fps); la rialza con margine
-  // (sotto i 13,3 ms), fino a "ultra". Un livello appena abbandonato perché lento non si riprova
-  // per un po': niente altalena tra due livelli.
+  // Qualità adattiva, durante il gioco: si scende di un livello se troppi fotogrammi arrivano in
+  // ritardo (vedi LATE_FRAME). Il livello abbandonato non si riprova più: ogni cambio costa uno scatto,
+  // e l'altalena tra due livelli era proprio uno scatto ogni minuto. Salire si sale solo in tryUpgrade.
   updateQuality(dt) {
     if (!this.autoQuality) return;
-    this.frameTimes.push(dt);
-    if (this.frameTimes.length > 90) this.frameTimes.shift();
     this.qualityCooldown -= dt;
-    this.qualityClock = (this.qualityClock || 0) + dt;
-    if (this.qualityCooldown > 0 || this.frameTimes.length < 60) return;
-    const avg = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
-    this.levelBlockedUntil ||= [];
-    if (avg > 1 / 54 && this.levelIndex > 0) {
-      this.levelBlockedUntil[this.levelIndex] = this.qualityClock + 45;
+    if (this.qualityCooldown > 0) return;
+    const late = dt > LATE_FRAME;
+    const ws = this.worldStats;
+    ws.time += dt;
+    ws.frames++;
+    if (late) ws.late++;
+    this.frameTimes.push(late ? 1 : 0);
+    if (this.frameTimes.length > 90) this.frameTimes.shift();
+    if (this.frameTimes.length < 90 || this.levelIndex === 0) return;
+    const share = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
+    if (share > DOWN_LATE_SHARE) {
+      this.levelBlocked[this.levelIndex] = true;
+      this.qualityLog.push(`${LEVELS[this.levelIndex].name} → ${LEVELS[this.levelIndex - 1].name} (${Math.round(share * 100)}% in ritardo)`);
       this.setLevel(this.levelIndex - 1);
-      this.qualityCooldown = 2.5;
-      this.frameTimes.length = 0;
-    } else if (avg < 1 / 75 && this.levelIndex < LEVELS.length - 1 && !(this.levelBlockedUntil[this.levelIndex + 1] > this.qualityClock)) {
-      this.setLevel(this.levelIndex + 1);
-      this.qualityCooldown = 6;
-      this.frameTimes.length = 0;
+      this.resetQualityWindow(2);
     }
+  }
+
+  // Si riparte da capo con le misure (ingresso in un mondo, cambio di livello, scheda tornata visibile):
+  // i primi fotogrammi dopo un cambio sono spesso lenti e non dicono nulla
+  resetQualityWindow(cooldown = 1.5) {
+    this.frameTimes.length = 0;
+    this.worldStats = { time: 0, frames: 0, late: 0 };
+    this.qualityCooldown = cooldown;
+  }
+
+  // A schermo nero, tra un mondo e l'altro (Director.setWorld): se nel mondo appena lasciato quasi
+  // nessun fotogramma era in ritardo si prova il livello sopra. Se poi non regge, updateQuality torna
+  // giù e quel livello resta escluso: al massimo un tentativo per livello.
+  tryUpgrade() {
+    if (!this.autoQuality) return false;
+    const ws = this.worldStats;
+    const next = this.levelIndex + 1;
+    const ok = ws.time >= UP_MIN_SECONDS && ws.late / Math.max(1, ws.frames) < UP_LATE_SHARE;
+    if (!ok || next > this.maxAutoLevel || this.levelBlocked[next]) return false;
+    this.qualityLog.push(`${LEVELS[this.levelIndex].name} → ${LEVELS[next].name} (${Math.round((ws.late / ws.frames) * 100)}% in ritardo in ${ws.time.toFixed(0)} s)`);
+    this.setLevel(next);
+    return true;
   }
 
   setPost(params = {}, immediate = false) {
@@ -331,13 +377,89 @@ export class Renderer {
     this.composer.render(dt);
   }
 
-  // Precompila gli shader di una scena per evitare scatti al primo ingresso.
+  // Precompila gli shader dei materiali di una scena, al caricamento, in parallelo (non blocca il
+  // menu). Si compila per il buffer del composer, dove la scena viene davvero disegnata (colori
+  // lineari): compilati per lo schermo sarebbero altri shader, e in gioco si ricompilerebbe tutto.
   async precompile(scene) {
+    const r = this.renderer;
+    const prev = r.getRenderTarget();
+    let job = null;
     try {
-      if (this.renderer.compileAsync) await this.renderer.compileAsync(scene, this.camera);
-      else this.renderer.compile(scene, this.camera);
+      r.setRenderTarget(this.composer.inputBuffer);
+      // compileAsync prepara i programmi subito (qui, con il buffer giusto) e poi attende che siano pronti
+      if (r.compileAsync) job = r.compileAsync(scene, this.camera);
+      else r.compile(scene, this.camera);
     } catch (e) {
       // la compilazione anticipata è un'ottimizzazione: in caso di errore si compila al primo frame
+    } finally {
+      r.setRenderTarget(prev);
+    }
+    try {
+      await job;
+    } catch (e) {
+      // come sopra
+    }
+  }
+
+  // Un fotogramma di prova fuori schermo, con tutti gli effetti accesi e ogni oggetto disegnato (anche
+  // quelli nascosti o fuori dall'inquadratura): compila gli shader che la precompilazione non raggiunge
+  // (ombre, G-buffer dei riflessi, occlusione, profondità di campo, oggetti che compaiono più tardi).
+  // Si chiama a schermo nero (Director.setWorld): in gioco nessuno shader si compila al volo, cioè
+  // nessuno scatto. Le luci restano come sono, perché cambiarle cambierebbe gli shader stessi.
+  warm(scene) {
+    const key = `${this.levelIndex}`;
+    if (scene.userData.warmKey === key) return;
+    scene.userData.warmKey = key;
+    const shown = [];
+    const unculled = [];
+    const dimmed = [];
+    const litBefore = new Set();
+    scene.traverseVisible((o) => o.isLight && litBefore.add(o));
+    scene.traverse((o) => {
+      if (o.isLight) return;
+      if (!o.visible) {
+        o.visible = true;
+        shown.push(o);
+      }
+      if (o.frustumCulled) {
+        o.frustumCulled = false;
+        unculled.push(o);
+      }
+    });
+    // una luce dentro un gruppo appena mostrato resta spenta com'era
+    scene.traverse((o) => {
+      if (o.isLight && o.visible && !litBefore.has(o)) {
+        o.visible = false;
+        dimmed.push(o);
+      }
+    });
+    const saved = {
+      ao: this.aoPass.enabled,
+      ssr: this.ssrPass.enabled,
+      ssrIntensity: this.ssrPass.intensity,
+      dof: this.dofPass.enabled,
+      probe: this.ssrPass.focusProbe,
+    };
+    this.aoPass.enabled = true;
+    this.ssrPass.enabled = true;
+    if (this.ssrPass.intensity <= 0) this.ssrPass.intensity = 1;
+    this.dofPass.enabled = true;
+    this.ssrPass.focusProbe = false;
+    this.finalPass.renderToScreen = false; // niente sullo schermo
+    try {
+      this.render(scene, 1 / 60);
+    } catch (e) {
+      // anche questa è solo un'ottimizzazione
+    } finally {
+      this.finalPass.renderToScreen = true;
+      this.aoPass.enabled = saved.ao;
+      this.ssrPass.enabled = saved.ssr;
+      this.ssrPass.intensity = saved.ssrIntensity;
+      this.dofPass.enabled = saved.dof;
+      this.ssrPass.focusProbe = saved.probe;
+      for (const o of shown) o.visible = false;
+      for (const o of unculled) o.frustumCulled = true;
+      for (const o of dimmed) o.visible = true;
     }
   }
 }

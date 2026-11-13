@@ -21,8 +21,10 @@
   },
 
   "quality": {
-    "_info": "auto (parte da medium e sale fino a ultra se la scheda video regge i 60 fps) | low | medium (occlusione, riflessi a mezza risoluzione) | high (riflessi in ray tracing pieni, profondità di campo) | ultra (tutto a piena risoluzione, risoluzione 1,5x, ombre 4096). Con una scheda video dedicata si può fissare ultra.",
-    "level": "auto"
+    "_info": "level: auto (parte da medium; sale di un livello solo a schermo nero tra un mondo e l'altro, se c'era margine, e scende se i fotogrammi arrivano in ritardo: un livello abbandonato non si riprova più) | low | medium (occlusione, riflessi a mezza risoluzione) | high (riflessi in ray tracing pieni, profondità di campo) | ultra (tutto a piena risoluzione, risoluzione 1,5x, ombre 4096). Con una scheda video dedicata si può fissare ultra. maxAuto: livello massimo della qualità automatica (vuoto = high sul Mac, ultra altrove). maxFps: tetto di fotogrammi al secondo, 60 (sugli schermi a 120 Hz dei MacBook Pro fotogrammi regolari e metà lavoro); 0 = nessun tetto.",
+    "level": "auto",
+    "maxAuto": "",
+    "maxFps": 60
   },
 
   "intro": {

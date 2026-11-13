@@ -42,6 +42,11 @@ export class Director {
     if (!opts.attract) app.hotspots.setList(next.hotspots);
     app.player.spawn(next.spawn);
     app.renderer.setPost(next.post, true);
+    // a schermo nero: se c'è margine si prova una qualità più alta, poi un fotogramma di prova fuori
+    // schermo compila tutti gli shader del mondo (in gioco nessuna compilazione al volo, nessuno scatto)
+    app.renderer.tryUpgrade();
+    app.renderer.warm(next.scene);
+    app.renderer.resetQualityWindow();
     app.audio.setPalette(next.audioPalette, opts.attract ? 1.5 : 3);
     app.audio.setTickTimbre(next.tickTimbre);
     app.audio.setTickPresence(next.tickPresence, 0);

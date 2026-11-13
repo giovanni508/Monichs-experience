@@ -170,7 +170,9 @@ Tutto è in **`content/texts.json`**. Ogni voce ha la versione italiana e ingles
 | `audio.volume`, `audio.startMuted` | Volume generale e avvio in muto |
 | `audio.piano` | Volume della melodia di pianoforte rispetto al resto della musica (1 = come tarato, 0 = spento) |
 | `language.default` | Lingua iniziale (`it` o `en`) |
-| `quality.level` | `auto` (consigliato: parte da medium e sale fino a ultra se la scheda video regge i 60 fps), oppure fisso `low`, `medium`, `high`, `ultra` (vedi §8, Grafica). Sul PC della fiera, se ha una scheda video dedicata, si può fissare `ultra` |
+| `quality.level` | `auto` (consigliato: parte da medium, sale solo a schermo nero tra un mondo e l'altro e scende se i fotogrammi arrivano in ritardo), oppure fisso `low`, `medium`, `high`, `ultra` (vedi §8, Grafica). Sul PC della fiera, se ha una scheda video dedicata, si può fissare `ultra` |
+| `quality.maxAuto` | Livello massimo della qualità automatica. Vuoto: `high` sul Mac, `ultra` altrove |
+| `quality.maxFps` | Tetto di fotogrammi al secondo: 60. Sugli schermi a 120 Hz (MacBook Pro) dà fotogrammi regolari e dimezza il lavoro della scheda video. `0` = nessun tetto |
 | `cards` | Foto reali mostrate nella "lente" di ogni tappa (stringa vuota = nessuna foto) |
 | `assets` | Logo, orologi scontornati, quadranti, texture dell'agata, modelli 3D |
 
@@ -221,20 +223,31 @@ Architettura: `ARCHITECTURE.md`.
 - **Sunset**: le pareti hanno venature generate a ogni visita. Nei tre Sunset "varianti" della cattedrale la pietra è quella vera del quadrante, ripulita dalle scritte e vista da un altro taglio (ruotata, specchiata, ingrandita), diverso a ogni visita: stampe e minuteria restano al loro posto.
 - **Sicurezza visiva**: nessun lampeggio rapido (le pulsazioni di luce stanno sotto 0,5 Hz).
 - **Grafica**: riflessi in tempo reale con ray tracing nello spazio dello schermo (i raggi riflessi avanzano nel buffer di profondità: pavimenti lucidi e acciaio riflettono davvero orologi, pareti e ingranaggi), occlusione ambientale a raggi (N8AO), ombre del sole in tempo reale, profondità di campo da macro con fuoco automatico su ciò che si guarda, antialiasing SMAA, uno studio fotografico come luce d'ambiente degli orologi (tenda di luce, bande nere e strisce luminose, come nelle foto ufficiali), acciaio con la riflettanza dell'inox e satinatura visibile. Il ray tracing hardware delle schede RTX non è accessibile dai browser (né WebGL né WebGPU): queste tecniche sono l'equivalente in tempo reale per il web.
-- **Qualità adattiva**: in automatico parte da "medium" e sale o scende in base agli fps, per mantenere i 60 fps. Un livello abbandonato perché lento non si riprova per 45 secondi.
+- **Qualità adattiva**: in automatico parte da "medium". Ogni cambio di livello costa un piccolo scatto, quindi i cambi sono pochi e, quando si può, nascosti.
+  - **Scendere.** Se in circa 1,5 s più di un fotogramma su quattro arriva in ritardo (oltre 22 ms, cioè un giro perso dello schermo a 60 Hz), si scende di un livello. Gli scatti isolati non bastano.
+  - **Niente altalena.** Un livello abbandonato perché lento non si riprova più fino al ricaricamento della pagina. Prima si riprovava dopo 45 secondi: sugli schermi a 120 Hz era uno scatto ogni minuto.
+  - **Salire.** Si sale di un livello solo a schermo nero, tra un mondo e l'altro, e solo se nel mondo appena lasciato quasi nessun fotogramma era in ritardo (meno del 2%, dopo almeno 8 s). Mai oltre `quality.maxAuto`: `high` sul Mac, `ultra` altrove.
+  - **Tetto di pixel.** Ogni livello ha un massimo di pixel disegnati. Su uno schermo Retina o su un televisore 4K "medium" e "high" disegnano circa un Full HD e il browser lo ingrandisce.
+  - **Tetto di fps.** `quality.maxFps`, 60. Sullo schermo a 120 Hz del MacBook Pro si disegna un giro sì e uno no: 60 fps regolari invece di un'alternanza tra 120 e 60, e metà calore.
+  - **Verifica.** Shift+D mostra fps, livello, risoluzione del disegno e numero di shader. In console, con `?debug`, `monichs.renderer.qualityLog` elenca i cambi di livello e il perché.
 
   | Livello | Risoluzione | Occlusione | Riflessi | Ombre | Profondità di campo |
   |---|---|---|---|---|---|
-  | low | 0,75× | no | no | 1024 px | no |
-  | medium | 1× | mezza ris. | mezza ris., 40 passi | 2048 px | no |
-  | high | 1× | mezza ris. | piena, 80 passi | 2048 px | sì |
-  | ultra | 1,5× | piena | piena, 96 passi | 4096 px | sì |
+  | low | 0,75× (max 1,2 Mpx) | no | no | 1024 px | no |
+  | medium | 1× (max 2,1 Mpx) | mezza ris. | mezza ris., 40 passi | 2048 px | no |
+  | high | 1× (max 2,1 Mpx) | mezza ris. | piena, 80 passi | 2048 px | sì |
+  | ultra | 1,5× (max 4,7 Mpx) | piena | piena, 96 passi | 4096 px | sì |
 
-  Su una scheda video recente in 1080p un fotogramma costa circa 2 ms in high e 5 ms in ultra (misurati in sviluppo).
+  Su una scheda video recente in 1080p un fotogramma costa circa 2 ms in high e 5 ms in ultra (misurati in sviluppo). Bloom (7 livelli) e SMAA (preset high) sono uguali a tutti i livelli: cambiarli ricompilava i loro shader.
+- **Nessuno shader compilato in gioco**: su Mac (Chrome e Safari passano da Metal) compilare uno shader dei materiali dell'acciaio blocca il gioco per decine o centinaia di millisecondi. Prima, entrando in un mondo, se ne compilavano 20–36, e altri 25 nel tubo della corona: erano gli scatti.
+  - **Al caricamento.** `Renderer.precompile` compila i materiali di ogni mondo in parallelo, per il buffer del composer (colori lineari) dove la scena viene davvero disegnata. Prima si compilava per lo schermo: erano altri shader, e in gioco si ricompilava tutto.
+  - **A schermo nero.** `Renderer.warm`, chiamato da `Director.setWorld`, disegna un fotogramma di prova fuori schermo: tutti gli effetti accesi, ogni oggetto disegnato, anche quelli nascosti o fuori dall'inquadratura. Così si compila il resto: ombre, G-buffer dei riflessi, occlusione, profondità di campo, oggetti che compaiono più tardi. Le luci restano come sono.
+  - **Mappe d'ambiente.** Le mappe che un mondo scambia (dentro e fuori dalla cassa del movimento, giorno e notte di Celeste) hanno tutte la stessa misura (`ENV_SIZE`, 512): con misure diverse lo scambio ricompila ogni materiale.
+  - **Misura.** Nel giro completo dei mondi (Chromium senza finestra), gli shader compilati durante il gioco sono passati da 169 a 1: un piccolo shader d'ombra in Celeste, quando torna il giorno. Gli altri 17 si compilano a schermo nero.
 
 ### Parametri di verifica (solo per lo sviluppo)
 
-`?debug` espone gli strumenti in console (`walkDebug()` mostra in verde le aree calpestabili e gli ostacoli del mondo corrente; `shot('nome')`, solo con `npm run dev`, salva una cattura del canvas nella cartella temporanea di sistema `monichs-shots`). `?world=celeste` (o `movement`, `sunset`, `virentia`, `epilogue`) salta direttamente a un mondo. `?nolock` gioca senza pointer lock, con il mouse libero: si guarda trascinando. `?noidle` disattiva la modalità fiera. `?quality=low` forza la qualità. `?lang=en` imposta la lingua.
+`?debug` espone gli strumenti in console (`walkDebug()` mostra in verde le aree calpestabili e gli ostacoli del mondo corrente; `shot('nome')`, solo con `npm run dev`, salva una cattura del canvas nella cartella temporanea di sistema `monichs-shots`). `?world=celeste` (o `movement`, `sunset`, `virentia`, `epilogue`) salta direttamente a un mondo. `?nolock` gioca senza pointer lock, con il mouse libero: si guarda trascinando. `?noidle` disattiva la modalità fiera. `?quality=low` forza la qualità. `?fps=0` toglie il tetto di 60 fps (`?fps=30` ne mette un altro). `?lang=en` imposta la lingua.
 
 ## 9. TODO aperti (da chiarire con il brand)
 

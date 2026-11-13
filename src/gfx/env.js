@@ -78,8 +78,10 @@ void main() {
   gl_FragColor = vec4(c, 1.0);
 }`;
 
-// Risoluzione delle mappe d'ambiente: 512 tiene nitidi i riflessi sull'acciaio lucidato
-const ENV_SIZE = 512;
+// Risoluzione delle mappe d'ambiente: 512 tiene nitidi i riflessi sull'acciaio lucidato. Tutte le mappe
+// che si scambiano nello stesso mondo devono avere questa misura: con una misura diversa ogni materiale
+// cambia shader e va ricompilato (uno scatto di qualche decimo di secondo sul Mac)
+export const ENV_SIZE = 512;
 let studioEnv = null;
 
 // Studio fotografico degli orologi: una "tenda di luce" che avvolge l'orologio davanti (le superfici

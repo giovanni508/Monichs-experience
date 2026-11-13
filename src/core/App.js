@@ -70,7 +70,14 @@ export class App {
     this.i18n = new I18n(texts, lang, config.language?.available || ['it', 'en']);
     document.documentElement.lang = this.i18n.lang;
 
-    this.renderer = new Renderer(this.canvas, { quality: params.get('quality') || config.quality?.level || 'auto', preserve: this.debug });
+    this.renderer = new Renderer(this.canvas, {
+      quality: params.get('quality') || config.quality?.level || 'auto',
+      maxAuto: config.quality?.maxAuto || null,
+      preserve: this.debug,
+    });
+    // tetto di fotogrammi al secondo (0 = nessuno): vedi frame()
+    const maxFps = Number(params.get('fps') ?? config.quality?.maxFps ?? 60);
+    this.minFrameMs = maxFps > 0 ? 1000 / maxFps : 0;
     this.camera = this.renderer.camera;
     this.input = new Input(this.canvas);
     this.player = new Player(this.camera);
@@ -372,6 +379,8 @@ export class App {
 
     document.addEventListener('visibilitychange', () => {
       this.last = performance.now();
+      // i fotogrammi attorno al cambio di scheda non dicono nulla sulla scheda video
+      this.renderer.resetQualityWindow();
       this.syncPause();
     });
   }
@@ -412,6 +421,11 @@ export class App {
 
   frame() {
     const now = performance.now();
+    // Tetto di fps (config quality.maxFps, 60): su uno schermo a 120 Hz, come quello dei MacBook Pro, si
+    // disegna un giro sì e uno no. 60 fps regolari invece di un'alternanza irregolare tra 120 e 60, e
+    // metà lavoro per la scheda video (che così scalda meno in una giornata di fiera). Il margine (0,75)
+    // tiene buoni gli schermi a 60 e 75 Hz anche con le piccole irregolarità del browser.
+    if (this.minFrameMs && now - this.last < this.minFrameMs * 0.75) return;
     const dt = Math.min(0.05, Math.max(0.0001, (now - this.last) / 1000));
     this.last = now;
     this.time += dt;
@@ -460,10 +474,12 @@ export class App {
         f.fps = f.frames / f.time;
         f.frames = 0;
         f.time = 0;
-        const info = this.renderer.renderer.info;
+        const r = this.renderer;
+        const info = r.renderer.info;
         const p = this.player.position;
+        const el = r.renderer.domElement;
         this.ui.setStats(
-          `${f.fps.toFixed(0)} fps · ${this.renderer.level.name} · ${info.render.calls} draw · ${(info.render.triangles / 1000).toFixed(0)}k tri\n` +
+          `${f.fps.toFixed(0)} fps · ${r.level.name} · ${el.width}×${el.height} (×${r.pixelRatio.toFixed(2)}) · ${info.render.calls} draw · ${(info.render.triangles / 1000).toFixed(0)}k tri · ${info.programs.length} shader\n` +
             `${d.state} · ${world?.id} · pos ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)} · ×${this.clock.scale.toFixed(2)}`,
         );
       }

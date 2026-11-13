@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { World } from './World.js';
 import { WalkArea, insetEnds } from '../core/WalkArea.js';
-import { createEnvironment } from '../gfx/env.js';
+import { createEnvironment, ENV_SIZE } from '../gfx/env.js';
 import { Mat, highlightTargets } from '../gfx/materials.js';
 import { DustField } from '../gfx/particles.js';
 import { lightShaft, glowSprite, loadTexture } from '../gfx/effects.js';
@@ -168,13 +168,15 @@ export class MovementWorld extends World {
     s.environment = createEnvironment(app.renderer.renderer, 'workshop');
     s.environmentIntensity = 1;
     // fuori dalla cassa i metalli (passerella, corona, carrure) riflettono il crepuscolo vero: una mappa
-    // d'ambiente generata una volta dal cielo stesso; dentro resta la luce calda dell'officina
+    // d'ambiente generata una volta dal cielo stesso; dentro resta la luce calda dell'officina.
+    // Stessa misura della mappa di dentro (ENV_SIZE): così nel tubo della corona lo scambio non
+    // ricompila gli shader di tutti i materiali
     this.envInside = s.environment;
     {
       const envScene = new THREE.Scene();
       envScene.add(new DreamSky({ glowDir: V(0, 0.05, 1) }).mesh);
       const pmrem = new THREE.PMREMGenerator(app.renderer.renderer);
-      this.envOutside = pmrem.fromScene(envScene, 0.02, 0.1, 3000, { size: 256 }).texture;
+      this.envOutside = pmrem.fromScene(envScene, 0.02, 0.1, 3000, { size: ENV_SIZE }).texture;
       pmrem.dispose();
       envScene.traverse((o) => {
         if (o.geometry) o.geometry.dispose();
