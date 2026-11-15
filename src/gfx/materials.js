@@ -2,7 +2,8 @@ import * as THREE from 'three';
 
 // ---------------------------------------------------------------------------------------------
 // Sistema di "patch" per i materiali standard/physical: finiture orologiere procedurali
-// (Côtes de Genève, perlage, Côtes circolari) e bagliore di evidenziazione degli hotspot.
+// (ponti opachi con smussi lucidati, bande parallele, anelli concentrici, perlage, satinatura a righe)
+// e bagliore di evidenziazione degli hotspot.
 // Le finiture sono calcolate nello spazio oggetto, sulle facce orizzontali (normale ±Y).
 // ---------------------------------------------------------------------------------------------
 
@@ -122,42 +123,58 @@ float brLines(float f) {
 }
 
 /**
- * Côtes de Genève rettilinee: bande parallele all'asse Z dell'oggetto, larghe `width`.
- * Ogni banda riflette la luce come un'onda morbida; finissime striature ad arco.
+ * Ponti del calibro come nelle foto del movimento (Vi 4): facce superiori opache, uniformi, e smussi
+ * lucidati a specchio (l'anglage); i sottoponti restano un po' più ruvidi.
  */
-export function patchCotes(material, { width = 1.2, strength = 0.5, angle = 0 } = {}) {
+export function patchBridgeFinish(material) {
   const st = patchState(material);
   useObjSpace(st);
-  st.uniforms.uCotesW = { value: width };
-  st.uniforms.uCotesK = { value: strength };
-  st.uniforms.uCotesA = { value: angle };
-  st.fragDecl.push('uniform float uCotesW; uniform float uCotesK; uniform float uCotesA;');
+  st.fragRough.push(`
+  {
+    float topMask = smoothstep(0.9, 0.98, vObjNormal.y);
+    roughnessFactor = mix(roughnessFactor * (vObjNormal.y < -0.5 ? 1.25 : 0.35), roughnessFactor, topMask);
+  }`);
+  st.keys.push('bridge');
+  return st.uniforms;
+}
+
+/**
+ * Bande parallele all'asse Z dell'oggetto, larghe `width`: ogni banda prende la luce come un'onda
+ * morbida, con finissime striature ad arco (il prato di muschio pettinato di Virentia).
+ */
+export function patchBands(material, { width = 1.2, strength = 0.5, angle = 0 } = {}) {
+  const st = patchState(material);
+  useObjSpace(st);
+  st.uniforms.uBandW = { value: width };
+  st.uniforms.uBandK = { value: strength };
+  st.uniforms.uBandA = { value: angle };
+  st.fragDecl.push('uniform float uBandW; uniform float uBandK; uniform float uBandA;');
   st.fragRough.push(`
   vec2 patSlope = vec2(0.0);
-  // solo le facce superiori: i sottoponti non sono decorati
+  // solo le facce rivolte in su
   float patMask = smoothstep(0.9, 0.98, vObjNormal.y);
-  roughnessFactor = mix(roughnessFactor * (vObjNormal.y < -0.5 ? 1.25 : 0.35), roughnessFactor, patMask); // smussi lucidati
+  roughnessFactor = mix(roughnessFactor * (vObjNormal.y < -0.5 ? 1.25 : 0.35), roughnessFactor, patMask);
   {
-    float ca = cos(uCotesA), sa = sin(uCotesA);
+    float ca = cos(uBandA), sa = sin(uBandA);
     vec2 q = mat2(ca, -sa, sa, ca) * vObjPos.xz;
-    float x = q.x / uCotesW;
+    float x = q.x / uBandW;
     float band = floor(x);
     float u = fract(x) - 0.5;
-    float z = q.y / uCotesW;
+    float z = q.y / uBandW;
     float arc = z * 2.2 - u * u * 3.2 + band * 0.37;
     float fine = sin(arc * 6.2831 * 7.0);
     vec2 s = vec2(sin(u * 3.14159) * 0.62, 0.0) + vec2(0.0, fine * 0.05) + vec2(fine * 0.025, 0.0);
     s = mat2(ca, sa, -sa, ca) * s;
-    patSlope += s * uCotesK * patMask;
+    patSlope += s * uBandK * patMask;
     roughnessFactor = mix(roughnessFactor, roughnessFactor * (0.72 + 0.2 * abs(u) + 0.08 * fine), patMask);
   }`);
   st.fragNormal.push('normal = normalize(normal + vTX * patSlope.x + vTZ * patSlope.y);');
-  st.keys.push('cotes');
+  st.keys.push('bands');
   return st.uniforms;
 }
 
-/** Côtes de Genève circolari (anelli concentrici attorno all'origine dell'oggetto), come sul rotore. */
-export function patchCotesCircular(material, { width = 1.0, strength = 0.5 } = {}) {
+/** Anelli concentrici attorno all'origine dell'oggetto, come la satinatura circolare del rotore. */
+export function patchRings(material, { width = 1.0, strength = 0.5 } = {}) {
   const st = patchState(material);
   useObjSpace(st);
   st.uniforms.uCCW = { value: width };
@@ -179,7 +196,7 @@ export function patchCotesCircular(material, { width = 1.0, strength = 0.5 } = {
     roughnessFactor = mix(roughnessFactor, roughnessFactor * (0.75 + 0.25 * abs(u)), patMask);
   }`);
   st.fragNormal.push('normal = normalize(normal + vTX * patSlope.x + vTZ * patSlope.y);');
-  st.keys.push('cotesC');
+  st.keys.push('rings');
   return st.uniforms;
 }
 

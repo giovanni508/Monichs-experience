@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { Mat, patchCotes, patchCotesCircular, patchPerlage, patchDissolve, patchBrushLines, patchCustom, addCircularTangents } from '../../gfx/materials.js';
+import { Mat, patchBridgeFinish, patchPerlage, patchDissolve, patchBrushLines, patchCustom, addCircularTangents } from '../../gfx/materials.js';
 import {
   wheelShape,
   pinionShape,
@@ -83,9 +83,10 @@ export function buildPlate({ center, radius, y }) {
   return m;
 }
 
+// ponti come nella foto del movimento: grigi, opachi, con gli smussi lucidati
 export function bridgeMaterial() {
-  const mat = Mat.rhodium({ color: 0xb2b6bc, roughness: 0.34 });
-  patchCotes(mat, { width: 2.4, strength: 0.2, angle: 0.35 });
+  const mat = Mat.rhodium({ color: 0xb2b6bc, roughness: 0.45 });
+  patchBridgeFinish(mat);
   return mat;
 }
 

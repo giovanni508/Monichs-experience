@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Mat, patchCotesCircular, patchPerlage } from '../../gfx/materials.js';
+import { Mat, patchRings, patchPerlage } from '../../gfx/materials.js';
 
 // Passerelle "da orologiaio" sospese nel calibro: pavimento in vetro zaffiro (si vedono le ruote
 // sotto i piedi), longheroni in acciaio lucidato, corrimano in oro rosa, filetti di luce sui bordi
@@ -378,7 +378,7 @@ export function buildHubPlatform({ x, z, y, rOuter = 20, rGlass = 15.6, hole }) 
   ringGeo.translate(0, -0.62, 0);
   ringGeo.computeVertexNormals();
   const ringMat = Mat.rhodium({ color: 0xb4b8be, roughness: 0.32 });
-  patchCotesCircular(ringMat, { width: 1.3, strength: 0.16 });
+  patchRings(ringMat, { width: 1.3, strength: 0.16 });
   const ring = new THREE.Mesh(ringGeo, ringMat);
   g.add(ring);
   // bordo lucido del vetro e del foro

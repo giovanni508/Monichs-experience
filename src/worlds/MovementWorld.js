@@ -293,7 +293,7 @@ export class MovementWorld extends World {
     gasket.position.set(0, L.stemY, (zIn + zOut) / 2 + 1.5);
     s.add(gasket);
 
-    // ponti (Côtes de Genève, smussi lucidati)
+    // ponti (opachi, smussi lucidati)
     this.bridgeMat = P.bridgeMaterial();
     this.cockMat = P.bridgeMaterial();
     const by = L.bridgeY;

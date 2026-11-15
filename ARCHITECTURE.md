@@ -23,8 +23,8 @@ src/
                          I18n, Content (caricamento JSON)
   gfx/                   Renderer + post (ssr.js riflessi in ray tracing, shadows.js ombre del sole),
                          env map, watchModel.js (modelli GLB degli orologi e del rotore), nature.js (alberi e piante in instancing), materiali (acciaio satinato/
-                         lucido, oro rosa, rubino, laccatura), texture procedurali (perlage, Côtes de
-                         Genève, guilloché), ingranaggi procedurali, particelle, raggi di luce, cielo
+                         lucido, oro rosa, rubino, laccatura), texture procedurali (perlage, ponti opachi
+                         con smussi lucidati, anelli concentrici, guilloché), ingranaggi procedurali, particelle, raggi di luce, cielo
   mech/                  cinematica del calibro (bilanciere 4 Hz, ancora, scappamento, rodaggio)
   worlds/                IntroWorld · MovementWorld (Parte 1 + hub dei portali) · CelesteWorld ·
                          SunsetWorld · VirentiaWorld · EpilogueWorld   (stessa interfaccia World)
@@ -118,7 +118,7 @@ Ordine dei passaggi: scena → occlusione ambientale (N8AO, raggi nel buffer di 
 | Hub | Finestre dei portali con macro reali dei quadranti |
 | Celeste | Procedurale (cielo-quadrante, maglie) + monolite = modello 3D Celeste; card: Ce 1, Ce 2, Ce 3, Ce 4, Ce 6, Ce 7 |
 | Sunset | Texture delle bande da Su 7; monolite = modello 3D Sunset nell'abside della cattedrale; attorno, quattro Sunset (uno con il quadrante reale, tre con la stessa pietra in un altro taglio); card: Su 2, Su 4, Su 7, Su 10 |
-| Virentia | Bosco = modelli Blender di Modelli/3D/natura (alberi a viale, felci, fiori, erba, rocce, funghi); prato di muschio pettinato a Côtes de Genève e nebbia bassa; il sole è il modello 3D del rotore; porta = lunetta del modello 3D Virentia con il rotore 3D dentro (ci si passa sotto il mozzo); monolite = modello 3D Virentia in fondo alla radura; card: Vi 2, Vi 4, Vi 6, Vi 7 |
+| Virentia | Bosco = modelli Blender di Modelli/3D/natura (alberi a viale, felci, fiori, erba, rocce, funghi); prato di muschio pettinato a onde parallele e nebbia bassa; il sole è il modello 3D del rotore; porta = lunetta del modello 3D Virentia con il rotore 3D dentro (ci si passa sotto il mozzo); monolite = modello 3D Virentia in fondo alla radura; card: Vi 2, Vi 4, Vi 6, Vi 7 |
 | Epilogo | I tre modelli 3D su fondo scuro, luce da studio |
 
 Dettagli: `ASSETS.md`. Istruzioni operative: `README.md`.

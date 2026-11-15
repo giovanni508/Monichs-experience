@@ -61,7 +61,7 @@ Palette dalle guidelines: Navy/Midnight Blue `#000035` (tinte `#282b54`, `#4f557
 | `MNC_I25_Ed_Vi (3).png` | Al polso | Insieme | 8640×5760 | Non usato |
 | `MNC_I25_Ed_Vi (4).png` | **Fondello aperto in zaffiro**: rotore oro rosa inciso "TWENTY-SIX (26) JEWELS SWISS MADE", bilanciere con rubino e antiurto | Fondello aperto, rotore, movimento | 8640×12039 | Card "Fondello in zaffiro" (Virentia), "Il rotore" (Virentia), Parte 1: "Il bilanciere", "I 26 rubini", "La finitura" |
 | `MNC_I25_Ed_Vi (6).png` | Orologiaio al lavoro sul fondello | Atelier | 8640×5760 | Card "Viti e anglage" |
-| `MNC_I25_Ed_Vi (7).png` | Rotore sollevato con pinzetta | Rotore custom | 8640×5760 | Card "Il rotore" (Parte 1) e "Côtes de Genève" (Virentia) |
+| `MNC_I25_Ed_Vi (7).png` | Rotore sollevato con pinzetta | Rotore custom | 8640×5760 | Card "Il rotore" (Parte 1) e "La satinatura circolare" (Virentia) |
 | `MNC_I25_Ed_Vi (9).png` | Chiusura del bracciale bicolore | Bracciale, oro rosa | 8640×5760 | Non usato |
 | `MNC_I25_Ed_Vi (11.1).png` | Quadrante sciolto, lume ciano | Quadrante | 8640×9905 | Non usato |
 
@@ -86,7 +86,7 @@ Palette dalle guidelines: Navy/Midnight Blue `#000035` (tinte `#282b54`, `#4f557
 ## 6. Osservazioni emerse dalle immagini (da verificare con il brand)
 
 1. **Calibro**: nella foto `Vi (4)` sul ponte del bilanciere si legge inciso **"SW200-1"**, mentre il brief indica **SW200-2 Élaboré**. Nei testi usiamo SW200-2 Élaboré (dato confermato nel brief) — vedi TODO.
-2. **Rotore**: le foto mostrano una finitura circolare (concentrica) sul rotore in oro rosa; il brief parla di Côtes de Genève. Nei mondi il rotore è il modello 3D (satinatura circolare, come nelle foto) e le Côtes rettilinee stanno sul paesaggio di Virentia. Da confermare la dicitura esatta dei testi.
+2. **Rotore**: le foto mostrano una finitura circolare (concentrica) sul rotore in oro rosa. Risolto il 15 novembre 2026: testi e grafica seguono le foto. I testi parlano di satinatura circolare; nei mondi il rotore è il modello 3D (satinatura circolare, come nelle foto) e i ponti del calibro sono opachi con gli smussi lucidati, come nella foto `Vi (4)`.
 3. **Colore Celeste**: in foto il quadrante è un blu intenso con pattern a triangoli; il brief dice "azzurro polvere laccato". I testi seguono il brief, le immagini sono quelle reali.
 4. **Lume**: in tutte le foto notturne il SuperLuminova emette **ciano/acqua**: usiamo quel colore (nessuna affermazione sul grado).
 5. **Rose gold** (Virentia, lunetta e maglie centrali): non è specificato se oro massiccio o trattamento: i testi dicono "oro rosa" come nel brief — vedi TODO.

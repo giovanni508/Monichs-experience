@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { World } from './World.js';
 import { WalkArea } from '../core/WalkArea.js';
 import { createEnvironment } from '../gfx/env.js';
-import { Mat, patchCotes, patchCustom, highlightTargets } from '../gfx/materials.js';
+import { Mat, patchBands, patchBridgeFinish, patchCustom, highlightTargets } from '../gfx/materials.js';
 import { DustField } from '../gfx/particles.js';
 import { glowSprite, lightShaft, mulberry32 } from '../gfx/effects.js';
 import { DreamSky } from '../gfx/sky.js';
@@ -55,9 +55,9 @@ void main() {
   gl_FragColor = vec4(uColor, a);
 }`;
 
-// MONDO 3 — VIRENTIA (Ref. M-003) — il fondello aperto, il rotore e la finitura Côtes de Genève.
+// MONDO 3 — VIRENTIA (Ref. M-003) — il fondello aperto, il rotore e la sua satinatura circolare.
 // Un bosco incantato sotto il fondello: un viale di alberi le cui chiome fanno arco sul sentiero, felci,
-// fiori appena luminosi e nebbia bassa; il prato è pettinato a onde di Côtes de Genève; il rotore in oro
+// fiori appena luminosi e nebbia bassa; il prato è pettinato a onde parallele; il rotore in oro
 // rosa è il sole e un altro rotore fa da porta nella lunetta. Si cammina sulle onde del prato; tronchi,
 // rocce, la vite caduta, la porta e la molla non si attraversano.
 const PATH = [
@@ -68,7 +68,7 @@ const PATH = [
   [0, 9, -110, 12, 8],
   [0, 10, -150, 26, 14],
 ];
-const STATIONS = ['cotes', 'screws', 'caseback', 'rosegold', 'rotor'];
+const STATIONS = ['satin', 'screws', 'caseback', 'rosegold', 'rotor'];
 const CLEARING = V(0, 0, -160);
 const GATE_Z = -112;
 const LINKS = { half: 9.4, z0: -85.4, z1: -168.6, top: 1.24 }; // sentiero di maglie sotto la porta
@@ -225,7 +225,7 @@ export class VirentiaWorld extends World {
     this.exitPortal = new Portal({ id: 'exit', name: 'SW200-2', ref: 'ÉLABORÉ · SWISS MADE', colorA: 0x103a1c, colorB: 0xf2c0a4, radius: 4.4 });
     s.add(this.exitPortal.group);
 
-    // ombre del sole: alberi, felci, rocce, porta e molla sul prato di Côtes de Genève (luce a chiazze
+    // ombre del sole: alberi, felci, rocce, porta e molla sul prato pettinato (luce a chiazze
     // sotto le chiome); il rotore è il sole stesso e non fa ombra (coprirebbe tutta la radura)
     this.rotorHolder.traverse((o) => (o.userData.noCastShadow = true));
     enableShadows(s);
@@ -241,8 +241,8 @@ export class VirentiaWorld extends World {
     this.loaded = true;
   }
 
-  // prato di muschio vellutato pettinato a onde parallele: le Côtes de Genève diventano erba che prende
-  // la luce a bande, come racconta la tappa (stessa forma di prima: groundHeight la conosce)
+  // prato di muschio vellutato pettinato a onde parallele: erba che prende la luce a bande
+  // (stessa forma di prima: groundHeight la conosce)
   buildGround() {
     const geo = new THREE.PlaneGeometry(320, 320, 220, 220);
     geo.rotateX(-Math.PI / 2);
@@ -265,7 +265,7 @@ export class VirentiaWorld extends World {
       sheenColor: new THREE.Color(0xa6e39a),
       sheenRoughness: 0.42,
     });
-    patchCotes(this.groundMat, { width: 9, strength: 0.32, angle: -0.18 });
+    patchBands(this.groundMat, { width: 9, strength: 0.32, angle: -0.18 });
     // muschio vivo: macchie più chiare e più scure, verde giallo dove batte il sole e verde azzurro
     // nelle conche, a tre scale (il prato era di un verde uniforme, come plastica)
     patchCustom(this.groundMat, {
@@ -348,9 +348,9 @@ float mossN(vec2 p) {
     fsl.position.y = 7.6;
     fsl.rotation.y = 0.6;
     feature.add(fsl);
-    // un ponte con smussi lucidati accanto alla vite
-    const bm = Mat.rhodium({ color: 0x9da1a8, roughness: 0.36 });
-    patchCotes(bm, { width: 2.4, strength: 0.2, angle: 0.3 });
+    // un ponte con smussi lucidati accanto alla vite (opaco, come i ponti nella foto del movimento)
+    const bm = Mat.rhodium({ color: 0x9da1a8, roughness: 0.45 });
+    patchBridgeFinish(bm);
     const shape = roundedHull([S(0, 0), S(16, -5)], 4);
     const bgeo = new THREE.ExtrudeGeometry(shape, { depth: 2.4, bevelEnabled: true, bevelThickness: 0.6, bevelSize: 0.6, bevelSegments: 1 });
     bgeo.rotateX(-Math.PI / 2);
@@ -832,7 +832,7 @@ float mossN(vec2 p) {
     });
     const at = (x, z) => this.walkEye(x, z, 1);
     this.hotspots = [
-      mk('cotes', at(0, 6), 22, 12, []),
+      mk('satin', at(0, 6), 22, 12, []),
       mk('screws', at(-12, -22), 20, 11, [this.screwFeature]),
       mk('caseback', at(6, -70), 22, 12, []),
       mk('rosegold', at(0, -100), 20, 11, [this.gate]),

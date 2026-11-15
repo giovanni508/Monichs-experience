@@ -137,7 +137,7 @@
       },
       "finishing": {
         "title": { "it": "La finitura", "en": "The finishing" },
-        "body": { "it": "Côtes de Genève, viti lucidate, smussi: la decorazione non fa funzionare il calibro, ma racconta con quanta cura è stato fatto. Le onde parallele sono tracciate da una mola, passata dopo passata. Le ritroverai, al massimo, in Virentia.", "en": "Côtes de Genève, polished screws, bevelled edges: decoration does not make the calibre work, it tells how carefully it was made. The parallel waves are traced by a rotating wheel, pass after pass. You will find them at their finest in Virentia." },
+        "body": { "it": "Viti lucidate, smussi, superfici satinate: la decorazione non fa funzionare il calibro, ma racconta con quanta cura è stato fatto. Ogni finitura nasce passata dopo passata. Le ritroverai, al massimo, in Virentia.", "en": "Polished screws, bevelled edges, satin-finished surfaces: decoration does not make the calibre work, it tells how carefully it was made. Every finish is built up pass after pass. You will find them at their finest in Virentia." },
         "poem": { "it": "La bellezza che resta, anche al buio.", "en": "Beauty that remains, even in the dark." },
         "action": { "it": "Fai scorrere la luce", "en": "Sweep the light" }
       }
@@ -246,10 +246,10 @@
       "exit": { "it": "Quando vuoi, la luce ti riporta al cuore del movimento.", "en": "Whenever you wish, the light will take you back to the heart of the movement." }
     },
     "stations": {
-      "cotes": {
-        "title": { "it": "Côtes de Genève", "en": "Côtes de Genève" },
-        "body": { "it": "Una decorazione legata alla tradizione ginevrina: una mola rotante, appoggiata con pressione costante, traccia bande regolari che catturano la luce come onde. Sul rotore Monichs le Côtes de Genève girano con ogni movimento del polso.", "en": "A decoration rooted in Geneva’s tradition: a rotating wheel, applied with constant pressure, traces regular bands that catch the light like waves. On the Monichs rotor, the Côtes de Genève turn with every movement of the wrist." },
-        "poem": { "it": "Onde ferme, che si muovono con la luce.", "en": "Still waves that move with the light." }
+      "satin": {
+        "title": { "it": "La satinatura circolare", "en": "The circular satin finish" },
+        "body": { "it": "Il rotore Monichs non è lucidato a specchio: la sua superficie è satinata in cerchi concentrici attorno all’asse. Righe sottilissime, una accanto all’altra, spezzano i riflessi e li fanno girare con ogni movimento del polso.", "en": "The Monichs rotor is not mirror-polished: its surface is satin-finished in concentric circles around the axis. Ultra-fine lines, one beside the other, break up the reflections and make them turn with every movement of the wrist." },
+        "poem": { "it": "Cerchi fermi, che girano con la luce.", "en": "Still circles that turn with the light." }
       },
       "screws": {
         "title": { "it": "Viti lucidate e anglage", "en": "Polished screws and anglage" },
